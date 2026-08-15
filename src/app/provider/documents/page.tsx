@@ -7,7 +7,7 @@ import { Card, CardTitle } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { CreateDocumentModal } from "./CreateDocumentModal";
 
@@ -55,41 +55,34 @@ export default async function ProviderDocumentsPage({
 
   const { type, status } = await searchParams;
 
-  const where: Record<string, unknown> = { senderId: session.id };
-  if (type && type !== "ALL") where.type = type;
-  if (status && status !== "ALL") where.status = status;
+  const params = new URLSearchParams();
+  if (type && type !== "ALL") params.set("type", type);
+  if (status && status !== "ALL") params.set("status", status);
+  const qs = params.toString();
 
-  const provider = await prisma.providerProfile.findUnique({
-    where: { userId: session.id },
-  });
-  if (!provider) redirect("/auth/login");
-
-  const [documents, providerBookings] = await Promise.all([
-    prisma.document.findMany({
-      where,
-      include: {
-        booking: {
-          select: {
-            id: true,
-            event: { select: { title: true } },
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.booking.findMany({
-      where: { providerId: provider.id },
-      select: {
-        id: true,
-        event: { select: { title: true } },
-        customer: { include: { user: { select: { firstName: true, lastName: true } } } },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    }),
+  const [docsResult, providerBookings] = await Promise.all([
+    serverApi<{
+      documents: Array<{
+        id: string;
+        documentNumber: string;
+        type: string;
+        status: string;
+        recipientName: string;
+        total: number;
+        createdAt: string;
+      }>;
+    }>(`/api/documents${qs ? `?${qs}` : ""}`),
+    serverApi<{
+      bookings: Array<{
+        id: string;
+        event: { title: string };
+        customer: { user: { firstName: string; lastName: string } };
+      }>;
+    }>("/api/bookings?role=PROVIDER"),
   ]);
 
-  const bookings = providerBookings.map((b) => ({
+  const documents = docsResult.documents;
+  const bookings = providerBookings.bookings.slice(0, 50).map((b) => ({
     id: b.id,
     label: `${b.event.title} - ${b.customer.user.firstName} ${b.customer.user.lastName}`,
   }));

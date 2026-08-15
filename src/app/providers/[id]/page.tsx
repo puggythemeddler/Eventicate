@@ -1,16 +1,74 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge, StarRating } from "@/components/ui/Badge";
 import { AvailabilityCalendar } from "@/components/calendar/AvailabilityCalendar";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { formatCurrency, parseJsonArray } from "@/lib/utils";
 import { MapPin } from "lucide-react";
 import { SERVICE_CATEGORIES, EVENT_TYPES } from "@/lib/constants";
 import { CategoryIcon } from "@/components/layout/Navigation";
 import { AddToCartButton } from "./AddToCartButton";
 import Image from "next/image";
+
+interface ProviderReview {
+  id: string;
+  serviceQuality: number | null;
+  professionalism: number | null;
+  communication: number | null;
+  comment: string | null;
+  customerReviewer: { user: { firstName: string; lastName: string } } | null;
+}
+
+interface ProviderData {
+  id: string;
+  businessName: string;
+  city: string | null;
+  country: string | null;
+  category: string;
+  averageRating: number;
+  travelOutsideArea: boolean;
+  travelRadius: number | null;
+  description: string | null;
+  services: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+    images: string;
+    basePrice: number;
+    discountPercent: number;
+  }>;
+  menuPackages: Array<{
+    id: string;
+    name: string;
+    basePrice: number;
+    guestCount: number;
+    servingStyle: string;
+    includesDrinks: boolean;
+    includesDessert: boolean;
+  }>;
+  equipment: Array<{
+    id: string;
+    name: string;
+    subcategory: string;
+    quantity: number;
+    images: string[];
+    rentalPrice: number;
+    discountPercent: number;
+  }>;
+  pricingRules: Array<{
+    id: string;
+    name: string;
+    eventType: string | null;
+    isWeekend: boolean;
+    isPeakSeason: boolean;
+    modifierType: string;
+    priceModifier: number;
+  }>;
+  reviewsReceived: ProviderReview[];
+}
 
 export default async function ProviderProfilePage({
   params,
@@ -20,26 +78,22 @@ export default async function ProviderProfilePage({
   const { id } = await params;
   const session = await getSession();
 
-  const provider = await prisma.providerProfile.findUnique({
-    where: { id },
-    include: {
-      services: { where: { isActive: true } },
-      venues: { where: { isActive: true } },
-      equipment: { where: { isActive: true } },
-      menuPackages: { where: { isActive: true } },
-      photoPackages: { where: { isActive: true } },
-      pricingRules: { where: { isActive: true } },
-      reviewsReceived: {
-        where: { isPublic: true },
-        include: {
-          customerReviewer: {
-            include: { user: { select: { firstName: true, lastName: true } } },
-          },
-        },
-        take: 5,
-      },
-    },
-  });
+  const now = new Date();
+
+  let provider: ProviderData | null = null;
+  let availability: Array<{ id: string; date: string; status: string }> = [];
+
+  try {
+    const data = await serverApi<{
+      provider: ProviderData;
+      availability: Array<{ id: string; date: string; status: string }> | null;
+    }>(`/api/providers/${id}?month=${now.getMonth()}&year=${now.getFullYear()}`);
+    provider = data.provider;
+    provider.reviewsReceived = provider.reviewsReceived.slice(0, 5);
+    availability = data.availability ?? [];
+  } catch {
+    notFound();
+  }
 
   if (!provider) {
     return (
@@ -48,17 +102,6 @@ export default async function ProviderProfilePage({
       </div>
     );
   }
-
-  const now = new Date();
-  const availability = await prisma.availabilitySlot.findMany({
-    where: {
-      providerId: id,
-      date: {
-        gte: new Date(now.getFullYear(), now.getMonth(), 1),
-        lte: new Date(now.getFullYear(), now.getMonth() + 1, 0),
-      },
-    },
-  });
 
   const categoryLabel = SERVICE_CATEGORIES.find((c) => c.value === provider.category)?.label;
 
@@ -171,7 +214,7 @@ export default async function ProviderProfilePage({
                 <CardTitle className="mb-4">Equipment</CardTitle>
                 <div className="grid gap-3 md:grid-cols-2">
                   {provider.equipment.map((item) => {
-                    const equipImages = parseJsonArray<string>(item.images);
+                    const equipImages = item.images;
                     const hasDiscount = item.discountPercent > 0;
                     const discountedPrice = item.rentalPrice * (100 - item.discountPercent) / 100;
                     return (
@@ -273,8 +316,8 @@ export default async function ProviderProfilePage({
           <div className="space-y-6">
             <AvailabilityCalendar
               slots={availability.map((a) => ({
-                date: a.date.toISOString(),
-                status: a.status,
+                date: new Date(a.date).toISOString(),
+                status: a.status as "AVAILABLE" | "PENDING" | "CONFIRMED" | "UNAVAILABLE",
               }))}
               month={now.getMonth()}
               year={now.getFullYear()}

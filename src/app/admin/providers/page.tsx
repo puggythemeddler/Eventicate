@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
@@ -6,10 +6,21 @@ import { Card } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge, StarRating } from "@/components/ui/Badge";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { SERVICE_CATEGORIES } from "@/lib/constants";
 import { ApproveButton } from "./ApproveProvider";
 import { RejectButton } from "./RejectButton";
+
+interface ProviderRow {
+  id: string;
+  businessName: string;
+  category: string;
+  city: string | null;
+  isApproved: boolean;
+  averageRating: number;
+  user: { firstName: string; lastName: string; email: string };
+  _count: { bookings: number; reviewsReceived: number };
+}
 
 const APPROVAL_OPTIONS = [
   { value: "ALL", label: "All Status" },
@@ -33,22 +44,23 @@ export default async function AdminProvidersPage({
 
   const { approval, category } = await searchParams;
 
-  const where: Record<string, unknown> = {};
-  if (approval === "approved") where.isApproved = true;
-  if (approval === "unapproved") where.isApproved = false;
-  if (category && category !== "ALL") where.category = category;
+  const params = new URLSearchParams();
+  if (approval === "approved") params.set("approval", "approved");
+  if (approval === "unapproved") params.set("approval", "pending");
+  if (category && category !== "ALL") params.set("category", category);
+  const query = params.toString();
 
-  const [providers, pendingCount] = await Promise.all([
-    prisma.providerProfile.findMany({
-      where,
-      include: {
-        user: { select: { firstName: true, lastName: true, email: true } },
-        _count: { select: { bookings: true, reviewsReceived: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.providerProfile.count({ where: { isApproved: false } }),
-  ]);
+  let providers: ProviderRow[];
+  let pendingCount = 0;
+  try {
+    const data = await serverApi<{ providers: ProviderRow[]; pendingCount: number }>(
+      `/api/admin/providers${query ? `?${query}` : ""}`
+    );
+    providers = data.providers;
+    pendingCount = data.pendingCount;
+  } catch {
+    notFound();
+  }
 
   return (
     <div className="flex min-h-screen">

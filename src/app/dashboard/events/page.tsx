@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
@@ -7,10 +7,21 @@ import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input, Select } from "@/components/ui/Input";
 import { StatusBadge } from "@/components/ui/Badge";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { formatDate } from "@/lib/utils";
 import { EVENT_TYPES } from "@/lib/constants";
 import { Calendar, MapPin, Users, Package, Plus } from "lucide-react";
+
+type DashboardEvent = {
+  id: string;
+  title: string;
+  eventType: string;
+  status: string;
+  eventDate: string;
+  location: string;
+  guestCount: number;
+  _count: { bookings: number };
+};
 
 export default async function EventsPage({
   searchParams,
@@ -23,20 +34,18 @@ export default async function EventsPage({
 
   const { search, type } = await searchParams;
 
-  const customer = await prisma.customerProfile.findUnique({
-    where: { userId: session.id },
-  });
-  if (!customer) redirect("/dashboard");
+  const params = new URLSearchParams();
+  if (search) params.set("search", search);
+  if (type && type !== "ALL") params.set("type", type);
+  const query = params.toString();
 
-  const where: Record<string, unknown> = { customerId: customer.id };
-  if (search) where.title = { contains: search };
-  if (type && type !== "ALL") where.eventType = type;
-
-  const events = await prisma.event.findMany({
-    where,
-    include: { _count: { select: { bookings: true } } },
-    orderBy: { eventDate: "asc" },
-  });
+  let events: DashboardEvent[] = [];
+  try {
+    const data = await serverApi<{ events: DashboardEvent[] }>(`/api/events${query ? `?${query}` : ""}`);
+    events = data.events;
+  } catch {
+    notFound();
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -99,7 +108,7 @@ export default async function EventsPage({
                   <div className="space-y-1.5 text-sm text-gray-500 dark:text-gray-400">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-3.5 w-3.5" />
-                      {formatDate(event.eventDate)}
+                      {formatDate(new Date(event.eventDate))}
                     </div>
                     <div className="flex items-center gap-2">
                       <MapPin className="h-3.5 w-3.5" />

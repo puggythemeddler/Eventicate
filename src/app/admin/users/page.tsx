@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Input, Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { formatDate } from "@/lib/utils";
 import { ToggleUserStatus } from "./ToggleUserStatus";
 
@@ -28,30 +28,27 @@ export default async function AdminUsersPage({
 
   const { role, search } = await searchParams;
 
-  const where: Record<string, unknown> = {};
-  if (role && role !== "ALL") where.role = role;
-  if (search) {
-    where.OR = [
-      { firstName: { contains: search } },
-      { lastName: { contains: search } },
-      { email: { contains: search } },
-    ];
-  }
+  const params = new URLSearchParams();
+  if (role && role !== "ALL") params.set("role", role);
+  if (search) params.set("search", search);
+  const qs = params.toString();
 
-  const users = await prisma.user.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-  });
-
-  const enriched = await Promise.all(
-    users.map(async (u) => {
-      const customer = await prisma.customerProfile.findUnique({
-        where: { userId: u.id },
-        include: { _count: { select: { bookings: true } } },
-      });
-      return { ...u, bookingCount: customer?._count?.bookings ?? 0 };
-    })
-  );
+  const enriched = (
+    await serverApi<{
+      users: Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        role: string;
+        isActive: boolean;
+        isVerified: boolean;
+        createdAt: string;
+        bookingCount: number;
+      }>;
+      total: number;
+    }>(`/api/admin/users${qs ? `?${qs}` : ""}`)
+  ).users;
 
   return (
     <div className="flex min-h-screen">

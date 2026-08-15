@@ -1,35 +1,43 @@
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/Badge";
 import { Calendar, Package, Plus } from "lucide-react";
+
+type CustomerDashboard = {
+  events: {
+    id: string;
+    title: string;
+    eventDate: string;
+    guestCount: number;
+    _count: { bookings: number };
+  }[];
+  recentBookings: {
+    id: string;
+    status: string;
+    finalPrice: number | null;
+    provider: { businessName: string };
+    event: { title: string };
+  }[];
+};
 
 export default async function CustomerDashboard() {
   const session = await getSession();
   if (!session) redirect("/auth/login");
   if (session.role !== "CUSTOMER") redirect(session.role === "PROVIDER" ? "/provider" : "/admin");
 
-  const customer = await prisma.customerProfile.findUnique({
-    where: { userId: session.id },
-    include: {
-      events: {
-        take: 5,
-        orderBy: { eventDate: "asc" },
-        include: { _count: { select: { bookings: true } } },
-      },
-      bookings: {
-        take: 5,
-        orderBy: { createdAt: "desc" },
-        include: { provider: true, event: true },
-      },
-    },
-  });
+  let dashboard: CustomerDashboard | undefined;
+  try {
+    dashboard = await serverApi<CustomerDashboard>("/api/customer/dashboard");
+  } catch {
+    notFound();
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -53,7 +61,7 @@ export default async function CustomerDashboard() {
             <div className="flex items-center gap-3">
               <Calendar className="h-8 w-8 text-primary-600" />
               <div>
-                <p className="text-2xl font-bold">{customer?.events.length || 0}</p>
+                <p className="text-2xl font-bold">{dashboard?.events.length || 0}</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Upcoming Events</p>
               </div>
             </div>
@@ -62,7 +70,7 @@ export default async function CustomerDashboard() {
             <div className="flex items-center gap-3">
               <Package className="h-8 w-8 text-primary-600" />
               <div>
-                <p className="text-2xl font-bold">{customer?.bookings.length || 0}</p>
+                <p className="text-2xl font-bold">{dashboard?.recentBookings.length || 0}</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Active Bookings</p>
               </div>
             </div>
@@ -83,11 +91,11 @@ export default async function CustomerDashboard() {
         <div className="grid gap-8 lg:grid-cols-2">
           <Card>
             <CardTitle className="mb-4">My Events</CardTitle>
-            {customer?.events.length === 0 ? (
+            {dashboard?.events.length === 0 ? (
               <p className="text-sm text-gray-500 dark:text-gray-400">No events yet. Create your first event!</p>
             ) : (
               <div className="space-y-3">
-                {customer?.events.map((event) => (
+                {dashboard?.events.map((event) => (
                   <Link
                     key={event.id}
                     href={`/dashboard/events/${event.id}`}
@@ -97,7 +105,7 @@ export default async function CustomerDashboard() {
                       <div>
                         <p className="font-medium">{event.title}</p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {formatDate(event.eventDate)} · {event.guestCount} guests
+                          {formatDate(new Date(event.eventDate))} · {event.guestCount} guests
                         </p>
                       </div>
                       <span className="text-xs text-gray-400 dark:text-gray-500">
@@ -112,11 +120,11 @@ export default async function CustomerDashboard() {
 
           <Card>
             <CardTitle className="mb-4">Recent Bookings</CardTitle>
-            {customer?.bookings.length === 0 ? (
+            {dashboard?.recentBookings.length === 0 ? (
               <p className="text-sm text-gray-500 dark:text-gray-400">No bookings yet.</p>
             ) : (
               <div className="space-y-3">
-                {customer?.bookings.map((booking) => (
+                {dashboard?.recentBookings.map((booking) => (
                   <div key={booking.id} className="rounded-lg border border-gray-100 p-3 dark:border-gray-800">
                     <div className="flex items-center justify-between">
                       <div>

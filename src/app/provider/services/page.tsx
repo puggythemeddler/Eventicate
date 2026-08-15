@@ -4,22 +4,25 @@ import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
 import { AddServiceForm } from "@/components/providers/AddServiceForm";
 import { Card, CardTitle } from "@/components/ui/Card";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { ServiceActions } from "./ServiceActions";
+
+interface ServiceItem {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string;
+  basePrice: number;
+  discountPercent: number;
+  isActive: boolean;
+  images: string;
+}
 
 export default async function ServicesPage() {
   const session = await getSession();
   if (!session || session.role !== "PROVIDER") redirect("/auth/login");
 
-  const provider = await prisma.providerProfile.findUnique({
-    where: { userId: session.id },
-  });
-  if (!provider) redirect("/auth/login");
-
-  const services = await prisma.service.findMany({
-    where: { providerId: provider.id },
-    orderBy: { createdAt: "desc" },
-  });
+  const { services } = await serverApi<{ services: ServiceItem[] }>("/api/services");
 
   const activeCount = services.filter((s) => s.isActive).length;
 

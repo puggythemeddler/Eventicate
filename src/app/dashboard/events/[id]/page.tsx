@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
@@ -6,10 +6,31 @@ import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge, StatusBadge } from "@/components/ui/Badge";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { formatDate, formatCurrency, parseJsonArray } from "@/lib/utils";
 import { EVENT_TYPES, SERVICE_CATEGORIES } from "@/lib/constants";
 import { Calendar, MapPin, Users, DollarSign, ArrowLeft, Search, Plus, Package, BarChart3, Clock } from "lucide-react";
+
+interface EventData {
+  id: string;
+  title: string;
+  status: string;
+  eventType: string;
+  eventDate: string;
+  location: string;
+  guestCount: number;
+  budgetMin: number | null;
+  budgetMax: number | null;
+  requiredServices: string;
+  bookings: Array<{
+    id: string;
+    status: string;
+    quotedPrice: number | null;
+    createdAt: string;
+    provider: { businessName: string; category: string };
+    service: { name: string } | null;
+  }>;
+}
 
 export default async function EventDetailPage({
   params,
@@ -22,23 +43,20 @@ export default async function EventDetailPage({
 
   const { id } = await params;
 
-  const customer = await prisma.customerProfile.findUnique({
-    where: { userId: session.id },
-  });
-  if (!customer) redirect("/dashboard");
+  let event: EventData | null = null;
 
-  const event = await prisma.event.findFirst({
-    where: { id, customerId: customer.id },
-    include: {
-      bookings: {
-        include: {
-          provider: { select: { id: true, businessName: true, category: true } },
-          service: true,
-        },
-        orderBy: { createdAt: "desc" },
-      },
-    },
-  });
+  try {
+    const data = await serverApi<{ event: EventData }>(`/api/events/${id}`);
+    event = data.event;
+    event.bookings = event.bookings
+      .slice()
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+  } catch {
+    notFound();
+  }
 
   if (!event) redirect("/dashboard/events");
 

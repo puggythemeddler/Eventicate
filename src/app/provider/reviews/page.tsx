@@ -6,13 +6,44 @@ import { Card, CardDescription } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 
 import { StarRating } from "@/components/ui/Badge";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import { REVIEW_CRITERIA } from "@/lib/constants";
 import { User } from "lucide-react";
 
 const providerCriteria = REVIEW_CRITERIA.customerToProvider;
 const customerCriteria = REVIEW_CRITERIA.providerToCustomer;
+
+interface ReviewReceived {
+  id: string;
+  createdAt: string;
+  serviceQuality: number | null;
+  professionalism: number | null;
+  equipmentQuality: number | null;
+  communication: number | null;
+  reliability: number | null;
+  comment: string | null;
+  customerReviewer: { user: { firstName: string; lastName: string } } | null;
+  booking: { event: { title: string } } | null;
+}
+
+interface ReviewGiven {
+  id: string;
+  createdAt: string;
+  paymentReliability: number | null;
+  customerCommunication: number | null;
+  respectForAgreements: number | null;
+  eventOrganization: number | null;
+  comment: string | null;
+  customer: { user: { firstName: string; lastName: string } } | null;
+  booking: { event: { title: string } } | null;
+}
+
+interface BookingWithoutReview {
+  id: string;
+  event: { title: string; eventDate: string };
+  customer: { user: { firstName: string; lastName: string } };
+}
 
 function RateCustomerForm({ bookingId }: { bookingId: string }) {
   return (
@@ -62,49 +93,27 @@ export default async function ReviewsPage() {
   const session = await getSession();
   if (!session || session.role !== "PROVIDER") redirect("/auth/login");
 
-  const provider = await prisma.providerProfile.findUnique({
-    where: { userId: session.id },
-  });
-  if (!provider) redirect("/auth/login");
-
-  const reviewsReceived = await prisma.review.findMany({
-    where: { providerId: provider.id, isPublic: true },
-    include: {
-      customerReviewer: {
-        include: { user: { select: { firstName: true, lastName: true } } },
-      },
-      booking: { select: { event: { select: { title: true } } } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const reviewsGiven = await prisma.review.findMany({
-    where: { providerReviewerId: provider.id, isPublic: false },
-    include: {
-      customer: {
-        include: { user: { select: { firstName: true, lastName: true } } },
-      },
-      booking: { select: { event: { select: { title: true } } } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const completedBookingsWithoutReview = await prisma.booking.findMany({
-    where: {
-      providerId: provider.id,
-      status: "COMPLETED",
-      reviews: {
-        none: {
-          providerReviewerId: provider.id,
-        },
-      },
-    },
-    include: {
-      event: { select: { title: true, eventDate: true } },
-      customer: { include: { user: { select: { firstName: true, lastName: true } } } },
-    },
-    take: 20,
-  });
+  let averageRating = 0;
+  let totalReviews = 0;
+  let reviewsReceived: ReviewReceived[] = [];
+  let reviewsGiven: ReviewGiven[] = [];
+  let completedBookingsWithoutReview: BookingWithoutReview[] = [];
+  try {
+    const data = await serverApi<{
+      averageRating: number;
+      totalReviews: number;
+      reviewsReceived: ReviewReceived[];
+      reviewsGiven: ReviewGiven[];
+      completedBookingsWithoutReview: BookingWithoutReview[];
+    }>("/api/provider/reviews");
+    averageRating = data.averageRating;
+    totalReviews = data.totalReviews;
+    reviewsReceived = data.reviewsReceived;
+    reviewsGiven = data.reviewsGiven;
+    completedBookingsWithoutReview = data.completedBookingsWithoutReview;
+  } catch {
+    redirect("/auth/login");
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -113,8 +122,8 @@ export default async function ReviewsPage() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold">Reviews & Ratings</h1>
           <div className="mt-2 flex items-center gap-2">
-            <StarRating rating={provider.averageRating} size="md" />
-            <span className="text-sm text-gray-500">({provider.totalReviews} reviews)</span>
+            <StarRating rating={averageRating} size="md" />
+            <span className="text-sm text-gray-500">({totalReviews} reviews)</span>
           </div>
         </div>
 
@@ -140,7 +149,7 @@ export default async function ReviewsPage() {
                         <p className="text-xs text-gray-500">{review.booking?.event.title}</p>
                       </div>
                     </div>
-                    <span className="text-xs text-gray-400">{formatDateTime(review.createdAt)}</span>
+                    <span className="text-xs text-gray-400">{formatDateTime(new Date(review.createdAt))}</span>
                   </div>
                   <div className="mb-3 grid grid-cols-5 gap-4">
                     {providerCriteria.map((c) => {
@@ -184,7 +193,7 @@ export default async function ReviewsPage() {
                         <p className="text-xs text-gray-500">{review.booking?.event.title}</p>
                       </div>
                     </div>
-                    <span className="text-xs text-gray-400">{formatDateTime(review.createdAt)}</span>
+                    <span className="text-xs text-gray-400">{formatDateTime(new Date(review.createdAt))}</span>
                   </div>
                   <div className="grid grid-cols-4 gap-4">
                     {customerCriteria.map((c) => {
@@ -217,7 +226,7 @@ export default async function ReviewsPage() {
                       <p className="font-medium">
                         {booking.customer.user.firstName} {booking.customer.user.lastName}
                       </p>
-                      <p className="text-xs text-gray-500">{booking.event.title} · {formatDate(booking.event.eventDate)}</p>
+                      <p className="text-xs text-gray-500">{booking.event.title} · {formatDate(new Date(booking.event.eventDate))}</p>
                     </div>
                   </div>
                   <RateCustomerForm bookingId={booking.id} />

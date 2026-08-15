@@ -1,4 +1,14 @@
-import type { EventType, ServiceCategory, BookingStatus } from "@prisma/client";
+export type EventType =
+  | "WEDDING" | "FUNERAL" | "BIRTHDAY" | "CORPORATE"
+  | "CONCERT" | "CHURCH" | "GRADUATION" | "OTHER";
+
+export type ServiceCategory =
+  | "VENUE" | "PA_SYSTEM" | "CATERING" | "TRANSPORT"
+  | "PHOTOGRAPHY" | "VIDEOGRAPHY" | "DECORATION" | "ENTERTAINMENT" | "OTHER";
+
+export type BookingStatus =
+  | "QUOTATION_REQUESTED" | "QUOTATION_SENT" | "PENDING_APPROVAL"
+  | "CONFIRMED" | "DEPOSIT_PAID" | "COMPLETED" | "CANCELLED" | "REJECTED";
 
 export const EVENT_TYPES: { value: EventType; label: string }[] = [
   { value: "WEDDING", label: "Wedding" },

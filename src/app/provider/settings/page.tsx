@@ -2,38 +2,76 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { COUNTRIES } from "@/lib/locations";
 import { SettingsForm } from "./SettingsForm";
+
+interface CountryData {
+  name: string;
+  subdivisions: { value: string; label: string }[];
+}
+
+interface PricingRuleRow {
+  id: string;
+  name: string;
+  eventType: string | null;
+  isWeekend: boolean;
+  isPeakSeason: boolean;
+  priceModifier: number;
+  modifierType: string;
+  isActive: boolean;
+}
+
+interface SettingsData {
+  provider: {
+    id: string;
+    businessName: string;
+    description: string | null;
+    category: string;
+    address: string | null;
+    city: string | null;
+    country: string | null;
+    phone: string | null;
+    website: string | null;
+    logoUrl: string | null;
+    coverImageUrl: string | null;
+    travelOutsideArea: boolean;
+    travelRadius: number | null;
+    defaultDiscount: number;
+    applyDiscountToAll: boolean;
+  };
+  pricingRules: PricingRuleRow[];
+  activeServices: { basePrice: number; discountPercent: number }[];
+}
 
 export default async function ProviderSettingsPage() {
   const session = await getSession();
   if (!session || session.role !== "PROVIDER") redirect("/auth/login");
 
-  const provider = await prisma.providerProfile.findUnique({
-    where: { userId: session.id },
-  });
-  if (!provider) redirect("/auth/login");
+  let settingsData: SettingsData | null = null;
+  try {
+    settingsData = await serverApi<SettingsData>("/api/provider/settings");
+  } catch {
+    redirect("/auth/login");
+  }
+  if (!settingsData) redirect("/auth/login");
 
-  const pricingRules = await prisma.pricingRule.findMany({
-    where: { providerId: provider.id, isActive: true },
-    orderBy: { createdAt: "desc" },
-  });
+  const provider = settingsData.provider;
+  const pricingRules = settingsData.pricingRules.filter((r) => r.isActive);
+  const currentServices = settingsData.activeServices;
 
-  const currentServices = await prisma.service.findMany({
-    where: { providerId: provider.id, isActive: true },
-    select: { basePrice: true, discountPercent: true },
-  });
-
-  const dbCountries = await prisma.country.findMany({
-    include: { subdivisions: { orderBy: { sortOrder: "asc" } } },
-    orderBy: { sortOrder: "asc" },
-  });
+  let dbCountries: CountryData[] = [];
+  try {
+    const data = await serverApi<{ countries: CountryData[] }>("/api/locations/public");
+    if (data.countries && data.countries.length > 0) dbCountries = data.countries;
+  } catch {
+    // fall back to static list
+  }
   const countryOptions = dbCountries.length > 0
     ? dbCountries.map((c) => ({ value: c.name, label: c.name }))
     : COUNTRIES.map((c) => ({ value: c.name, label: c.name }));
   const allSubdivisions = dbCountries.length > 0
-    ? dbCountries.flatMap((c) => c.subdivisions.map((s) => ({ value: s.name, label: s.name })))
+    ? dbCountries.flatMap((c) => c.subdivisions)
     : COUNTRIES.flatMap((c) => c.subdivisions);
 
   return (

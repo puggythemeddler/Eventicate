@@ -1,14 +1,45 @@
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
 import { DocumentView } from "@/components/documents/DocumentView";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import type { LineItem } from "@/lib/documents";
 
 interface DocPageProps {
   params: Promise<{ id: string }>;
 }
+
+type DocumentDetail = {
+  id: string;
+  type: string;
+  status: string;
+  documentNumber: string;
+  senderName: string;
+  recipientName: string;
+  recipientEmail: string;
+  recipientPhone: string | null;
+  recipientAddress: string | null;
+  subtotal: number;
+  taxRate: number;
+  taxAmount: number;
+  discountRate: number;
+  discountAmount: number;
+  total: number;
+  depositRequired: number | null;
+  depositPaid: boolean;
+  notes: string | null;
+  terms: string | null;
+  validUntil: string | null;
+  issuedAt: string;
+  dueAt: string | null;
+  lineItems: string;
+  booking: {
+    event: { title: string; eventDate: string };
+    provider?: { businessName: string };
+    customer?: { user: { firstName: string; lastName: string; email: string } };
+  } | null;
+};
 
 export default async function ProviderDocumentDetailPage({ params }: DocPageProps) {
   const session = await getSession();
@@ -16,24 +47,17 @@ export default async function ProviderDocumentDetailPage({ params }: DocPageProp
 
   const { id } = await params;
 
-  const document = await prisma.document.findUnique({
-    where: { id },
-    include: {
-      booking: {
-        include: {
-          event: { select: { title: true, eventDate: true } },
-          customer: { include: { user: { select: { firstName: true, lastName: true, email: true } } } },
-        },
-      },
-    },
-  });
-
-  if (!document || document.senderId !== session.id) {
-    redirect("/provider/documents");
+  let document: DocumentDetail | undefined;
+  try {
+    const data = await serverApi<{ document: DocumentDetail }>(`/api/documents/${id}`);
+    document = data.document;
+  } catch {
+    notFound();
   }
 
-  const logoConfig = await prisma.systemConfig.findUnique({ where: { id: "default" } });
-  const logoUrl = logoConfig?.logoInvoice || null;
+  if (!document) notFound();
+
+  const { logoInvoice: logoUrl } = await serverApi<{ logoInvoice: string | null }>("/api/logos");
 
   return (
     <div className="flex min-h-screen">
@@ -42,15 +66,15 @@ export default async function ProviderDocumentDetailPage({ params }: DocPageProp
         <DocumentView
           document={{
             ...document,
-            issuedAt: document.issuedAt.toISOString(),
-            dueAt: document.dueAt?.toISOString() || null,
-            validUntil: document.validUntil?.toISOString() || null,
+            issuedAt: document.issuedAt,
+            dueAt: document.dueAt || null,
+            validUntil: document.validUntil || null,
             booking: document.booking
               ? {
                   ...document.booking,
                   event: {
                     ...document.booking.event,
-                    eventDate: document.booking.event.eventDate.toISOString(),
+                    eventDate: document.booking.event.eventDate,
                   },
                 }
               : null,

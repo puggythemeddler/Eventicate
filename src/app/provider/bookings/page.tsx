@@ -5,7 +5,7 @@ import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { BOOKING_STATUS_LABELS } from "@/lib/constants";
 import { BookingRow } from "./BookingRow";
 
@@ -17,6 +17,16 @@ const statusOptions = [
   })),
 ];
 
+interface ProviderBooking {
+  id: string;
+  status: string;
+  quotedPrice: number | null;
+  createdAt: Date;
+  event: { title: string; eventDate: Date };
+  customer: { user: { firstName: string; lastName: string } };
+  service: { name: string } | null;
+}
+
 export default async function ProviderBookingsPage({
   searchParams,
 }: {
@@ -27,30 +37,18 @@ export default async function ProviderBookingsPage({
 
   const { status } = await searchParams;
 
-  const provider = await prisma.providerProfile.findUnique({
-    where: { userId: session.id },
-  });
-  if (!provider) redirect("/auth/login");
+  const allBookings = (
+    await serverApi<{ bookings: ProviderBooking[] }>("/api/bookings?role=PROVIDER")
+  ).bookings;
 
-  const where: Record<string, unknown> = { providerId: provider.id };
-  if (status && status !== "ALL") where.status = status;
+  const pendingCount = allBookings.filter(
+    (b) => b.status === "QUOTATION_REQUESTED" || b.status === "PENDING_APPROVAL"
+  ).length;
 
-  const bookings = await prisma.booking.findMany({
-    where,
-    include: {
-      event: { select: { title: true, eventDate: true } },
-      customer: { include: { user: { select: { firstName: true, lastName: true } } } },
-      service: { select: { name: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const pendingCount = await prisma.booking.count({
-    where: {
-      providerId: provider.id,
-      status: { in: ["QUOTATION_REQUESTED", "PENDING_APPROVAL"] },
-    },
-  });
+  const bookings =
+    status && status !== "ALL"
+      ? allBookings.filter((b) => b.status === status)
+      : allBookings;
 
   return (
     <div className="flex min-h-screen">

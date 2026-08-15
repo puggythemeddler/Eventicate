@@ -4,22 +4,31 @@ import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
 import { AddEquipmentForm } from "@/components/providers/AddEquipmentForm";
 import { Card, CardTitle } from "@/components/ui/Card";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { EquipmentActions } from "./EquipmentActions";
+
+interface EquipmentItem {
+  id: string;
+  name: string;
+  category: string;
+  subcategory: string;
+  quantity: number;
+  condition: string;
+  description: string | null;
+  rentalPrice: number;
+  discountPercent: number;
+  setupCharge: number;
+  transportCharge: number;
+  operatorCharge: number;
+  isActive: boolean;
+  images: string;
+}
 
 export default async function EquipmentPage() {
   const session = await getSession();
   if (!session || session.role !== "PROVIDER") redirect("/auth/login");
 
-  const provider = await prisma.providerProfile.findUnique({
-    where: { userId: session.id },
-  });
-  if (!provider) redirect("/auth/login");
-
-  const equipment = await prisma.equipment.findMany({
-    where: { providerId: provider.id },
-    orderBy: { createdAt: "desc" },
-  });
+  const { equipment } = await serverApi<{ equipment: EquipmentItem[] }>("/api/equipment");
 
   const activeCount = equipment.filter((e) => e.isActive).length;
   const totalQty = equipment.reduce((sum, e) => sum + e.quantity, 0);

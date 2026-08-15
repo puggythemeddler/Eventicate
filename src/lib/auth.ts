@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import bcrypt from "bcryptjs";
-import type { UserRole } from "@prisma/client";
+
+export type UserRole = "CUSTOMER" | "PROVIDER" | "ADMIN";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "eventicate-dev-secret-change-in-production"
@@ -13,14 +13,6 @@ export interface SessionUser {
   role: UserRole;
   firstName: string;
   lastName: string;
-}
-
-export async function hashPassword(password: string) {
-  return bcrypt.hash(password, 12);
-}
-
-export async function verifyPassword(password: string, hash: string) {
-  return bcrypt.compare(password, hash);
 }
 
 export async function createToken(user: SessionUser) {

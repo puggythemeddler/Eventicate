@@ -7,7 +7,7 @@ import { Card, CardTitle } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 const typeOptions = [
@@ -55,14 +55,22 @@ export default async function CustomerDocumentsPage({
 
   const { type, status } = await searchParams;
 
-  const where: Record<string, unknown> = { recipientId: session.id };
-  if (type && type !== "ALL") where.type = type;
-  if (status && status !== "ALL") where.status = status;
+  const params = new URLSearchParams();
+  if (type && type !== "ALL") params.set("type", type);
+  if (status && status !== "ALL") params.set("status", status);
+  const qs = params.toString();
 
-  const documents = await prisma.document.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-  });
+  const { documents } = await serverApi<{
+    documents: Array<{
+      id: string;
+      documentNumber: string;
+      type: string;
+      status: string;
+      senderName: string;
+      total: number;
+      createdAt: string;
+    }>;
+  }>(`/api/documents${qs ? `?${qs}` : ""}`);
 
   return (
     <div className="flex min-h-screen">

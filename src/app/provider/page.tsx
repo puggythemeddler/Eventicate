@@ -4,14 +4,47 @@ import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardTitle } from "@/components/ui/Card";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/Badge";
-import { getSubscriptionStatus } from "@/lib/subscription";
 import { Package, Calendar, DollarSign, Star, Clock, AlertTriangle, CreditCard } from "lucide-react";
 
-async function SubscriptionBanner({ providerId }: { providerId: string }) {
-  const subscription = await getSubscriptionStatus(providerId);
+interface SubscriptionData {
+  id: string;
+  providerId: string;
+  status: string;
+  daysRemaining?: number;
+  currentPeriodEnd?: string | null;
+  plan: { id: string; name: string; price: number };
+}
+
+interface DashboardData {
+  businessName: string;
+  isApproved: boolean;
+  averageRating: number;
+  totalReviews: number;
+  totalBookings: number;
+  pendingBookings: number;
+  revenue: number;
+  recentBookings: {
+    id: string;
+    status: string;
+    quotedPrice: number | null;
+    event: { title: string; eventDate: string };
+    customer: { user: { firstName: string; lastName: string } };
+  }[];
+}
+
+async function SubscriptionBanner() {
+  let subscription: SubscriptionData | null = null;
+  try {
+    const data = await serverApi<{ subscription: SubscriptionData | null }>(
+      "/api/provider/subscription"
+    );
+    subscription = data.subscription;
+  } catch {
+    subscription = null;
+  }
 
   if (!subscription) {
     return (
@@ -78,7 +111,7 @@ async function SubscriptionBanner({ providerId }: { providerId: string }) {
 
   if (subscription.status === "ACTIVE") {
     const nextBilling = subscription.currentPeriodEnd
-      ? formatDate(subscription.currentPeriodEnd)
+      ? formatDate(new Date(subscription.currentPeriodEnd))
       : "N/A";
     return (
       <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
@@ -108,50 +141,29 @@ export default async function ProviderDashboard() {
   if (!session) redirect("/auth/login");
   if (session.role !== "PROVIDER") redirect("/dashboard");
 
-  const provider = await prisma.providerProfile.findUnique({
-    where: { userId: session.id },
-    include: {
-      bookings: {
-        take: 10,
-        orderBy: { createdAt: "desc" },
-        include: {
-          event: true,
-          customer: { include: { user: { select: { firstName: true, lastName: true } } } },
-        },
-      },
-      _count: {
-        select: { services: true, bookings: true, reviewsReceived: true },
-      },
-    },
-  });
+  let dashboard: DashboardData | null = null;
+  try {
+    dashboard = await serverApi<DashboardData>("/api/provider/dashboard");
+  } catch {
+    redirect("/auth/login");
+  }
+  if (!dashboard) redirect("/auth/login");
 
-  if (!provider) redirect("/auth/login");
-
-  const pendingBookings = provider.bookings.filter(
-    (b) => b.status === "QUOTATION_REQUESTED" || b.status === "PENDING_APPROVAL"
-  ).length;
-
-  const revenue = await prisma.payment.aggregate({
-    where: {
-      booking: { providerId: provider.id },
-      status: { in: ["DEPOSIT_PAID", "FULLY_PAID"] },
-    },
-    _sum: { amount: true },
-  });
+  const pendingBookings = dashboard.pendingBookings;
 
   return (
     <div className="flex min-h-screen">
       <Sidebar role="PROVIDER" />
       <PageContent>
         <div className="mb-8">
-          <h1 className="text-2xl font-bold">{provider.businessName}</h1>
+          <h1 className="text-2xl font-bold">{dashboard.businessName}</h1>
           <p className="text-gray-500 dark:text-gray-400">Provider Dashboard</p>
-          {!provider.isApproved && (
+          {!dashboard.isApproved && (
             <div className="mt-2 rounded-lg bg-yellow-50 p-3 text-sm text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
               Your profile is pending admin approval.
             </div>
           )}
-          <SubscriptionBanner providerId={provider.id} />
+          <SubscriptionBanner />
         </div>
 
         <div className="mb-8 grid gap-4 md:grid-cols-4">
@@ -159,7 +171,7 @@ export default async function ProviderDashboard() {
             <div className="flex items-center gap-3">
               <Package className="h-8 w-8 text-primary-600" />
               <div>
-                <p className="text-2xl font-bold">{provider._count.bookings}</p>
+                <p className="text-2xl font-bold">{dashboard.totalBookings}</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Total Bookings</p>
               </div>
             </div>
@@ -178,7 +190,7 @@ export default async function ProviderDashboard() {
               <DollarSign className="h-8 w-8 text-green-600" />
               <div>
                 <p className="text-2xl font-bold">
-                  {formatCurrency(revenue._sum.amount || 0)}
+                  {formatCurrency(dashboard.revenue)}
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Total Revenue</p>
               </div>
@@ -188,8 +200,8 @@ export default async function ProviderDashboard() {
             <div className="flex items-center gap-3">
               <Star className="h-8 w-8 text-yellow-500" />
               <div>
-                <p className="text-2xl font-bold">{provider.averageRating.toFixed(1)}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{provider.totalReviews} Reviews</p>
+                <p className="text-2xl font-bold">{dashboard.averageRating.toFixed(1)}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{dashboard.totalReviews} Reviews</p>
               </div>
             </div>
           </Card>
@@ -197,7 +209,7 @@ export default async function ProviderDashboard() {
 
         <Card>
           <CardTitle className="mb-4">Recent Booking Requests</CardTitle>
-          {provider.bookings.length === 0 ? (
+          {dashboard.recentBookings.length === 0 ? (
             <p className="text-sm text-gray-500 dark:text-gray-400">No bookings yet.</p>
           ) : (
             <div className="overflow-x-auto">
@@ -212,13 +224,13 @@ export default async function ProviderDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {provider.bookings.map((booking) => (
+                  {dashboard.recentBookings.map((booking) => (
                     <tr key={booking.id} className="border-b border-gray-50 dark:border-gray-800">
                       <td className="py-3">
                         {booking.customer.user.firstName} {booking.customer.user.lastName}
                       </td>
                       <td className="py-3">{booking.event.title}</td>
-                      <td className="py-3">{formatDate(booking.event.eventDate)}</td>
+                      <td className="py-3">{formatDate(new Date(booking.event.eventDate))}</td>
                       <td className="py-3">
                         <StatusBadge status={booking.status} />
                       </td>

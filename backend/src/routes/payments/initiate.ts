@@ -1,0 +1,132 @@
+import { Router } from "express";
+import { z } from "zod";
+import prisma from "../../lib/prisma";
+import { getSession } from "../../lib/auth";
+import { initiatePayment, type PaymentGateway } from "../../lib/payments";
+import { sendPaymentConfirmation } from "../../lib/email";
+
+const initiateSchema = z.object({
+  gateway: z.enum(["mpesa", "pesapal", "stripe"]),
+  bookingId: z.string(),
+  amount: z.number().positive(),
+  currency: z.enum(["KES", "USD"]).default("KES"),
+  phone: z.string().optional(),
+  isDeposit: z.boolean().optional().default(false),
+});
+
+const router = Router();
+
+router.post("/", async (req, res) => {
+  const session = await getSession(req);
+  if (!session) return res.status(401).json({ error: "Unauthorized" });
+
+  try {
+    const data = initiateSchema.parse(req.body);
+
+    const isSubscription = data.bookingId.startsWith("sub_");
+
+    if (isSubscription) {
+      const provider = await prisma.providerProfile.findUnique({
+        where: { userId: session.id },
+        include: { user: { select: { firstName: true, lastName: true, email: true, phone: true } } },
+      });
+      if (!provider) return res.status(404).json({ error: "Provider not found" });
+
+      const result = await initiatePayment(data.gateway as PaymentGateway, {
+        amount: data.amount,
+        currency: data.currency,
+        bookingId: data.bookingId,
+        customerEmail: provider.user.email,
+        customerPhone: data.phone || provider.user.phone || "",
+        customerName: `${provider.user.firstName} ${provider.user.lastName || ""}`,
+        description: `Subscription payment - ${data.gateway}`,
+      });
+
+      if (!result.success) {
+        return res.status(502).json({ error: result.error || "Payment initiation failed" });
+      }
+
+      return res.status(200).json(result);
+    }
+
+    const booking = await prisma.booking.findFirst({
+      where: { id: data.bookingId },
+      include: {
+        customer: { include: { user: { select: { firstName: true, lastName: true, email: true, phone: true } } } },
+        event: { select: { title: true } },
+        payments: true,
+      },
+    });
+    if (!booking) return res.status(404).json({ error: "Booking not found" });
+
+    if (data.isDeposit) {
+      if (booking.depositAmount && data.amount !== booking.depositAmount) {
+        return res.status(400).json({ error: "Amount does not match deposit amount" });
+      }
+      if (booking.depositPaid) {
+        return res.status(400).json({ error: "Deposit already paid" });
+      }
+    } else {
+      const totalPaid = booking.payments.reduce((sum, p) => sum + p.amount, 0);
+      const remaining = (booking.finalPrice || booking.quotedPrice || 0) - totalPaid;
+      if (data.amount > remaining) {
+        return res.status(400).json({ error: "Amount exceeds remaining balance" });
+      }
+    }
+
+    const result = await initiatePayment(data.gateway as PaymentGateway, {
+      amount: data.amount,
+      currency: data.currency,
+      bookingId: data.bookingId,
+      customerEmail: booking.customer.user.email,
+      customerPhone: data.phone || booking.customer.user.phone || "",
+      customerName: `${booking.customer.user.firstName} ${booking.customer.user.lastName}`,
+      description: `Payment for ${booking.event?.title || "booking"} - ${data.gateway}`,
+    });
+
+    if (!result.success) {
+      return res.status(502).json({ error: result.error || "Payment initiation failed" });
+    }
+
+    const methodMap: Record<string, string> = {
+      mpesa: "MPESA",
+      pesapal: "PESAPAL",
+      stripe: "CARD",
+    };
+
+    await prisma.payment.create({
+      data: {
+        bookingId: data.bookingId,
+        amount: data.amount,
+        method: methodMap[data.gateway] as "MPESA" | "PESAPAL" | "CARD",
+        status: "PENDING",
+        transactionId: result.transactionId,
+        isDeposit: data.isDeposit,
+        notes: JSON.stringify({ gateway: data.gateway, checkoutRequestId: result.checkoutRequestId }),
+      },
+    });
+
+    if (data.isDeposit) {
+      await prisma.booking.update({
+        where: { id: data.bookingId },
+        data: { depositPaid: true, status: "DEPOSIT_PAID" },
+      });
+    }
+
+    sendPaymentConfirmation(booking.customer.user.email, booking.customer.user.firstName, {
+      amount: data.amount,
+      method: methodMap[data.gateway],
+      ref: result.transactionId || "",
+      eventName: booking.event?.title || "Booking",
+    }).catch((e) => console.error("Payment confirmation email failed:", e));
+
+    return res.status(200).json(result);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors });
+    }
+    return res.status(500).json({ error: "Payment initiation failed" });
+  }
+});
+
+export default router;

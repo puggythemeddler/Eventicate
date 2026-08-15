@@ -5,7 +5,7 @@ import { PageContent } from "@/components/layout/PageContent";
 import { Card } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { ComplaintRow } from "./ComplaintRow";
 
 const STATUS_OPTIONS = [
@@ -27,16 +27,21 @@ export default async function AdminComplaintsPage({
 
   const { status } = await searchParams;
 
-  const where: Record<string, unknown> = {};
-  if (status && status !== "ALL") where.status = status;
-
-  const complaints = await prisma.complaint.findMany({
-    where,
-    include: {
-      reporter: { select: { id: true, firstName: true, lastName: true, email: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const complaints = (
+    await serverApi<{
+      complaints: Array<{
+        id: string;
+        subject: string;
+        description: string;
+        status: string;
+        adminNotes: string | null;
+        createdAt: string;
+        reporterId: string;
+        bookingId: string | null;
+        reporter: { firstName: string; lastName: string; email: string } | null;
+      }>;
+    }>(`/api/admin/complaints${status && status !== "ALL" ? `?status=${status}` : ""}`)
+  ).complaints;
 
   return (
     <div className="flex min-h-screen">
@@ -67,7 +72,7 @@ export default async function AdminComplaintsPage({
                 key={complaint.id}
                 complaint={{
                   ...complaint,
-                  createdAt: complaint.createdAt.toISOString(),
+                  createdAt: complaint.createdAt,
                   reporter: complaint.reporter
                     ? {
                         firstName: complaint.reporter.firstName,

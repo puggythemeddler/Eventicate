@@ -7,7 +7,7 @@ import { Card, CardTitle } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Badge";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { BOOKING_STATUS_LABELS } from "@/lib/constants";
 
@@ -18,6 +18,15 @@ const statusOptions = [
     label,
   })),
 ];
+
+interface CustomerBooking {
+  id: string;
+  status: string;
+  quotedPrice: number | null;
+  finalPrice: number | null;
+  event: { title: string; eventDate: string };
+  provider: { businessName: string };
+}
 
 export default async function BookingsPage({
   searchParams,
@@ -30,22 +39,14 @@ export default async function BookingsPage({
 
   const { status } = await searchParams;
 
-  const customer = await prisma.customerProfile.findUnique({
-    where: { userId: session.id },
-  });
-  if (!customer) redirect("/dashboard");
+  const allBookings = (
+    await serverApi<{ bookings: CustomerBooking[] }>("/api/bookings?role=CUSTOMER")
+  ).bookings;
 
-  const where: Record<string, unknown> = { customerId: customer.id };
-  if (status && status !== "ALL") where.status = status;
-
-  const bookings = await prisma.booking.findMany({
-    where,
-    include: {
-      event: { select: { title: true, eventDate: true } },
-      provider: { select: { businessName: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const bookings =
+    status && status !== "ALL"
+      ? allBookings.filter((b) => b.status === status)
+      : allBookings;
 
   return (
     <div className="flex min-h-screen">

@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
@@ -7,9 +7,37 @@ import { Card, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
 import { StatusBadge } from "@/components/ui/Badge";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
 import { ArrowLeft, Calendar, DollarSign, MessageSquare, Mail, User } from "lucide-react";
+
+type BookingDetail = {
+  id: string;
+  status: string;
+  quotedPrice: number | null;
+  finalPrice: number | null;
+  depositAmount: number | null;
+  customerNotes: string | null;
+  providerNotes: string | null;
+  event: { title: string; eventDate: string; guestCount: number };
+  customer: {
+    user: { firstName: string; lastName: string; email: string; phone: string | null };
+  };
+  service: { name: string } | null;
+  payments: {
+    id: string;
+    amount: number;
+    method: string;
+    status: string;
+    createdAt: string;
+  }[];
+  messages: {
+    id: string;
+    content: string;
+    createdAt: string;
+    sender: { firstName: string; lastName: string; role: string };
+  }[];
+};
 
 function DocumentActions({ bookingId }: { bookingId: string }) {
   return (
@@ -221,29 +249,15 @@ export default async function ProviderBookingDetailPage({
 
   const { id } = await params;
 
-  const provider = await prisma.providerProfile.findUnique({
-    where: { userId: session.id },
-  });
-  if (!provider) redirect("/auth/login");
+  let booking: BookingDetail | undefined;
+  try {
+    const data = await serverApi<{ booking: BookingDetail }>(`/api/bookings/${id}`);
+    booking = data.booking;
+  } catch {
+    notFound();
+  }
 
-  const booking = await prisma.booking.findFirst({
-    where: { id, providerId: provider.id },
-    include: {
-      event: true,
-      customer: { include: { user: { select: { firstName: true, lastName: true, email: true, phone: true } } } },
-      service: true,
-      payments: { orderBy: { createdAt: "desc" } },
-      messages: {
-        include: {
-          sender: { select: { firstName: true, lastName: true, role: true } },
-        },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      },
-    },
-  });
-
-  if (!booking) redirect("/provider/bookings");
+  if (!booking) notFound();
 
   return (
     <div className="flex min-h-screen">
@@ -291,7 +305,7 @@ export default async function ProviderBookingDetailPage({
               <div>
                 <p className="text-xs text-gray-500">Event</p>
                 <p className="text-sm font-medium">{booking.event.title}</p>
-                <p className="text-xs text-gray-400">{formatDate(booking.event.eventDate)}</p>
+                <p className="text-xs text-gray-400">{formatDate(new Date(booking.event.eventDate))}</p>
               </div>
             </div>
           </Card>
@@ -375,7 +389,7 @@ export default async function ProviderBookingDetailPage({
                     <div>
                       <p className="font-medium">{formatCurrency(payment.amount)}</p>
                       <p className="text-xs text-gray-500">
-                        {payment.method.replace(/_/g, " ")} · {formatDateTime(payment.createdAt)}
+                        {payment.method.replace(/_/g, " ")} · {formatDateTime(new Date(payment.createdAt))}
                       </p>
                     </div>
                     <StatusBadge status={payment.status} />
@@ -401,7 +415,7 @@ export default async function ProviderBookingDetailPage({
                         {msg.sender.firstName} {msg.sender.lastName}
                       </span>
                       <span className="text-xs text-gray-400">
-                        {formatDateTime(msg.createdAt)}
+                        {formatDateTime(new Date(msg.createdAt))}
                       </span>
                     </div>
                     <p className="text-sm text-gray-600">{msg.content}</p>

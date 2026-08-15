@@ -1,17 +1,49 @@
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardTitle } from "@/components/ui/Card";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { formatCurrency } from "@/lib/utils";
+import { ApproveButton } from "./providers/ApproveProvider";
+
+interface AnalyticsData {
+  totalUsers: number;
+  totalProviders: number;
+  totalEvents: number;
+  totalBookings: number;
+  totalRevenue: number;
+  recentBookings: {
+    id: string;
+    status: string;
+    event: { title: string };
+    provider: { businessName: string };
+  }[];
+  complaints: unknown[];
+  popularCategories: { category: string; _count: { category: number } }[];
+  pendingProviders: {
+    id: string;
+    businessName: string;
+    category: string;
+    user: { firstName: string; lastName: string; email: string };
+  }[];
+  openComplaints: number;
+}
 
 export default async function AdminDashboard() {
   const session = await getSession();
   if (!session) redirect("/auth/login");
   if (session.role !== "ADMIN") redirect("/dashboard");
 
-  const [
+  let analytics: AnalyticsData;
+  try {
+    const data = await serverApi<{ analytics: AnalyticsData }>("/api/admin");
+    analytics = data.analytics;
+  } catch {
+    notFound();
+  }
+
+  const {
     totalUsers,
     totalProviders,
     totalEvents,
@@ -20,35 +52,8 @@ export default async function AdminDashboard() {
     pendingProviders,
     openComplaints,
     recentBookings,
-  ] = await Promise.all([
-    prisma.user.count(),
-    prisma.providerProfile.count({ where: { isApproved: true } }),
-    prisma.event.count(),
-    prisma.booking.count(),
-    prisma.payment.aggregate({
-      where: { status: { in: ["DEPOSIT_PAID", "FULLY_PAID"] } },
-      _sum: { amount: true },
-    }),
-    prisma.providerProfile.findMany({
-      where: { isApproved: false },
-      include: { user: { select: { firstName: true, lastName: true, email: true } } },
-    }),
-    prisma.complaint.count({ where: { status: "open" } }),
-    prisma.booking.findMany({
-      take: 10,
-      orderBy: { createdAt: "desc" },
-      include: {
-        event: { select: { title: true } },
-        provider: { select: { businessName: true } },
-      },
-    }),
-  ]);
-
-  const popularCategories = await prisma.providerProfile.groupBy({
-    by: ["category"],
-    _count: { category: true },
-    orderBy: { _count: { category: "desc" } },
-  });
+    popularCategories,
+  } = analytics;
 
   return (
     <div className="flex min-h-screen">
@@ -74,7 +79,7 @@ export default async function AdminDashboard() {
           <Card>
             <CardTitle className="mb-2">Platform Revenue</CardTitle>
             <p className="text-3xl font-bold text-green-600">
-              {formatCurrency(totalRevenue._sum.amount || 0)}
+              {formatCurrency(totalRevenue)}
             </p>
           </Card>
           <Card>
@@ -98,14 +103,7 @@ export default async function AdminDashboard() {
                         {p.user.firstName} {p.user.lastName} · {p.category}
                       </p>
                     </div>
-                    <form action={`/api/admin`} method="POST">
-                      <button
-                        type="button"
-                        className="rounded-lg bg-primary-600 px-3 py-1 text-sm text-white hover:bg-primary-700"
-                      >
-                        Approve
-                      </button>
-                    </form>
+                    <ApproveButton providerId={p.id} />
                   </div>
                 ))}
               </div>

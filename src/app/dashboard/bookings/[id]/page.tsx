@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
@@ -6,12 +6,43 @@ import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Badge";
-import prisma from "@/lib/prisma";
+import { serverApi } from "@/lib/server-api";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
 import {
   ArrowLeft, Building2, Calendar, DollarSign, MessageSquare,
   Phone, Mail, Globe, MapPin, Check, X, CreditCard,
 } from "lucide-react";
+
+type BookingDetail = {
+  id: string;
+  status: string;
+  quotedPrice: number | null;
+  finalPrice: number | null;
+  depositAmount: number | null;
+  customerNotes: string | null;
+  event: { id: string; title: string; eventDate: string };
+  provider: {
+    businessName: string;
+    category: string;
+    website: string | null;
+    address: string | null;
+    user: { email: string; phone: string | null };
+  };
+  service: { name: string } | null;
+  payments: {
+    id: string;
+    amount: number;
+    method: string;
+    status: string;
+    createdAt: string;
+  }[];
+  messages: {
+    id: string;
+    content: string;
+    createdAt: string;
+    sender: { firstName: string; lastName: string; role: string };
+  }[];
+};
 
 function BookingActions({ bookingId, status, hasBalance }: { bookingId: string; status: string; hasBalance?: boolean }) {
   const payableStatuses = ["CONFIRMED", "DEPOSIT_PAID"];
@@ -92,29 +123,15 @@ export default async function BookingDetailPage({
 
   const { id } = await params;
 
-  const customer = await prisma.customerProfile.findUnique({
-    where: { userId: session.id },
-  });
-  if (!customer) redirect("/dashboard");
+  let booking: BookingDetail | undefined;
+  try {
+    const data = await serverApi<{ booking: BookingDetail }>(`/api/bookings/${id}`);
+    booking = data.booking;
+  } catch {
+    notFound();
+  }
 
-  const booking = await prisma.booking.findFirst({
-    where: { id, customerId: customer.id },
-    include: {
-      event: true,
-      provider: { include: { user: { select: { firstName: true, lastName: true, email: true, phone: true } } } },
-      service: true,
-      payments: { orderBy: { createdAt: "desc" } },
-      messages: {
-        include: {
-          sender: { select: { firstName: true, lastName: true, role: true } },
-        },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      },
-    },
-  });
-
-  if (!booking) redirect("/dashboard/bookings");
+  if (!booking) notFound();
 
   const totalPaid = booking.payments.reduce((s, p) => s + p.amount, 0);
   const totalDue = booking.finalPrice || booking.quotedPrice || 0;
@@ -155,7 +172,7 @@ export default async function BookingDetailPage({
                 >
                   {booking.event.title}
                 </Link>
-                <p className="text-xs text-gray-400">{formatDate(booking.event.eventDate)}</p>
+                <p className="text-xs text-gray-400">{formatDate(new Date(booking.event.eventDate))}</p>
               </div>
             </div>
           </Card>
@@ -222,7 +239,7 @@ export default async function BookingDetailPage({
                     <div>
                       <p className="font-medium">{formatCurrency(payment.amount)}</p>
                       <p className="text-xs text-gray-500">
-                        {payment.method.replace(/_/g, " ")} · {formatDateTime(payment.createdAt)}
+                        {payment.method.replace(/_/g, " ")} · {formatDateTime(new Date(payment.createdAt))}
                       </p>
                     </div>
                     <StatusBadge status={payment.status} />
@@ -248,7 +265,7 @@ export default async function BookingDetailPage({
                         {msg.sender.firstName} {msg.sender.lastName}
                       </span>
                       <span className="text-xs text-gray-400">
-                        {formatDateTime(msg.createdAt)}
+                        {formatDateTime(new Date(msg.createdAt))}
                       </span>
                     </div>
                     <p className="text-sm text-gray-600">{msg.content}</p>
