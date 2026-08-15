@@ -268,7 +268,7 @@ export default function CartPage() {
               {generating ? (
                 <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generating...</>
               ) : (
-                <><FileText className="mr-2 h-5 w-5" /> Generate Quote{grouped.length > 1 ? "s" : ""} ({grouped.length} provider{grouped.length > 1 ? "s" : ""})</>
+                <><FileText className="mr-2 h-5 w-5" /> Get Quotes ({grouped.length} provider{grouped.length > 1 ? "s" : ""})</>
               )}
             </Button>
           </>

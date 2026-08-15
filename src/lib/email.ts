@@ -36,7 +36,7 @@ function wrapHtml(body: string) {
     <div style="font-family:sans-serif;max-width:600px;margin:auto;padding:20px;background:#f9f9f9">
       <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;overflow:hidden">
         <tr>
-          <td style="background:#c026d3;padding:24px 32px;text-align:center">
+          <td style="background:#c04a1f;padding:24px 32px;text-align:center">
             <h1 style="color:#fff;margin:0;font-size:24px;font-weight:700">${appName}</h1>
           </td>
         </tr>
@@ -55,7 +55,7 @@ function wrapHtml(body: string) {
 }
 
 function ctaButton(url: string, label: string) {
-  return `<a href="${url}" style="display:inline-block;padding:14px 32px;background:#c026d3;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px;margin:16px 0">${label}</a>`;
+  return `<a href="${url}" style="display:inline-block;padding:14px 32px;background:#c04a1f;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px;margin:16px 0">${label}</a>`;
 }
 
 export async function sendEmail(to: string, subject: string, html: string) {
@@ -87,7 +87,7 @@ export async function sendBookingConfirmation(to: string, name: string, booking:
       <tr><td style="font-weight:600;width:120px;color:#666">Date</td><td>${dateStr}</td></tr>
       <tr><td style="font-weight:600;width:120px;color:#666">Provider</td><td>${booking.providerName}</td></tr>
       <tr><td style="font-weight:600;width:120px;color:#666">Total</td><td>$${booking.totalCost.toFixed(2)}</td></tr>
-      <tr><td style="font-weight:600;width:120px;color:#666">Status</td><td style="color:#c026d3;font-weight:600">${booking.status.replace(/_/g, " ")}</td></tr>
+      <tr><td style="font-weight:600;width:120px;color:#666">Status</td><td style="color:#c04a1f;font-weight:600">${booking.status.replace(/_/g, " ")}</td></tr>
     </table>
     ${ctaButton(`${process.env.NEXT_PUBLIC_APP_URL || ""}/dashboard/bookings/${booking.id}`, "View Booking")}
   `));
@@ -114,8 +114,8 @@ export async function sendBookingStatusUpdate(to: string, name: string, booking:
     <p style="font-size:18px;font-weight:600;margin:0 0 16px">Booking Status Updated</p>
     <p>Hi ${name},</p>
     <p>Your booking <strong>${booking.eventName}</strong> has been updated to:</p>
-    <div style="text-align:center;margin:20px 0;padding:16px;background:#f0fdf4;border:2px solid #c026d3;border-radius:8px">
-      <span style="font-size:20px;font-weight:700;color:#c026d3;text-transform:uppercase">${booking.status.replace(/_/g, " ")}</span>
+    <div style="text-align:center;margin:20px 0;padding:16px;background:#f0fdf4;border:2px solid #c04a1f;border-radius:8px">
+      <span style="font-size:20px;font-weight:700;color:#c04a1f;text-transform:uppercase">${booking.status.replace(/_/g, " ")}</span>
     </div>
     ${ctaButton(`${process.env.NEXT_PUBLIC_APP_URL || ""}/dashboard/bookings/${booking.id}`, "View Details")}
   `));
@@ -126,7 +126,7 @@ export async function sendMessageNotification(to: string, name: string, message:
     <p style="font-size:18px;font-weight:600;margin:0 0 16px">New Message</p>
     <p>Hi ${name},</p>
     <p><strong>${message.senderName}</strong> sent you a message:</p>
-    <div style="margin:16px 0;padding:16px;background:#f5f5f5;border-left:4px solid #c026d3;border-radius:4px;color:#555;font-style:italic">${message.preview}</div>
+    <div style="margin:16px 0;padding:16px;background:#f5f5f5;border-left:4px solid #c04a1f;border-radius:4px;color:#555;font-style:italic">${message.preview}</div>
     ${ctaButton(message.conversationUrl, "View Message")}
   `));
 }

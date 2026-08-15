@@ -72,7 +72,7 @@ export default function ProviderSubscriptionPage() {
   const [selectedBilling, setSelectedBilling] = useState<"MONTHLY" | "ANNUAL">("MONTHLY");
   const [showPayment, setShowPayment] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const [selectedPlanIds, setSelectedPlanIds] = useState<string[]>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [selectedGateway, setSelectedGateway] = useState<PaymentGateway>("mpesa");
   const [paymentPhone, setPaymentPhone] = useState("");
   const [processing, setProcessing] = useState(false);
@@ -381,7 +381,7 @@ export default function ProviderSubscriptionPage() {
               const isFreePlan = plan.price === 0;
               const effectivePrice = getEffectivePrice(plan);
 
-              const isChecked = selectedPlanIds.includes(plan.id);
+              const isSelected = selectedPlanId === plan.id;
 
               return (
                 <div
@@ -389,34 +389,27 @@ export default function ProviderSubscriptionPage() {
                   className={`relative rounded-xl border p-6 cursor-pointer transition-colors ${
                     isCurrentPlan
                       ? "border-primary-500 ring-2 ring-primary-200 dark:ring-primary-800"
-                      : isChecked
+                      : isSelected
                       ? "border-primary-400 ring-1 ring-primary-200 dark:ring-primary-700"
                       : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
                   }`}
                   onClick={() => {
                     if (isCurrentPlan) return;
-                    setSelectedPlanIds(
-                      isChecked
-                        ? selectedPlanIds.filter((id) => id !== plan.id)
-                        : [...selectedPlanIds, plan.id]
-                    );
+                    setSelectedPlanId(isSelected ? null : plan.id);
                   }}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <input
-                        type="checkbox"
-                        checked={isChecked}
+                        type="radio"
+                        name="plan"
+                        checked={isSelected}
                         disabled={isCurrentPlan}
                         onChange={() => {
                           if (isCurrentPlan) return;
-                          setSelectedPlanIds(
-                            isChecked
-                              ? selectedPlanIds.filter((id) => id !== plan.id)
-                              : [...selectedPlanIds, plan.id]
-                          );
+                          setSelectedPlanId(isSelected ? null : plan.id);
                         }}
-                        className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                        className="h-4 w-4 rounded-full border-gray-300 text-primary-600 focus:ring-primary-500"
                         onClick={(e) => e.stopPropagation()}
                       />
                       <div>
@@ -495,28 +488,6 @@ export default function ProviderSubscriptionPage() {
               );
             })}
           </div>
-
-          {selectedPlanIds.length > 1 && (
-            <div className="mt-6 rounded-lg border border-primary-200 bg-primary-50 p-4 dark:border-primary-800 dark:bg-primary-900/20">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-primary-800 dark:text-primary-200">
-                    {selectedPlanIds.length} plans selected
-                  </p>
-                  <p className="text-sm text-primary-600 dark:text-primary-400">
-                    Total: {formatCurrency(selectedPlanIds.reduce((sum, id) => {
-                      const p = plans.find((pl) => pl.id === id);
-                      return sum + (p ? getEffectivePrice(p) : 0);
-                    }, 0))}
-                    <span className="text-primary-400"> /{selectedBilling === "ANNUAL" ? "yr" : "mo"}</span>
-                  </p>
-                </div>
-                <Button onClick={() => handleSubscribeClick(plans.find((p) => p.id === selectedPlanIds[0])!)}>
-                  Subscribe to Selected
-                </Button>
-              </div>
-            </div>
-          )}
         </Card>
 
         {showPayment && selectedPlan && (

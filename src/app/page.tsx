@@ -1,22 +1,33 @@
 import Link from "next/link";
 import { PublicHeader } from "@/components/layout/Navigation";
-import { SERVICE_CATEGORIES } from "@/lib/constants";
+import { SERVICE_CATEGORIES, getEventHeroClass } from "@/lib/constants";
 import { Search, Calendar, Star, Shield, ArrowRight } from "lucide-react";
 
-export default function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ eventType?: string }>;
+}) {
+  const { eventType } = await searchParams;
+  const solemn = eventType === "FUNERAL" || eventType === "CHURCH";
+  const heroClass = getEventHeroClass(eventType);
+  const heroTitle = solemn ? "Plan with Care" : "Plan Your Perfect Event";
+  const heroSubtitle = solemn
+    ? "Quiet, respectful support from verified providers for your occasion."
+    : "Find, compare, and book venues, catering, PA systems, photography, transport, and more — all from one platform.";
+
   return (
     <div className="min-h-screen">
       <PublicHeader />
 
       {/* Hero */}
-      <section className="gradient-hero px-4 py-24 text-white">
+      <section className={`${heroClass} px-4 py-24 text-white`}>
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="mb-6 text-5xl font-bold leading-tight md:text-6xl">
-            Plan Your Perfect Event
+            {heroTitle}
           </h1>
           <p className="mb-8 text-xl text-primary-100">
-            Find, compare, and book venues, catering, PA systems, photography, transport,
-            and more — all from one platform.
+            {heroSubtitle}
           </p>
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
@@ -122,9 +133,11 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="gradient-hero px-4 py-16 text-white">
+      <section className={`${heroClass} px-4 py-16 text-white`}>
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="mb-4 text-3xl font-bold">Ready to Plan Your Event?</h2>
+          <h2 className="mb-4 text-3xl font-bold">
+            {solemn ? "We're Here When You Need Us" : "Ready to Plan Your Event?"}
+          </h2>
           <p className="mb-8 text-primary-100">
             Join Eventicate today and discover the easiest way to organize any event.
           </p>

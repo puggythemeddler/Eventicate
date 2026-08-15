@@ -219,7 +219,7 @@ function NewBookingContent() {
             )}
 
             <Button type="submit" disabled={loading || !selectedEventId} className="w-full">
-              {loading ? "Submitting..." : "Request Quotation"}
+              {loading ? "Submitting..." : "Get a Quote"}
             </Button>
           </form>
         </Card>

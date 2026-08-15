@@ -249,11 +249,14 @@ export default async function ProviderProfilePage({
                         </span>
                         <StarRating
                           rating={
-                            [review.serviceQuality, review.professionalism, review.communication]
-                              .filter(Boolean)
-                              .reduce((a, b) => a! + b!, 0)! /
-                            [review.serviceQuality, review.professionalism, review.communication]
-                              .filter(Boolean).length
+                            (() => {
+                              const scores = [review.serviceQuality, review.professionalism, review.communication].filter(
+                                (s): s is number => s !== null && s !== undefined
+                              );
+                              return scores.length > 0
+                                ? scores.reduce((sum, s) => sum + s, 0) / scores.length
+                                : 0;
+                            })()
                           }
                         />
                       </div>
@@ -280,13 +283,17 @@ export default async function ProviderProfilePage({
 
             {session ? (
               <Link href={`/dashboard/bookings/new?providerId=${id}`}>
-                <Button className="w-full">Request Quotation</Button>
+                <Button className="w-full">Get a Quote</Button>
               </Link>
             ) : (
               <Link href="/auth/login">
                 <Button className="w-full">Sign In to Book</Button>
               </Link>
             )}
+            <p className="px-2 text-center text-xs text-gray-500">
+              Prefer to compare providers first? Use <span className="font-medium">Add to Cart</span> on any
+              service and combine quotes from your cart.
+            </p>
           </div>
         </div>
       </div>

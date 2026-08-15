@@ -24,8 +24,8 @@ export const SERVICE_CATEGORIES: { value: ServiceCategory; label: string; icon: 
 ];
 
 export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
-  QUOTATION_REQUESTED: "Quotation Requested",
-  QUOTATION_SENT: "Quotation Sent",
+  QUOTATION_REQUESTED: "Quote Requested",
+  QUOTATION_SENT: "Quote Sent",
   PENDING_APPROVAL: "Pending Approval",
   CONFIRMED: "Confirmed",
   DEPOSIT_PAID: "Deposit Paid",
@@ -57,3 +57,13 @@ export const REVIEW_CRITERIA = {
     { key: "eventOrganization", label: "Event Organization" },
   ],
 };
+
+const SOLEMN_EVENT_TYPES: EventType[] = ["FUNERAL", "CHURCH"];
+
+export function isSolemnEvent(eventType: EventType | string | null | undefined): boolean {
+  return eventType != null && (SOLEMN_EVENT_TYPES as string[]).includes(eventType);
+}
+
+export function getEventHeroClass(eventType: EventType | string | null | undefined): string {
+  return isSolemnEvent(eventType) ? "gradient-hero-sombre" : "gradient-hero";
+}
