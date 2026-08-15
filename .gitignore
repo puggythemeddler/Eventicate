@@ -1,0 +1,9 @@
+node_modules/
+.next/
+*.db
+*.db-journal
+.env
+.env.local
+.env.production
+public/uploads/logos/*
+!public/uploads/logos/.gitkeep

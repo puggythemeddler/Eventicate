@@ -1,0 +1,670 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  CUSTOMER
+  PROVIDER
+  ADMIN
+}
+
+enum EventType {
+  WEDDING
+  FUNERAL
+  BIRTHDAY
+  CORPORATE
+  CONCERT
+  CHURCH
+  GRADUATION
+  OTHER
+}
+
+enum ServiceCategory {
+  VENUE
+  PA_SYSTEM
+  CATERING
+  TRANSPORT
+  PHOTOGRAPHY
+  VIDEOGRAPHY
+  DECORATION
+  ENTERTAINMENT
+  OTHER
+}
+
+enum BookingStatus {
+  QUOTATION_REQUESTED
+  QUOTATION_SENT
+  PENDING_APPROVAL
+  CONFIRMED
+  DEPOSIT_PAID
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+enum AvailabilityStatus {
+  AVAILABLE
+  PENDING
+  CONFIRMED
+  UNAVAILABLE
+}
+
+enum PaymentStatus {
+  PENDING
+  DEPOSIT_PAID
+  FULLY_PAID
+  REFUNDED
+  FAILED
+}
+
+enum PaymentMethod {
+  CARD
+  BANK_TRANSFER
+  CASH
+  MOBILE_MONEY
+  MPESA
+  PESAPAL
+}
+
+enum MessageType {
+  TEXT
+  FILE
+  QUOTATION
+  EVENT_DETAILS
+  BOOKING_UPDATE
+}
+
+enum NotificationType {
+  BOOKING
+  MESSAGE
+  PAYMENT
+  REVIEW
+  SYSTEM
+}
+
+enum SyncStatus {
+  PENDING
+  SYNCED
+  FAILED
+}
+
+enum DocumentStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum DocumentType {
+  QUOTE
+  INVOICE
+  RECEIPT
+}
+
+// ─── Users & Profiles ────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  role          UserRole  @default(CUSTOMER)
+  firstName     String
+  lastName      String
+  phone         String?
+  avatarUrl     String?
+  isVerified    Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  customerProfile  CustomerProfile?
+  providerProfile  ProviderProfile?
+  sentMessages     Message[]          @relation("SentMessages")
+  receivedMessages Message[]          @relation("ReceivedMessages")
+  notifications    Notification[]
+  localSyncLogs    LocalSyncLog[]
+  complaints       Complaint[]
+}
+
+model CustomerProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address     String?
+  city        String?
+  country     String?
+  events      Event[]
+  bookings    Booking[]
+  reviewsGiven    Review[] @relation("CustomerReviews")
+  reviewsReceived Review[] @relation("CustomerRatedReviews")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ProviderProfile {
+  id              String          @id @default(cuid())
+  userId          String          @unique
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName    String
+  description     String?
+  category        ServiceCategory
+  logoUrl         String?
+  coverImageUrl   String?
+  address         String?
+  city            String?
+  country         String?
+  latitude        Float?
+  longitude       Float?
+  phone           String?
+  website         String?
+  isApproved      Boolean         @default(false)
+  averageRating   Float           @default(0)
+  totalReviews    Int             @default(0)
+  services        Service[]
+  venues          Venue[]
+  equipment       Equipment[]
+  vehicles        Vehicle[]
+  menuPackages    MenuPackage[]
+  photoPackages   PhotoPackage[]
+  availability    AvailabilitySlot[]
+  bookings        Booking[]
+  pricingRules    PricingRule[]
+  defaultDiscount Float           @default(0)
+  applyDiscountToAll Boolean      @default(false)
+  travelOutsideArea Boolean       @default(false)
+  travelRadius Int?
+  reviewsGiven    Review[]        @relation("ProviderReviews")
+  reviewsReceived Review[]        @relation("ProviderRatedReviews")
+  localSyncConfig LocalSyncConfig?
+  subscription    ProviderSubscription?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+// ─── Events ──────────────────────────────────────────────────────────────────
+
+model Event {
+  id              String    @id @default(cuid())
+  customerId      String
+  customer        CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  title           String
+  eventType       EventType
+  eventDate       DateTime
+  eventEndDate    DateTime?
+  location        String
+  latitude        Float?
+  longitude       Float?
+  guestCount      Int
+  budgetMin       Float?
+  budgetMax       Float?
+  description     String?
+  requiredServices String   @default("[]") // JSON array of ServiceCategory values
+  timelineData    String   @default("[]") // JSON array of timeline entries
+  status          String    @default("planning")
+  bookings        Booking[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// ─── Services & Listings ─────────────────────────────────────────────────────
+
+model Service {
+  id          String          @id @default(cuid())
+  providerId  String
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name        String
+  description   String?
+  category      ServiceCategory
+  basePrice     Float
+  discountPercent Float          @default(0)
+  images        String          // JSON array of image URLs
+  isActive      Boolean         @default(true)
+  bookings      Booking[]
+  pricingRules  PricingRule[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model Venue {
+  id           String          @id @default(cuid())
+  providerId   String
+  provider     ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  location     String
+  latitude     Float?
+  longitude    Float?
+  capacity     Int
+  facilities   String          // JSON array
+  images       String          // JSON array
+  videos       String          // JSON array
+  basePrice    Float
+  packages     String          // JSON: pricing packages
+  eventPricing String          // JSON: event-type specific pricing
+  isActive     Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model Equipment {
+  id              String          @id @default(cuid())
+  providerId      String
+  provider        ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name            String
+  category        String          // audio, lighting, instrument
+  subcategory     String          // speakers, mixers, etc.
+  quantity        Int             @default(1)
+  condition       String          @default("good")
+  description     String?
+  images          String          // JSON array
+  rentalPrice     Float
+  discountPercent Float           @default(0)
+  setupCharge     Float           @default(0)
+  transportCharge Float           @default(0)
+  operatorCharge  Float           @default(0)
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model Vehicle {
+  id           String          @id @default(cuid())
+  providerId   String
+  provider     ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name         String
+  type         String          // van, truck, bus, delivery
+  capacity     Int
+  description  String?
+  images       String          // JSON array
+  driverName   String?
+  driverPhone  String?
+  pricePerKm   Float           @default(0)
+  basePrice    Float
+  isActive     Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model MenuPackage {
+  id              String          @id @default(cuid())
+  providerId      String
+  provider        ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  eventType       EventType?
+  servingStyle    String          // buffet, plated, cocktail
+  guestCount      Int
+  includesDrinks  Boolean         @default(false)
+  includesDessert Boolean         @default(false)
+  menuItems       String          // JSON array of menu items
+  dietaryOptions  String          // JSON array
+  basePrice       Float
+  pricePerGuest   Float           @default(0)
+  images          String          // JSON array
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model PhotoPackage {
+  id              String          @id @default(cuid())
+  providerId      String
+  provider        ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name            String
+  type            String          // photography, videography, drone, editing, album
+  description     String?
+  coverageHours   Int?
+  includesEditing Boolean         @default(false)
+  includesAlbum   Boolean         @default(false)
+  includesDrone   Boolean         @default(false)
+  basePrice       Float
+  images          String          // JSON array
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+// ─── Pricing ─────────────────────────────────────────────────────────────────
+
+model PricingRule {
+  id          String          @id @default(cuid())
+  providerId  String
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  serviceId   String?
+  service     Service?        @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  name        String
+  eventType   EventType?
+  isWeekend   Boolean         @default(false)
+  isPeakSeason Boolean        @default(false)
+  seasonStart DateTime?
+  seasonEnd   DateTime?
+  priceModifier Float         // multiplier or fixed amount
+  modifierType  String        @default("fixed") // fixed, multiplier, percentage
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+// ─── Availability & Bookings ─────────────────────────────────────────────────
+
+model AvailabilitySlot {
+  id         String             @id @default(cuid())
+  providerId String
+  provider   ProviderProfile    @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  date       DateTime
+  status     AvailabilityStatus @default(AVAILABLE)
+  bookingId  String?            @unique
+  booking    Booking?           @relation(fields: [bookingId], references: [id])
+  notes      String?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@unique([providerId, date])
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+  eventId         String
+  event           Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  customerId      String
+  customer        CustomerProfile @relation(fields: [customerId], references: [id])
+  providerId      String
+  provider        ProviderProfile @relation(fields: [providerId], references: [id])
+  serviceId       String?
+  service         Service?      @relation(fields: [serviceId], references: [id])
+  status          BookingStatus @default(QUOTATION_REQUESTED)
+  quotedPrice     Float?
+  finalPrice      Float?
+  depositAmount   Float?
+  depositPaid     Boolean       @default(false)
+  customerNotes   String?
+  providerNotes   String?
+  quotationDetails String?      // JSON
+  availabilitySlot AvailabilitySlot?
+  payments        Payment[]
+  messages        Message[]
+  reviews         Review[]
+  documents       Document[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+// ─── Payments ────────────────────────────────────────────────────────────────
+
+model Payment {
+  id            String        @id @default(cuid())
+  bookingId     String
+  booking       Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  amount        Float
+  method        PaymentMethod @default(CARD)
+  status        PaymentStatus @default(PENDING)
+  transactionId String?
+  isDeposit     Boolean       @default(false)
+  notes         String?
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+// ─── Documents (Quotes, Invoices, Receipts) ────────────────────────────────────
+
+model Document {
+  id              String         @id @default(cuid())
+  type            DocumentType
+  status          DocumentStatus @default(DRAFT)
+  documentNumber  String         @unique
+  bookingId       String?
+  booking         Booking?       @relation(fields: [bookingId], references: [id])
+  senderId        String
+  senderName      String
+  recipientId     String
+  recipientName   String
+  recipientEmail  String
+  recipientPhone  String?
+  recipientAddress String?
+
+  lineItems       String         @default("[]")
+
+  subtotal        Float
+  taxRate         Float          @default(0)
+  taxAmount       Float          @default(0)
+  discountRate    Float          @default(0)
+  discountAmount  Float          @default(0)
+  total           Float
+  depositRequired Float?
+  depositPaid     Boolean        @default(false)
+
+  notes           String?
+  terms           String?
+  validUntil      DateTime?
+  issuedAt        DateTime       @default(now())
+  dueAt           DateTime?
+  paidAt          DateTime?
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([type])
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([status])
+  @@index([bookingId])
+}
+
+// ─── Messaging ───────────────────────────────────────────────────────────────
+
+model Conversation {
+  id         String    @id @default(cuid())
+  bookingId  String?
+  messages   Message[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId     String
+  receiver       User         @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  bookingId      String?
+  booking        Booking?     @relation(fields: [bookingId], references: [id])
+  type           MessageType  @default(TEXT)
+  content        String
+  fileUrl        String?
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+}
+
+// ─── Reviews ─────────────────────────────────────────────────────────────────
+
+model Review {
+  id              String   @id @default(cuid())
+  bookingId       String
+  booking         Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  reviewerId      String
+  revieweeId      String
+  reviewerRole    UserRole
+
+  // Customer rating provider (public)
+  serviceQuality    Int?
+  professionalism   Int?
+  equipmentQuality  Int?
+  communication     Int?
+  reliability       Int?
+
+  // Provider rating customer (provider-only visibility)
+  paymentReliability Int?
+  customerCommunication Int?
+  respectForAgreements Int?
+  eventOrganization  Int?
+
+  comment         String?
+  isPublic        Boolean  @default(true)
+
+  customerId      String?
+  customer        CustomerProfile? @relation("CustomerRatedReviews", fields: [customerId], references: [id])
+  providerId      String?
+  provider        ProviderProfile? @relation("ProviderRatedReviews", fields: [providerId], references: [id])
+  customerReviewer CustomerProfile? @relation("CustomerReviews", fields: [customerReviewerId], references: [id])
+  customerReviewerId String?
+  providerReviewer ProviderProfile? @relation("ProviderReviews", fields: [providerReviewerId], references: [id])
+  providerReviewerId String?
+
+  createdAt       DateTime @default(now())
+}
+
+// ─── Notifications ───────────────────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+}
+
+// ─── Admin & Complaints ────────────────────────────────────────────────────────
+
+model Complaint {
+  id          String   @id @default(cuid())
+  reporterId  String
+  reporter    User     @relation(fields: [reporterId], references: [id])
+  reportedId  String?
+  bookingId   String?
+  subject     String
+  description String
+  status      String   @default("open") // open, investigating, resolved, dismissed
+  adminNotes  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Subscriptions ────────────────────────────────────────────────────────────
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PAST_DUE
+}
+
+model SubscriptionPlan {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  price          Float
+  annualPrice    Float?
+  trialDays      Int      @default(0)
+  maxServices    Int      @default(5)
+  maxEquipment   Int      @default(10)
+  maxBookings    Int      @default(50)
+  maxVenues      Int      @default(1)
+  maxVehicles    Int      @default(1)
+  features       String   @default("[]")
+  isActive       Boolean  @default(true)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  subscriptions ProviderSubscription[]
+}
+
+model ProviderSubscription {
+  id                 String             @id @default(cuid())
+  providerId         String             @unique
+  provider           ProviderProfile    @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  planId             String
+  plan               SubscriptionPlan   @relation(fields: [planId], references: [id])
+  status             SubscriptionStatus @default(TRIAL)
+  trialStartAt       DateTime?
+  trialEndAt         DateTime?
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelledAt        DateTime?
+  billingPeriod      String             @default("MONTHLY")
+  paymentMethod      String?
+  paymentRef         String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
+// ─── Locations (Countries & Subdivisions) ─────────────────────────────────────
+
+model Country {
+  id        String          @id @default(cuid())
+  name      String          @unique
+  sortOrder Int             @default(0)
+  subdivisions Subdivision[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model Subdivision {
+  id        String   @id @default(cuid())
+  countryId String
+  country   Country  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  name      String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([countryId, name])
+}
+
+// ─── System Configuration ─────────────────────────────────────────────────────
+
+model SystemConfig {
+  id    String @id @default("default")
+  // Logo paths (relative to public/)
+  logoLight String?  // used in light mode
+  logoDark  String?  // used in dark mode
+  logoInvoice String? // used on invoices/documents
+  // App settings
+  appName String @default("Eventicate")
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Local System Integration ──────────────────────────────────────────────────
+
+model LocalSyncConfig {
+  id              String          @id @default(cuid())
+  providerId      String          @unique
+  provider        ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  isEnabled       Boolean         @default(false)
+  localDbUrl      String?
+  syncInterval    Int             @default(300) // seconds
+  lastSyncAt      DateTime?
+  apiKey          String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model LocalSyncLog {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+  action      String
+  entityType  String
+  entityId    String
+  status      SyncStatus @default(PENDING)
+  details     String?
+  createdAt   DateTime   @default(now())
+}

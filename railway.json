@@ -1,0 +1,12 @@
+{
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "npm run railway-build",
+    "watchPatterns": ["src/**/*", "prisma/**/*"]
+  },
+  "deploy": {
+    "startCommand": "npm run start",
+    "healthcheckPath": "/",
+    "restartPolicyType": "ON_FAILURE"
+  }
+}

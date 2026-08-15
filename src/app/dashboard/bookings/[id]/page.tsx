@@ -1,0 +1,298 @@
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { getSession } from "@/lib/auth";
+import { Sidebar } from "@/components/layout/Navigation";
+import { PageContent } from "@/components/layout/PageContent";
+import { Card, CardTitle, CardDescription } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { StatusBadge } from "@/components/ui/Badge";
+import prisma from "@/lib/prisma";
+import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
+import {
+  ArrowLeft, Building2, Calendar, DollarSign, MessageSquare,
+  Phone, Mail, Globe, MapPin, Check, X, CreditCard,
+} from "lucide-react";
+
+function BookingActions({ bookingId, status, hasBalance }: { bookingId: string; status: string; hasBalance?: boolean }) {
+  const payableStatuses = ["CONFIRMED", "DEPOSIT_PAID"];
+
+  return (
+    <div className="flex gap-3">
+      {payableStatuses.includes(status) && hasBalance && (
+        <Link href={`/dashboard/checkout/${bookingId}`}>
+          <Button variant="primary">
+            <CreditCard className="mr-2 h-4 w-4" />
+            Pay Now
+          </Button>
+        </Link>
+      )}
+      {status === "QUOTATION_SENT" && (
+        <>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const res = await fetch(`/api/bookings/${bookingId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: "CONFIRMED" }),
+              });
+              if (res.ok) window.location.reload();
+            }}
+          >
+            <Button type="submit" variant="primary">
+              <Check className="mr-2 h-4 w-4" />
+              Accept
+            </Button>
+          </form>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const res = await fetch(`/api/bookings/${bookingId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: "REJECTED" }),
+              });
+              if (res.ok) window.location.reload();
+            }}
+          >
+            <Button type="submit" variant="danger">
+              <X className="mr-2 h-4 w-4" />
+              Reject
+            </Button>
+          </form>
+        </>
+      )}
+      {status === "CONFIRMED" && (
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const res = await fetch(`/api/bookings/${bookingId}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: "CANCELLED" }),
+            });
+            if (res.ok) window.location.reload();
+          }}
+        >
+          <Button type="submit" variant="danger">Cancel Booking</Button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+export default async function BookingDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const session = await getSession();
+  if (!session) redirect("/auth/login");
+  if (session.role !== "CUSTOMER") redirect(session.role === "PROVIDER" ? "/provider" : "/admin");
+
+  const { id } = await params;
+
+  const customer = await prisma.customerProfile.findUnique({
+    where: { userId: session.id },
+  });
+  if (!customer) redirect("/dashboard");
+
+  const booking = await prisma.booking.findFirst({
+    where: { id, customerId: customer.id },
+    include: {
+      event: true,
+      provider: { include: { user: { select: { firstName: true, lastName: true, email: true, phone: true } } } },
+      service: true,
+      payments: { orderBy: { createdAt: "desc" } },
+      messages: {
+        include: {
+          sender: { select: { firstName: true, lastName: true, role: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      },
+    },
+  });
+
+  if (!booking) redirect("/dashboard/bookings");
+
+  const totalPaid = booking.payments.reduce((s, p) => s + p.amount, 0);
+  const totalDue = booking.finalPrice || booking.quotedPrice || 0;
+  const remainingBalance = Math.max(0, totalDue - totalPaid);
+
+  return (
+    <div className="flex min-h-screen">
+      <Sidebar role="CUSTOMER" />
+      <PageContent>
+        <Link
+          href="/dashboard/bookings"
+          className="mb-4 flex items-center gap-1 text-sm text-primary-600 hover:underline"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Bookings
+        </Link>
+
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <div className="mb-2 flex items-center gap-3">
+              <h1 className="text-2xl font-bold">{booking.provider.businessName}</h1>
+              <StatusBadge status={booking.status} />
+            </div>
+            <p className="text-sm text-gray-500">{booking.provider.category}</p>
+          </div>
+          <BookingActions bookingId={booking.id} status={booking.status} hasBalance={remainingBalance > 0} />
+        </div>
+
+        <div className="mb-8 grid gap-4 md:grid-cols-3">
+          <Card>
+            <div className="flex items-center gap-3">
+              <Calendar className="h-5 w-5 text-primary-600" />
+              <div>
+                <p className="text-xs text-gray-500">Event</p>
+                <Link
+                  href={`/dashboard/events/${booking.event.id}`}
+                  className="text-sm font-medium hover:text-primary-600"
+                >
+                  {booking.event.title}
+                </Link>
+                <p className="text-xs text-gray-400">{formatDate(booking.event.eventDate)}</p>
+              </div>
+            </div>
+          </Card>
+          <Card>
+            <div className="flex items-center gap-3">
+              <DollarSign className="h-5 w-5 text-primary-600" />
+              <div>
+                <p className="text-xs text-gray-500">Service</p>
+                <p className="text-sm font-medium">{booking.service?.name || "General"}</p>
+              </div>
+            </div>
+          </Card>
+          <Card>
+            <div className="flex items-center gap-3">
+              <Building2 className="h-5 w-5 text-primary-600" />
+              <div>
+                <p className="text-xs text-gray-500">Category</p>
+                <p className="text-sm font-medium">{booking.provider.category}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        <div className="mb-8 grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardTitle className="mb-1">Quoted Price</CardTitle>
+            <p className="text-2xl font-bold text-primary-600">
+              {booking.quotedPrice ? formatCurrency(booking.quotedPrice) : "—"}
+            </p>
+          </Card>
+          <Card>
+            <CardTitle className="mb-1">Final Price</CardTitle>
+            <p className="text-2xl font-bold">
+              {booking.finalPrice ? formatCurrency(booking.finalPrice) : "—"}
+            </p>
+          </Card>
+          <Card>
+            <CardTitle className="mb-1">Deposit</CardTitle>
+            <p className="text-2xl font-bold">
+              {booking.depositAmount ? formatCurrency(booking.depositAmount) : "—"}
+            </p>
+          </Card>
+        </div>
+
+        {booking.customerNotes && (
+          <Card className="mb-8">
+            <CardTitle className="mb-2">Your Notes</CardTitle>
+            <p className="text-sm text-gray-600">{booking.customerNotes}</p>
+          </Card>
+        )}
+
+        <div className="mb-8 grid gap-8 lg:grid-cols-2">
+          <Card>
+            <CardTitle className="mb-4">Payments</CardTitle>
+            {booking.payments.length === 0 ? (
+              <CardDescription>No payments recorded.</CardDescription>
+            ) : (
+              <div className="space-y-3">
+                {booking.payments.map((payment) => (
+                  <div
+                    key={payment.id}
+                    className="flex items-center justify-between rounded-lg border border-gray-100 p-3"
+                  >
+                    <div>
+                      <p className="font-medium">{formatCurrency(payment.amount)}</p>
+                      <p className="text-xs text-gray-500">
+                        {payment.method.replace(/_/g, " ")} · {formatDateTime(payment.createdAt)}
+                      </p>
+                    </div>
+                    <StatusBadge status={payment.status} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          <Card>
+            <CardTitle className="mb-4">Messages</CardTitle>
+            {booking.messages.length === 0 ? (
+              <CardDescription>No messages yet.</CardDescription>
+            ) : (
+              <div className="space-y-3">
+                {booking.messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className="rounded-lg border border-gray-100 p-3"
+                  >
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-sm font-medium">
+                        {msg.sender.firstName} {msg.sender.lastName}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {formatDateTime(msg.createdAt)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600">{msg.content}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+            <Link href={`/dashboard/messages?bookingId=${booking.id}`}>
+              <Button variant="outline" className="mt-4 w-full">
+                <MessageSquare className="mr-2 h-4 w-4" />
+                Send Message
+              </Button>
+            </Link>
+          </Card>
+        </div>
+
+        <Card>
+          <CardTitle className="mb-3">Provider Contact</CardTitle>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Mail className="h-4 w-4 text-gray-400" />
+              {booking.provider.user.email}
+            </div>
+            {booking.provider.user.phone && (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Phone className="h-4 w-4 text-gray-400" />
+                {booking.provider.user.phone}
+              </div>
+            )}
+            {booking.provider.website && (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Globe className="h-4 w-4 text-gray-400" />
+                {booking.provider.website}
+              </div>
+            )}
+            {booking.provider.address && (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <MapPin className="h-4 w-4 text-gray-400" />
+                {booking.provider.address}
+              </div>
+            )}
+          </div>
+        </Card>
+      </PageContent>
+    </div>
+  );
+}
