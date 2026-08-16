@@ -1,5 +1,7 @@
 import { Router } from "express";
 import multer from "multer";
+import prisma from "../lib/prisma";
+import { getSession } from "../lib/auth";
 import { uploadBuffer, cloudinaryEnabled } from "../lib/cloudinary";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
@@ -27,14 +29,27 @@ router.post("/", (req, res) => {
     if (err) return res.status(400).json({ error: err.message });
     if (!req.file) return res.status(400).json({ error: "No file provided" });
 
-    const type = (req.query.type as string) || "services";
+    const session = await getSession(req);
+    if (!session) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
     if (!cloudinaryEnabled()) {
       return res.status(500).json({ error: "Cloudinary is not configured" });
     }
 
+    const type = (req.query.type as string) || "services";
+
+    const provider = await prisma.providerProfile.findUnique({
+      where: { userId: session.id },
+      select: { businessName: true },
+    });
+
+    const folderName = (provider?.businessName || "anonymous").trim();
+    const safeFolder = folderName.replace(/[^a-zA-Z0-9_-]/g, "-").replace(/-+/g, "-");
+
     try {
-      const url = await uploadBuffer(req.file.buffer, `eventicate/${type}`);
+      const url = await uploadBuffer(req.file.buffer, `eventicate/${safeFolder}/${type}`);
       return res.status(200).json({ url });
     } catch {
       return res.status(500).json({ error: "Upload failed" });
