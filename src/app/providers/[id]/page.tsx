@@ -12,6 +12,7 @@ import { SERVICE_CATEGORIES, EVENT_TYPES } from "@/lib/constants";
 import { CategoryIcon } from "@/components/layout/Navigation";
 import { AddToCartButton } from "./AddToCartButton";
 import Image from "next/image";
+import { FadeIn, FadeUp } from "@/components/motion/animations";
 
 interface ProviderReview {
   id: string;
@@ -119,24 +120,26 @@ export default async function ProviderProfilePage({
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <div className="gradient-hero px-4 py-12 text-white">
         <div className="mx-auto max-w-5xl">
-          <div className="flex items-start gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-white/20">
-              <CategoryIcon category={provider.category} />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold">{provider.businessName}</h1>
-              <p className="text-primary-100">{categoryLabel}{provider.city && ` · ${provider.city}`}{provider.country && `, ${provider.country}`}</p>
-              <div className="flex items-center gap-2">
-                <StarRating rating={provider.averageRating} size="md" />
-                {provider.travelOutsideArea && (
-                  <Badge variant="success" className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    Travels{provider.travelRadius ? ` ${provider.travelRadius}km` : ""}
-                  </Badge>
-                )}
+          <FadeIn>
+            <div className="flex items-start gap-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-white/20">
+                <CategoryIcon category={provider.category} />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold">{provider.businessName}</h1>
+                <p className="text-primary-100">{categoryLabel}{provider.city && ` · ${provider.city}`}{provider.country && `, ${provider.country}`}</p>
+                <div className="flex items-center gap-2">
+                  <StarRating rating={provider.averageRating} size="md" />
+                  {provider.travelOutsideArea && (
+                    <Badge variant="success" className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      Travels{provider.travelRadius ? ` ${provider.travelRadius}km` : ""}
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          </FadeIn>
         </div>
       </div>
 
@@ -144,10 +147,12 @@ export default async function ProviderProfilePage({
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
             {provider.description && (
-              <Card>
-                <CardTitle className="mb-2">About</CardTitle>
-                <p className="text-gray-600 dark:text-gray-300">{provider.description}</p>
-              </Card>
+              <FadeUp>
+                <Card>
+                  <CardTitle className="mb-2">About</CardTitle>
+                  <p className="text-gray-600 dark:text-gray-300">{provider.description}</p>
+                </Card>
+              </FadeUp>
             )}
 
             {provider.services.length > 0 && (

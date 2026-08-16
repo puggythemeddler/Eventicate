@@ -13,6 +13,7 @@ import { SERVICE_CATEGORIES } from "@/lib/constants";
 import { Search, MapPin } from "lucide-react";
 import { fetchCountries, COUNTRIES, type CountryData } from "@/lib/locations";
 import { useDetectedLocation, LocationBanner } from "@/components/location/LocationDetector";
+import { StaggerGroup, StaggerItem } from "@/components/motion/animations";
 
 interface Provider {
   id: string;
@@ -164,10 +165,14 @@ function SearchContent() {
             No providers found. Try adjusting your filters.
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <StaggerGroup
+            key={JSON.stringify(filters)}
+            className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+          >
             {providers.map((provider) => (
-              <Link key={provider.id} href={`/providers/${provider.id}`}>
-                <Card hover className="h-full">
+              <StaggerItem key={provider.id} className="h-full">
+                <Link href={`/providers/${provider.id}`}>
+                  <Card hover className="h-full">
                   <div className="mb-3 flex items-center gap-2">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100 text-primary-700">
                       <CategoryIcon category={provider.category} />
@@ -201,9 +206,10 @@ function SearchContent() {
                     </p>
                   )}
                 </Card>
-              </Link>
+                </Link>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerGroup>
         )}
       </div>
     </div>
