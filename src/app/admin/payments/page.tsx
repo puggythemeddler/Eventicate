@@ -157,8 +157,8 @@ export default function PaymentsPage() {
           </div>
 
           <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-            Credentials are stored encrypted at rest in the database and applied immediately. Leave a field empty to
-            keep its existing value. Get test credentials at{" "}
+            Credentials are stored in the database and applied immediately. Existing values are masked and left blank
+            to keep them. Get test credentials at{" "}
             <a
               href="https://developer.safaricom.co.ke/test_credentials"
               target="_blank"
