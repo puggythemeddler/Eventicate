@@ -18,7 +18,7 @@ const updateSchema = z.object({
   quotationDetails: z.string().optional(),
 });
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.patch("/", async (req, res) => {
   const session = await getSession(req);

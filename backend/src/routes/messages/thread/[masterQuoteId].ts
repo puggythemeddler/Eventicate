@@ -3,7 +3,7 @@ import { z } from "zod";
 import prisma from "../../../lib/prisma";
 import { getSession } from "../../../lib/auth";
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.get("/", async (req, res) => {
   const session = await getSession(req);

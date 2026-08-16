@@ -3,7 +3,7 @@ import prisma from "../../lib/prisma";
 import { parseJsonArray } from "../../lib/utils";
 import { getProviderAvailability } from "../../lib/booking-engine";
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.get("/", async (req, res) => {
   const id = (req.params as { id: string }).id;

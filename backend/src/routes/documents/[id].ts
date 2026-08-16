@@ -14,7 +14,7 @@ const updateSchema = z.object({
   paidAt: z.string().datetime().optional(),
 });
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.get("/", async (req, res) => {
   const session = await getSession(req);

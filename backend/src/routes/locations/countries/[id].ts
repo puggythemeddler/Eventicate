@@ -8,7 +8,7 @@ const updateSchema = z.object({
   sortOrder: z.number().int().optional(),
 });
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.put("/", async (req, res) => {
   const session = await getSession(req);
