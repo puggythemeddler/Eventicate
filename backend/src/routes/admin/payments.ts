@@ -51,22 +51,23 @@ router.put("/", async (req, res) => {
 
     // Only overwrite a field when the client sends a non-empty value, so the
     // masked values returned by GET can't accidentally wipe stored secrets.
-    const pick = (key: string, envKey: string): string | undefined => {
+    const pick = (key: string): string | undefined => {
       const value = body[key];
       if (typeof value === "string" && value.trim().length > 0 && !value.includes("****")) {
         return value.trim();
       }
-      return current?.[key as keyof typeof current] as string | undefined;
+      const existing = current?.[key as keyof typeof current];
+      return typeof existing === "string" && existing.length > 0 ? existing : undefined;
     };
 
     const data = configSchema.parse({
       mpesaEnv: body.mpesaEnv || current?.mpesaEnv || "sandbox",
-      mpesaConsumerKey: pick("mpesaConsumerKey", "MPESA_CONSUMER_KEY"),
-      mpesaConsumerSecret: pick("mpesaConsumerSecret", "MPESA_CONSUMER_SECRET"),
-      mpesaPasskey: pick("mpesaPasskey", "MPESA_PASSKEY"),
+      mpesaConsumerKey: pick("mpesaConsumerKey"),
+      mpesaConsumerSecret: pick("mpesaConsumerSecret"),
+      mpesaPasskey: pick("mpesaPasskey"),
       mpesaShortcode: body.mpesaShortcode || current?.mpesaShortcode || "174379",
       mpesaCallbackUrl: body.mpesaCallbackUrl === "" ? "" : (body.mpesaCallbackUrl || current?.mpesaCallbackUrl || ""),
-      mpesaCallbackSecret: pick("mpesaCallbackSecret", "MPESA_CALLBACK_SECRET"),
+      mpesaCallbackSecret: pick("mpesaCallbackSecret"),
     });
 
     await prisma.systemConfig.upsert({
