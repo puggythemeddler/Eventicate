@@ -40,6 +40,16 @@ interface ProviderData {
     basePrice: number;
     discountPercent: number;
   }>;
+  venues: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+    location: string;
+    capacity: number;
+    facilities: string[];
+    images: string[];
+    basePrice: number;
+  }>;
   menuPackages: Array<{
     id: string;
     name: string;
@@ -182,6 +192,55 @@ export default async function ProviderProfilePage({
                       </div>
                     );
                   })}
+                </div>
+              </Card>
+            )}
+
+            {provider.venues.length > 0 && (
+              <Card>
+                <CardTitle className="mb-4">Venues</CardTitle>
+                <div className="space-y-4">
+                  {provider.venues.map((venue) => (
+                    <div key={venue.id} className="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                      {venue.images.length > 0 && (
+                        <div className="mb-3 flex gap-2 overflow-x-auto">
+                          {venue.images.map((url, i) => (
+                            <Image key={i} src={url} alt="" width={128} height={96} className="h-24 w-32 flex-shrink-0 rounded object-cover" />
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h4 className="font-medium">{venue.name}</h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            <MapPin className="mr-1 inline h-3 w-3" />
+                            {venue.location}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Capacity: {venue.capacity} guests
+                          </p>
+                          {venue.facilities.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {venue.facilities.map((f, i) => (
+                                <span key={i} className="rounded-full bg-primary-50 px-2 py-0.5 text-xs text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
+                                  {f}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <div className="text-right">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">From</p>
+                            <p className="font-semibold text-primary-600">{formatCurrency(venue.basePrice)}</p>
+                          </div>
+                          <Link href={session ? `/dashboard/bookings/new?providerId=${id}` : "/auth/login"}>
+                            <Button size="sm" variant="outline">Get a Quote</Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </Card>
             )}
