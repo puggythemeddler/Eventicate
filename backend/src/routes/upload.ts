@@ -1,28 +1,12 @@
 import { Router } from "express";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
+import { uploadBuffer, cloudinaryEnabled } from "../lib/cloudinary";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
 const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "svg"];
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    const type = (_req.query.type as string) || "services";
-    const dir = path.join(process.cwd(), "uploads", type);
-    fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const type = (req.query.type as string) || "services";
-    const ext = path.extname(file.originalname).toLowerCase().slice(1) || "png";
-    const filename = `${type}-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    cb(null, filename);
-  },
-});
-
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (!ALLOWED_TYPES.includes(file.mimetype)) {
@@ -39,12 +23,22 @@ const upload = multer({
 const router = Router();
 
 router.post("/", (req, res) => {
-  upload.single("file")(req, res, (err) => {
+  upload.single("file")(req, res, async (err) => {
     if (err) return res.status(400).json({ error: err.message });
     if (!req.file) return res.status(400).json({ error: "No file provided" });
 
     const type = (req.query.type as string) || "services";
-    return res.status(200).json({ url: `/uploads/${type}/${req.file.filename}` });
+
+    if (!cloudinaryEnabled()) {
+      return res.status(500).json({ error: "Cloudinary is not configured" });
+    }
+
+    try {
+      const url = await uploadBuffer(req.file.buffer, `eventicate/${type}`);
+      return res.status(200).json({ url });
+    } catch {
+      return res.status(500).json({ error: "Upload failed" });
+    }
   });
 });
 

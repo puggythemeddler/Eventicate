@@ -54,3 +54,9 @@ services:
         value: "false"
       - key: LOCAL_SYNC_API_KEY
         value: ""
+      - key: CLOUDINARY_CLOUD_NAME
+        value: ""
+      - key: CLOUDINARY_API_KEY
+        value: ""
+      - key: CLOUDINARY_API_SECRET
+        value: ""
