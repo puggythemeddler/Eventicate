@@ -122,7 +122,7 @@ export async function getProviderLimits(providerId: string): Promise<ProviderLim
   ]);
 
   const activeStatuses: string[] = ["TRIAL", "ACTIVE"];
-  const isActive = subscription ? activeStatuses.includes(subscription.status) : false;
+  let isActive = subscription ? activeStatuses.includes(subscription.status) : false;
   const expiredOrNoSub = !subscription || ["EXPIRED", "CANCELLED", "PAST_DUE"].includes(subscription.status);
 
   let maxServices: number;
@@ -132,12 +132,25 @@ export async function getProviderLimits(providerId: string): Promise<ProviderLim
   let maxVehicles: number;
 
   if (expiredOrNoSub) {
-    const limits = getDefaultFreePlanLimits();
-    maxServices = limits.maxServices;
-    maxEquipment = limits.maxEquipment;
-    maxBookings = limits.maxBookings;
-    maxVenues = limits.maxVenues;
-    maxVehicles = limits.maxVehicles;
+    // Providers without an active paid subscription get the Free plan limits
+    // (5 services / 10 equipment / 25 bookings / 1 venue / 1 vehicle) so the
+    // platform is usable out of the box.
+    const freePlan = await getFreePlan();
+    if (freePlan) {
+      maxServices = freePlan.maxServices;
+      maxEquipment = freePlan.maxEquipment;
+      maxBookings = freePlan.maxBookings;
+      maxVenues = freePlan.maxVenues;
+      maxVehicles = freePlan.maxVehicles;
+      isActive = true;
+    } else {
+      const limits = getDefaultFreePlanLimits();
+      maxServices = limits.maxServices;
+      maxEquipment = limits.maxEquipment;
+      maxBookings = limits.maxBookings;
+      maxVenues = limits.maxVenues;
+      maxVehicles = limits.maxVehicles;
+    }
   } else {
     maxServices = subscription!.plan.maxServices;
     maxEquipment = subscription!.plan.maxEquipment;

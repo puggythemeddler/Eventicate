@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import prisma from "../../lib/prisma";
 import { getSession } from "../../lib/auth";
-import { blockAvailability, createNotification } from "../../lib/booking-engine";
+import { blockAvailability, releaseAvailability, createNotification } from "../../lib/booking-engine";
 import { generateQuoteFromBooking } from "../../lib/documents";
 import { sendBookingStatusUpdate } from "../../lib/email";
 
@@ -50,6 +50,10 @@ router.patch("/", async (req, res) => {
 
     if (data.status === "CONFIRMED" || data.status === "DEPOSIT_PAID") {
       await blockAvailability(booking.providerId, booking.event.eventDate, id, "CONFIRMED");
+    }
+
+    if (data.status === "CANCELLED" || data.status === "REJECTED") {
+      await releaseAvailability(booking.providerId, booking.event.eventDate);
     }
 
     if (data.status === "QUOTATION_SENT" && data.quotedPrice) {

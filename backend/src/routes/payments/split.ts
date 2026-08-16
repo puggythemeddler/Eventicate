@@ -2,10 +2,11 @@ import { Router } from "express";
 import { z } from "zod";
 import prisma from "../../lib/prisma";
 import { getSession } from "../../lib/auth";
-import { sendPaymentConfirmation } from "../../lib/email";
+import { initiatePayment } from "../../lib/payments";
 
 const splitSchema = z.object({
   masterQuoteId: z.string(),
+  phone: z.string().optional(),
 });
 
 const router = Router();
@@ -25,7 +26,7 @@ router.post("/", async (req, res) => {
         booking: {
           include: {
             event: { select: { title: true } },
-            customer: { include: { user: { select: { firstName: true, lastName: true, email: true } } } },
+            customer: { include: { user: { select: { firstName: true, lastName: true, email: true, phone: true } } } },
             provider: { include: { user: { select: { firstName: true, lastName: true } } } },
             payments: true,
           },
@@ -37,7 +38,7 @@ router.post("/", async (req, res) => {
       return res.status(404).json({ error: "No documents found for this master quote" });
     }
 
-    const results: { bookingId: string; providerName: string; amount: number; status: string }[] = [];
+    const results: { bookingId: string; providerName: string; amount: number; status: string; checkoutRequestId?: string; error?: string }[] = [];
 
     for (const doc of documents) {
       if (!doc.booking) continue;
@@ -57,12 +58,34 @@ router.post("/", async (req, res) => {
         continue;
       }
 
-      const payment = await prisma.payment.create({
+      const result = await initiatePayment("mpesa", {
+        amount: remaining,
+        currency: "KES",
+        bookingId: booking.id,
+        customerEmail: booking.customer?.user?.email || "",
+        customerPhone: data.phone || booking.customer?.user?.phone || "",
+        customerName: `${booking.customer?.user?.firstName || ""} ${booking.customer?.user?.lastName || ""}`,
+        description: `Split payment for ${booking.event?.title || "booking"}`,
+      });
+
+      if (!result.success || !result.checkoutRequestId) {
+        results.push({
+          bookingId: booking.id,
+          providerName: booking.provider?.user?.firstName || "Unknown",
+          amount: remaining,
+          status: "FAILED",
+          error: result.error || "Payment initiation failed",
+        });
+        continue;
+      }
+
+      await prisma.payment.create({
         data: {
           bookingId: booking.id,
           amount: remaining,
-          method: "CARD",
+          method: "MPESA",
           status: "PENDING",
+          transactionId: result.checkoutRequestId,
           isDeposit: false,
           notes: `Split payment for master quote ${data.masterQuoteId}`,
         },
@@ -72,21 +95,9 @@ router.post("/", async (req, res) => {
         bookingId: booking.id,
         providerName: booking.provider?.user?.firstName || "Unknown",
         amount: remaining,
-        status: payment.status,
+        status: "PENDING",
+        checkoutRequestId: result.checkoutRequestId,
       });
-
-      if (booking.customer?.user?.email) {
-        sendPaymentConfirmation(
-          booking.customer.user.email,
-          booking.customer.user.firstName,
-          {
-            amount: remaining,
-            method: "CARD",
-            ref: payment.id.slice(-8),
-            eventName: booking.event?.title || "Event",
-          }
-        ).catch(() => {});
-      }
     }
 
     return res.status(200).json({ payments: results });

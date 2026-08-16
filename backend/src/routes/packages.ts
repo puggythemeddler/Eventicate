@@ -47,6 +47,18 @@ router.post("/", async (req, res) => {
         where: { id: svc.serviceId },
       });
       if (!service) return res.status(404).json({ error: `Service ${svc.serviceId} not found` });
+      if (service.providerId !== provider.id) {
+        return res.status(400).json({ error: `Service ${service.name} does not belong to provider ${provider.businessName}` });
+      }
+
+      const existingSlot = await prisma.availabilitySlot.findUnique({
+        where: { providerId_date: { providerId: provider.id, date: event.eventDate } },
+      });
+      if (existingSlot && existingSlot.status !== "AVAILABLE") {
+        return res.status(409).json({
+          error: `${provider.businessName} is not available on ${event.eventDate.toISOString().split("T")[0]}`,
+        });
+      }
 
       const quotedPrice = await calculateDynamicPrice({
         basePrice: service.basePrice,

@@ -34,6 +34,13 @@ router.post("/", async (req, res) => {
     });
     if (!booking) return res.status(404).json({ error: "Booking not found" });
 
+    const customer = await prisma.customerProfile.findUnique({
+      where: { userId: session.id },
+    });
+    if (!customer || booking.customerId !== customer.id) {
+      return res.status(403).json({ error: "You can only sign agreements for your own bookings" });
+    }
+
     const existing = await prisma.agreement.findFirst({
       where: { bookingId: data.bookingId },
     });

@@ -6,7 +6,7 @@ import { checkProviderCan } from "../lib/subscription";
 
 const createSchema = z.object({
   name: z.string().min(1),
-  category: z.enum(["audio", "lighting", "instruments"]),
+  category: z.enum(["audio", "lighting", "instruments", "tents"]),
   subcategory: z.string().min(1),
   quantity: z.number().int().min(1).default(1),
   condition: z.string().default("good"),
@@ -22,7 +22,7 @@ const createSchema = z.object({
 const updateSchema = z.object({
   id: z.string(),
   name: z.string().min(1).optional(),
-  category: z.enum(["audio", "lighting", "instruments"]).optional(),
+  category: z.enum(["audio", "lighting", "instruments", "tents"]).optional(),
   subcategory: z.string().min(1).optional(),
   quantity: z.number().int().min(1).optional(),
   condition: z.string().optional(),

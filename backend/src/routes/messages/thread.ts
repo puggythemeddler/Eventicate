@@ -44,7 +44,7 @@ router.post("/", async (req, res) => {
     participantIds.add(customerId);
 
     const conversation = await prisma.conversation.create({
-      data: {},
+      data: { masterQuoteId: data.masterQuoteId },
     });
 
     const systemMessage = `Planning thread started for your multi-provider event (${documents.length} providers). All participants are included in this group conversation.`;

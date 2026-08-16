@@ -49,6 +49,7 @@ export const EQUIPMENT_CATEGORIES = {
   audio: ["Speakers", "Subwoofers", "Amplifiers", "Mixers", "Microphones", "Wireless Microphones", "Monitors"],
   instruments: ["Keyboards", "Drums", "Guitars", "Other Instruments"],
   lighting: ["Stage Lights", "Moving Heads", "LED Screens", "Effects Machines"],
+  tents: ["Marquees", "Canopies", "Chairs & Tables", "Flooring", "Accessories"],
 };
 
 export const VEHICLE_TYPES = ["Van", "Truck", "Bus", "Delivery Vehicle"];
