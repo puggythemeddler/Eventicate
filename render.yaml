@@ -7,7 +7,53 @@ services:
     buildCommand: npm ci && npm run build
     startCommand: npx prisma db push --skip-generate && npm start
     healthCheckPath: /health
-    envFromFile: .env.render
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_B0q2CnJOFjSd@ep-divine-salad-axlsvn0s-pooler.c-4.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+      - key: JWT_SECRET
+        value: dev-secret-change-in-production
+      - key: APP_URL
+        value: https://eventicate.vercel.app
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://eventicate.vercel.app
+      - key: PORT
+        value: "3001"
+      - key: MPESA_ENV
+        value: sandbox
+      - key: MPESA_CONSUMER_KEY
+        value: ""
+      - key: MPESA_CONSUMER_SECRET
+        value: ""
+      - key: MPESA_PASSKEY
+        value: ""
+      - key: MPESA_SHORTCODE
+        value: "174379"
+      - key: MPESA_CALLBACK_URL
+        value: ""
+      - key: GOOGLE_CLIENT_ID
+        value: ""
+      - key: GOOGLE_CLIENT_SECRET
+        value: ""
+      - key: GOOGLE_REDIRECT_URI
+        value: https://eventicate.vercel.app/api/auth/google/callback
+      - key: SMTP_HOST
+        value: ""
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_SECURE
+        value: "false"
+      - key: SMTP_USER
+        value: ""
+      - key: SMTP_PASS
+        value: ""
+      - key: SMTP_FROM
+        value: ""
+      - key: LOCAL_SYNC_ENABLED
+        value: "false"
+      - key: LOCAL_SYNC_API_KEY
+        value: ""
     disk:
       name: eventicate-uploads
       mountPath: /opt/render/project/src/backend/uploads
