@@ -54,7 +54,3 @@ services:
         value: "false"
       - key: LOCAL_SYNC_API_KEY
         value: ""
-    disk:
-      name: eventicate-uploads
-      mountPath: /opt/render/project/src/backend/uploads
-      sizeGB: 1
