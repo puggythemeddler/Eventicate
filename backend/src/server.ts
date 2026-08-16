@@ -19,6 +19,7 @@ import adminProvidersRouter from "./routes/admin/providers";
 import adminSubscriptionPlansRouter from "./routes/admin/subscription-plans";
 import adminComplaintsRouter from "./routes/admin/complaints";
 import adminLogosRouter from "./routes/admin/logos";
+import adminPaymentsRouter from "./routes/admin/payments";
 
 // bookings / events / services / equipment / packages / availability / timeline / budget
 import bookingsRouter from "./routes/bookings";
@@ -123,6 +124,7 @@ app.use("/api/admin/providers", adminProvidersRouter);
 app.use("/api/admin/subscription-plans", adminSubscriptionPlansRouter);
 app.use("/api/admin/complaints", adminComplaintsRouter);
 app.use("/api/admin/logos", adminLogosRouter);
+app.use("/api/admin/payments", adminPaymentsRouter);
 
 // bookings / events / services / equipment / packages / availability / timeline / budget
 app.use("/api/bookings", bookingsRouter);

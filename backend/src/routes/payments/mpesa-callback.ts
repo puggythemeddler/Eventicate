@@ -2,13 +2,13 @@ import { Router } from "express";
 import prisma from "../../lib/prisma";
 import { extractStkCallback, stkQuery } from "../../lib/mpesa";
 
-const CALLBACK_SECRET = process.env.MPESA_CALLBACK_SECRET || "";
-
 const router = Router();
 
 router.post("/", async (req, res) => {
   // Reject requests that don't carry the shared callback secret when one is configured.
-  if (CALLBACK_SECRET && req.get("x-eventicate-callback") !== CALLBACK_SECRET) {
+  const config = await prisma.systemConfig.findUnique({ where: { id: "default" } });
+  const callbackSecret = config?.mpesaCallbackSecret || process.env.MPESA_CALLBACK_SECRET || "";
+  if (callbackSecret && req.get("x-eventicate-callback") !== callbackSecret) {
     return res.status(401).json({ ResultCode: 1, ResultDesc: "Unauthorized" });
   }
 

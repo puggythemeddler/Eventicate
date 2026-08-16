@@ -1,0 +1,189 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Sidebar } from "@/components/layout/Navigation";
+import { PageContent } from "@/components/layout/PageContent";
+import { Card, CardTitle } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Input, Select } from "@/components/ui/Input";
+import { Loader2, Save, CheckCircle, AlertTriangle } from "lucide-react";
+
+interface PaymentConfig {
+  mpesaEnv: string;
+  mpesaConsumerKey: string;
+  mpesaConsumerSecret: string;
+  mpesaPasskey: string;
+  mpesaShortcode: string;
+  mpesaCallbackUrl: string;
+  mpesaCallbackSecret: string;
+  configured: boolean;
+}
+
+export default function PaymentsPage() {
+  const [authorized, setAuthorized] = useState(false);
+  const [config, setConfig] = useState<PaymentConfig | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
+
+  useEffect(() => {
+    (async () => {
+      const res = await fetch("/api/auth/session");
+      const { user } = await res.json();
+      if (!user || user.role !== "ADMIN") {
+        router.push("/auth/login");
+        return;
+      }
+      setAuthorized(true);
+      fetch("/api/admin/payments")
+        .then((r) => r.json())
+        .then(setConfig);
+    })();
+  }, [router]);
+
+  const update = (key: keyof PaymentConfig, value: string) => {
+    setSaved(false);
+    setError("");
+    setConfig((prev) => (prev ? { ...prev, [key]: value } : prev));
+  };
+
+  const handleSave = async () => {
+    if (!config) return;
+    setSaving(true);
+    setSaved(false);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/payments", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to save configuration");
+      }
+      const data = await res.json();
+      setConfig(data);
+      setSaved(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save configuration");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!authorized || !config) return null;
+
+  return (
+    <div className="flex min-h-screen">
+      <Sidebar role="ADMIN" />
+      <PageContent>
+        <h1 className="mb-8 text-2xl font-bold">Payment Gateway</h1>
+
+        <div className="mb-6 flex items-center gap-3">
+          {config.configured ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">
+              <CheckCircle className="h-4 w-4" />
+              M-Pesa configured
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+              <AlertTriangle className="h-4 w-4" />
+              M-Pesa not configured — payments will fail until credentials are added
+            </span>
+          )}
+        </div>
+
+        <Card className="max-w-2xl">
+          <CardTitle className="mb-4">M-Pesa (Daraja)</CardTitle>
+
+          <div className="space-y-4">
+            <Select
+              label="Environment"
+              value={config.mpesaEnv}
+              onChange={(e) => update("mpesaEnv", e.target.value)}
+              options={[
+                { value: "sandbox", label: "Sandbox (test)" },
+                { value: "production", label: "Production (live)" },
+              ]}
+            />
+
+            <Input
+              label="Consumer Key"
+              placeholder="Paste your Daraja consumer key"
+              value={config.mpesaConsumerKey}
+              onChange={(e) => update("mpesaConsumerKey", e.target.value)}
+            />
+
+            <Input
+              label="Consumer Secret"
+              type="password"
+              placeholder="Paste your Daraja consumer secret"
+              value={config.mpesaConsumerSecret}
+              onChange={(e) => update("mpesaConsumerSecret", e.target.value)}
+            />
+
+            <Input
+              label="Passkey"
+              type="password"
+              placeholder="Lipa Na MPESA Online passkey"
+              value={config.mpesaPasskey}
+              onChange={(e) => update("mpesaPasskey", e.target.value)}
+            />
+
+            <Input
+              label="Shortcode"
+              placeholder="174379"
+              value={config.mpesaShortcode}
+              onChange={(e) => update("mpesaShortcode", e.target.value)}
+            />
+
+            <Input
+              label="Callback URL"
+              placeholder="https://eventicate.vercel.app/api/payments/mpesa-callback"
+              value={config.mpesaCallbackUrl}
+              onChange={(e) => update("mpesaCallbackUrl", e.target.value)}
+            />
+
+            <Input
+              label="Callback Secret (optional)"
+              type="password"
+              placeholder="Shared secret verified on M-Pesa callbacks"
+              value={config.mpesaCallbackSecret}
+              onChange={(e) => update("mpesaCallbackSecret", e.target.value)}
+            />
+          </div>
+
+          <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+            Credentials are stored encrypted at rest in the database and applied immediately. Leave a field empty to
+            keep its existing value. Get test credentials at{" "}
+            <a
+              href="https://developer.safaricom.co.ke/test_credentials"
+              target="_blank"
+              rel="noreferrer"
+              className="text-primary-600 hover:underline"
+            >
+              developer.safaricom.co.ke
+            </a>
+            .
+          </p>
+
+          {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+          {saved && (
+            <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-green-600">
+              <CheckCircle className="h-4 w-4" />
+              Saved successfully
+            </p>
+          )}
+
+          <Button className="mt-6" onClick={handleSave} disabled={saving}>
+            {saving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
+            Save Configuration
+          </Button>
+        </Card>
+      </PageContent>
+    </div>
+  );
+}

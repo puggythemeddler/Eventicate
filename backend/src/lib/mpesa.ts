@@ -1,20 +1,71 @@
-const MPESA_ENV = process.env.MPESA_ENV || "sandbox";
-const BASE_URL =
-  MPESA_ENV === "production" ? "https://api.safaricom.co.ke" : "https://sandbox.safaricom.co.ke";
+import prisma from "./prisma";
 
-const CONSUMER_KEY = process.env.MPESA_CONSUMER_KEY || "";
-const CONSUMER_SECRET = process.env.MPESA_CONSUMER_SECRET || "";
-const PASSKEY = process.env.MPESA_PASSKEY || "";
-const SHORTCODE = process.env.MPESA_SHORTCODE || "174379";
-
-let cachedToken: { token: string; expiresAt: number } | null = null;
-
-export function isMpesaConfigured(): boolean {
-  return Boolean(CONSUMER_KEY && CONSUMER_SECRET && PASSKEY);
+interface MpesaConfig {
+  env: string;
+  consumerKey: string;
+  consumerSecret: string;
+  passkey: string;
+  shortcode: string;
+  callbackUrl: string;
+  callbackSecret: string;
 }
 
-export function mpesaCallbackUrl(): string {
-  return process.env.MPESA_CALLBACK_URL || `${process.env.APP_URL || ""}/api/payments/mpesa-callback`;
+let cachedConfig: MpesaConfig | null = null;
+let configLoadedAt = 0;
+const CONFIG_TTL_MS = 10_000;
+
+async function loadMpesaConfig(): Promise<MpesaConfig> {
+  if (cachedConfig && Date.now() - configLoadedAt < CONFIG_TTL_MS) {
+    return cachedConfig;
+  }
+
+  let dbConfig: Partial<MpesaConfig> = {};
+  try {
+    const row = await prisma.systemConfig.findUnique({ where: { id: "default" } });
+    if (row) {
+      dbConfig = {
+        env: row.mpesaEnv || undefined,
+        consumerKey: row.mpesaConsumerKey || undefined,
+        consumerSecret: row.mpesaConsumerSecret || undefined,
+        passkey: row.mpesaPasskey || undefined,
+        shortcode: row.mpesaShortcode || undefined,
+        callbackUrl: row.mpesaCallbackUrl || undefined,
+        callbackSecret: row.mpesaCallbackSecret || undefined,
+      };
+    }
+  } catch {
+    // DB unavailable — fall back to env vars.
+  }
+
+  const appUrl = process.env.APP_URL || "";
+  const config: MpesaConfig = {
+    env: dbConfig.env || process.env.MPESA_ENV || "sandbox",
+    consumerKey: dbConfig.consumerKey || process.env.MPESA_CONSUMER_KEY || "",
+    consumerSecret: dbConfig.consumerSecret || process.env.MPESA_CONSUMER_SECRET || "",
+    passkey: dbConfig.passkey || process.env.MPESA_PASSKEY || "",
+    shortcode: dbConfig.shortcode || process.env.MPESA_SHORTCODE || "174379",
+    callbackUrl: dbConfig.callbackUrl || process.env.MPESA_CALLBACK_URL || `${appUrl}/api/payments/mpesa-callback`,
+    callbackSecret: dbConfig.callbackSecret || process.env.MPESA_CALLBACK_SECRET || "",
+  };
+
+  cachedConfig = config;
+  configLoadedAt = Date.now();
+  return config;
+}
+
+export function invalidateMpesaConfigCache() {
+  cachedConfig = null;
+  configLoadedAt = 0;
+}
+
+export async function isMpesaConfigured(): Promise<boolean> {
+  const cfg = await loadMpesaConfig();
+  return Boolean(cfg.consumerKey && cfg.consumerSecret && cfg.passkey);
+}
+
+async function baseUrl(): Promise<string> {
+  const cfg = await loadMpesaConfig();
+  return cfg.env === "production" ? "https://api.safaricom.co.ke" : "https://sandbox.safaricom.co.ke";
 }
 
 function timestamp(): string {
@@ -23,10 +74,6 @@ function timestamp(): string {
   return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${pad(d.getHours())}${pad(
     d.getMinutes()
   )}${pad(d.getSeconds())}`;
-}
-
-function password(): string {
-  return Buffer.from(`${SHORTCODE}${PASSKEY}${timestamp()}`).toString("base64");
 }
 
 export function normalizePhone(phone: string): string {
@@ -41,13 +88,16 @@ export function normalizePhone(phone: string): string {
   return digits;
 }
 
+let cachedToken: { token: string; expiresAt: number } | null = null;
+
 async function getAccessToken(): Promise<string> {
   if (cachedToken && cachedToken.expiresAt > Date.now()) {
     return cachedToken.token;
   }
 
-  const auth = Buffer.from(`${CONSUMER_KEY}:${CONSUMER_SECRET}`).toString("base64");
-  const res = await fetch(`${BASE_URL}/oauth/v1/generate?grant_type=client_credentials`, {
+  const cfg = await loadMpesaConfig();
+  const auth = Buffer.from(`${cfg.consumerKey}:${cfg.consumerSecret}`).toString("base64");
+  const res = await fetch(`${await baseUrl()}/oauth/v1/generate?grant_type=client_credentials`, {
     headers: { Authorization: `Basic ${auth}` },
   });
   if (!res.ok) {
@@ -76,27 +126,28 @@ export async function stkPush(params: {
   accountReference: string;
   transactionDesc?: string;
 }): Promise<StkPushResult> {
-  if (!isMpesaConfigured()) {
+  const cfg = await loadMpesaConfig();
+  if (!cfg.consumerKey || !cfg.consumerSecret || !cfg.passkey) {
     return { success: false, error: "M-Pesa is not configured" };
   }
 
   try {
     const token = await getAccessToken();
     const body = {
-      BusinessShortCode: SHORTCODE,
-      Password: password(),
+      BusinessShortCode: cfg.shortcode,
+      Password: Buffer.from(`${cfg.shortcode}${cfg.passkey}${timestamp()}`).toString("base64"),
       Timestamp: timestamp(),
       TransactionType: "CustomerPayBillOnline",
       Amount: Math.round(params.amount).toString(),
       PartyA: normalizePhone(params.phone),
-      PartyB: SHORTCODE,
+      PartyB: cfg.shortcode,
       PhoneNumber: normalizePhone(params.phone),
-      CallBackURL: mpesaCallbackUrl(),
+      CallBackURL: cfg.callbackUrl,
       AccountReference: params.accountReference.slice(0, 12),
       TransactionDesc: (params.transactionDesc || "Eventicate payment").slice(0, 13),
     };
 
-    const res = await fetch(`${BASE_URL}/mpesa/stkpush/v1/processrequest`, {
+    const res = await fetch(`${await baseUrl()}/mpesa/stkpush/v1/processrequest`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -145,20 +196,21 @@ export async function stkQuery(checkoutRequestId: string): Promise<{
   receipt?: string;
   error?: string;
 }> {
-  if (!isMpesaConfigured()) {
+  const cfg = await loadMpesaConfig();
+  if (!cfg.consumerKey || !cfg.consumerSecret || !cfg.passkey) {
     return { status: "PENDING", error: "M-Pesa is not configured" };
   }
 
   try {
     const token = await getAccessToken();
     const body = {
-      BusinessShortCode: SHORTCODE,
-      Password: password(),
+      BusinessShortCode: cfg.shortcode,
+      Password: Buffer.from(`${cfg.shortcode}${cfg.passkey}${timestamp()}`).toString("base64"),
       Timestamp: timestamp(),
       CheckoutRequestID: checkoutRequestId,
     };
 
-    const res = await fetch(`${BASE_URL}/mpesa/stkpushquery/v1/query`, {
+    const res = await fetch(`${await baseUrl()}/mpesa/stkpushquery/v1/query`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,

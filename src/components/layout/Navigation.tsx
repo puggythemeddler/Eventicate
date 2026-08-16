@@ -64,11 +64,12 @@ const adminComplaintsItem: NavItem = { href: "/admin/complaints", label: "Compla
 const adminLocationsItem: NavItem = { href: "/admin/locations", label: "Locations", icon: <MapPin className="h-4 w-4" /> };
 const adminSubscriptionsItem: NavItem = { href: "/admin/subscription-plans", label: "Subscriptions", icon: <CreditCard className="h-4 w-4" /> };
 const adminBrandingItem: NavItem = { href: "/admin/branding", label: "Branding", icon: <Palette className="h-4 w-4" /> };
+const adminPaymentsItem: NavItem = { href: "/admin/payments", label: "Payments", icon: <CreditCard className="h-4 w-4" /> };
 
 const adminGroups: NavGroup[] = [
   { label: "Overview", items: [adminOverviewItem] },
   { label: "People", items: [adminUsersItem, adminProvidersItem, adminComplaintsItem] },
-  { label: "Platform", items: [adminLocationsItem, adminSubscriptionsItem, adminBrandingItem] },
+  { label: "Platform", items: [adminLocationsItem, adminSubscriptionsItem, adminBrandingItem, adminPaymentsItem] },
 ];
 
 const groupByRole: Record<"CUSTOMER" | "PROVIDER" | "ADMIN", NavGroup[]> = {

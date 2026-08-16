@@ -688,6 +688,14 @@ model SystemConfig {
   logoInvoice String? // used on invoices/documents
   // App settings
   appName String @default("Eventicate")
+  // Payment gateway config (admin-editable)
+  mpesaEnv String @default("sandbox")
+  mpesaConsumerKey String?
+  mpesaConsumerSecret String?
+  mpesaPasskey String?
+  mpesaShortcode String @default("174379")
+  mpesaCallbackUrl String?
+  mpesaCallbackSecret String?
   updatedAt DateTime @updatedAt
 }
 
