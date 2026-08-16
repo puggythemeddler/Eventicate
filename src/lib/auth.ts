@@ -3,9 +3,18 @@ import { cookies } from "next/headers";
 
 export type UserRole = "CUSTOMER" | "PROVIDER" | "ADMIN";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "eventicate-dev-secret-change-in-production"
-);
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("JWT_SECRET environment variable is required in production");
+    }
+    return "eventicate-dev-secret-change-in-production";
+  }
+  return secret;
+}
+
+const JWT_SECRET = new TextEncoder().encode(getJwtSecret());
 
 export interface SessionUser {
   id: string;

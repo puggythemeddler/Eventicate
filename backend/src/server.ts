@@ -2,8 +2,6 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import fs from "fs";
-
-// auth
 import sessionRouter from "./routes/auth/session";
 import registerRouter from "./routes/auth/register";
 import loginRouter from "./routes/auth/login";
@@ -76,10 +74,23 @@ import localSyncRouter from "./routes/local-sync";
 
 const app = express();
 
+const allowedOrigins = (
+  process.env.CORS_ORIGINS || "http://localhost:3000,https://eventicate.vercel.app"
+)
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
 app.set("trust proxy", 1);
 app.use(
   cors({
-    origin: true,
+    origin(origin, callback) {
+      // Allow requests with no Origin (server-to-server, curl, health checks).
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
@@ -169,6 +180,22 @@ app.use("/api/local-sync", localSyncRouter);
 app.use("/api", (_req, res) => {
   res.status(404).json({ error: "Not found" });
 });
+
+// Global error handler
+app.use(
+  (
+    err: Error & { status?: number },
+    _req: express.Request,
+    res: express.Response,
+    _next: express.NextFunction
+  ) => {
+    const status = err.status || 500;
+    if (status >= 500) {
+      console.error("Unhandled error:", err);
+    }
+    res.status(status).json({ error: status >= 500 ? "Internal server error" : err.message });
+  }
+);
 
 const PORT = parseInt(process.env.PORT || "3001", 10);
 app.listen(PORT, () => {

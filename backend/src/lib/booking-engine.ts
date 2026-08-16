@@ -25,6 +25,12 @@ export async function calculateDynamicPrice(ctx: PricingContext): Promise<number
     },
   });
 
+  // Apply rules in a deterministic order: most specific first (matches event type,
+  // then weekend/peak toggles), so stacking doesn't depend on row insertion order.
+  const specificity = (r: { eventType: EventType | null; isWeekend: boolean; isPeakSeason: boolean }) =>
+    (r.eventType ? 4 : 0) + (r.isPeakSeason ? 2 : 0) + (r.isWeekend ? 1 : 0);
+  rules.sort((a, b) => specificity(b) - specificity(a));
+
   for (const rule of rules) {
     let applies = false;
 

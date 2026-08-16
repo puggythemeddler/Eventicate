@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import prisma from "../../lib/prisma";
 import { verifyPassword, createToken, setSessionCookie } from "../../lib/auth";
+import { authLimiter } from "../../lib/rate-limit";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -10,7 +11,7 @@ const loginSchema = z.object({
 
 const router = Router();
 
-router.post("/", async (req, res) => {
+router.post("/", authLimiter, async (req, res) => {
   try {
     const { email, password } = loginSchema.parse(req.body);
 

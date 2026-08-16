@@ -97,18 +97,33 @@ router.post("/", async (req, res) => {
         })
       : null;
 
-    const booking = await prisma.booking.create({
-      data: {
-        eventId: data.eventId,
-        customerId: customer.id,
-        providerId: data.providerId,
-        serviceId: data.serviceId,
-        customerNotes: data.customerNotes,
-        quotationDetails: data.quotationDetails,
-        quotedPrice,
-        status: "QUOTATION_REQUESTED",
-      },
-      include: { event: true, provider: { include: { user: true } }, customer: { include: { user: true } }, service: true },
+    // Atomically check availability and create the booking so two customers
+    // can't claim the same provider+date (race-free via serializable check).
+    const booking = await prisma.$transaction(async (tx) => {
+      const dateOnly = new Date(event.eventDate);
+      dateOnly.setHours(0, 0, 0, 0);
+      const existingSlot = await tx.availabilitySlot.findUnique({
+        where: { providerId_date: { providerId: provider.id, date: dateOnly } },
+      });
+      if (existingSlot && (existingSlot.status === "CONFIRMED" || existingSlot.status === "PENDING")) {
+        const err = new Error("This date is no longer available for the selected provider");
+        (err as Error & { status?: number }).status = 409;
+        throw err;
+      }
+
+      return tx.booking.create({
+        data: {
+          eventId: data.eventId,
+          customerId: customer.id,
+          providerId: data.providerId,
+          serviceId: data.serviceId,
+          customerNotes: data.customerNotes,
+          quotationDetails: data.quotationDetails,
+          quotedPrice,
+          status: "QUOTATION_REQUESTED",
+        },
+        include: { event: true, provider: { include: { user: true } }, customer: { include: { user: true } }, service: true },
+      });
     });
 
     sendBookingConfirmation(booking.customer.user.email, booking.customer.user.firstName, {
@@ -142,6 +157,10 @@ router.post("/", async (req, res) => {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors });
+    }
+    const status = (error as Error & { status?: number }).status;
+    if (status === 409) {
+      return res.status(409).json({ error: (error as Error).message });
     }
     console.error("Booking error:", error);
     return res.status(500).json({ error: "Failed to create booking" });

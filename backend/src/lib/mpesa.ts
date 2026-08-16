@@ -29,7 +29,7 @@ function password(): string {
   return Buffer.from(`${SHORTCODE}${PASSKEY}${timestamp()}`).toString("base64");
 }
 
-function normalizePhone(phone: string): string {
+export function normalizePhone(phone: string): string {
   let digits = phone.replace(/\D/g, "");
   if (digits.startsWith("0")) {
     digits = `254${digits.slice(1)}`;

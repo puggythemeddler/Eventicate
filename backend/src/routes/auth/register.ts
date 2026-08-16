@@ -3,6 +3,7 @@ import { z } from "zod";
 import prisma from "../../lib/prisma";
 import { hashPassword, createToken, setSessionCookie } from "../../lib/auth";
 import { sendWelcomeEmail } from "../../lib/email";
+import { authLimiter } from "../../lib/rate-limit";
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -22,7 +23,7 @@ const registerSchema = z.object({
 
 const router = Router();
 
-router.post("/", async (req, res) => {
+router.post("/", authLimiter, async (req, res) => {
   try {
     const data = registerSchema.parse(req.body);
 

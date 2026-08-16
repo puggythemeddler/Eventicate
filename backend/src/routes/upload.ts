@@ -3,9 +3,20 @@ import multer from "multer";
 import prisma from "../lib/prisma";
 import { getSession } from "../lib/auth";
 import { uploadBuffer, cloudinaryEnabled, sanitizeFolderName } from "../lib/cloudinary";
+import { uploadLimiter } from "../lib/rate-limit";
 
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
-const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "svg"];
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif"];
+const ALLOWED_FOLDER_TYPES = [
+  "services",
+  "venues",
+  "equipment",
+  "vehicles",
+  "menuPackages",
+  "photoPackages",
+  "logos",
+  "providers",
+];
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -24,7 +35,7 @@ const upload = multer({
 
 const router = Router();
 
-router.post("/", (req, res) => {
+router.post("/", uploadLimiter, (req, res) => {
   upload.single("file")(req, res, async (err) => {
     if (err) return res.status(400).json({ error: err.message });
     if (!req.file) return res.status(400).json({ error: "No file provided" });
@@ -39,6 +50,9 @@ router.post("/", (req, res) => {
     }
 
     const type = (req.query.type as string) || "services";
+    if (!ALLOWED_FOLDER_TYPES.includes(type)) {
+      return res.status(400).json({ error: "Invalid upload folder type" });
+    }
 
     const provider = await prisma.providerProfile.findUnique({
       where: { userId: session.id },

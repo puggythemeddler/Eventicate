@@ -42,6 +42,24 @@ router.post("/", async (req, res) => {
     }
 
     const isCustomerReview = session.role === "CUSTOMER";
+    const isProviderReview = session.role === "PROVIDER";
+
+    if (isCustomerReview && booking.customer.userId !== session.id) {
+      return res.status(403).json({ error: "You can only review your own bookings" });
+    }
+    if (isProviderReview && booking.provider.userId !== session.id) {
+      return res.status(403).json({ error: "You can only review your own bookings" });
+    }
+    if (!isCustomerReview && !isProviderReview) {
+      return res.status(403).json({ error: "Only customers and providers can review" });
+    }
+
+    const existing = await prisma.review.findFirst({
+      where: { bookingId: data.bookingId, reviewerId: session.id },
+    });
+    if (existing) {
+      return res.status(409).json({ error: "You have already reviewed this booking" });
+    }
 
     const review = await prisma.review.create({
       data: {
@@ -112,22 +130,31 @@ router.post("/", async (req, res) => {
 
 router.get("/", async (req, res) => {
   const providerId = req.query.providerId as string | undefined;
+  const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 20, 1), 100);
+  const skip = Math.max(parseInt(req.query.skip as string) || 0, 0);
 
-  const reviews = await prisma.review.findMany({
-    where: {
-      isPublic: true,
-      ...(providerId ? { providerId } : {}),
-    },
-    include: {
-      customerReviewer: {
-        include: { user: { select: { firstName: true, lastName: true } } },
+  const where = {
+    isPublic: true,
+    ...(providerId ? { providerId } : {}),
+  };
+
+  const [reviews, total] = await Promise.all([
+    prisma.review.findMany({
+      where,
+      include: {
+        customerReviewer: {
+          include: { user: { select: { firstName: true, lastName: true } } },
+        },
+        booking: { select: { event: { select: { title: true, eventType: true } } } },
       },
-      booking: { select: { event: { select: { title: true, eventType: true } } } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      skip,
+    }),
+    prisma.review.count({ where }),
+  ]);
 
-  return res.status(200).json({ reviews });
+  return res.status(200).json({ reviews, total });
 });
 
 export default router;

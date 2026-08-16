@@ -41,6 +41,20 @@ router.post("/", async (req, res) => {
       const plan = await prisma.subscriptionPlan.findUnique({ where: { id: data.planId } });
       if (!plan) return res.status(404).json({ error: "Plan not found" });
       if (!plan.isActive) return res.status(400).json({ error: "Plan is not active" });
+      if (plan.price > 0) {
+        // Paid plans are only activated after confirmed payment (mpesa-callback / payments/status).
+        // Idempotently return an already-active matching subscription (frontend refreshes after payment).
+        const existing = await prisma.providerSubscription.findUnique({
+          where: { providerId: provider.id },
+          include: { plan: true },
+        });
+        if (existing && existing.status === "ACTIVE" && existing.planId === data.planId) {
+          return res.status(200).json({ subscription: await getSubscriptionStatus(provider.id) });
+        }
+        return res.status(402).json({
+          error: "Payment required. Paid plans are activated after payment via /api/payments/initiate.",
+        });
+      }
       const subscription = await subscribeToPlan(provider.id, data.planId, data.billingPeriod);
       return res.status(200).json({ subscription });
     }

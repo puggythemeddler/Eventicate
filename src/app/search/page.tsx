@@ -32,6 +32,7 @@ function SearchContent() {
   const searchParams = useSearchParams();
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [dbCountries, setDbCountries] = useState<CountryData[]>([]);
   const [filters, setFilters] = useState({
     search: searchParams.get("search") || "",
@@ -59,11 +60,26 @@ function SearchContent() {
     if (filters.country) params.set("country", filters.country);
     if (filters.travelOutside) params.set("travelOutside", filters.travelOutside);
 
+    let cancelled = false;
     setLoading(true);
+    setError("");
     fetch(`/api/providers?${params}`)
-      .then((r) => r.json())
-      .then((data) => setProviders(data.providers || []))
-      .finally(() => setLoading(false));
+      .then((r) => {
+        if (!r.ok) throw new Error(`Request failed (${r.status})`);
+        return r.json();
+      })
+      .then((data) => {
+        if (!cancelled) setProviders(data.providers || []);
+      })
+      .catch((e: Error) => {
+        if (!cancelled) setError(e.message || "Failed to load providers");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [filters]);
 
   return (
@@ -131,6 +147,17 @@ function SearchContent() {
 
         {loading ? (
           <div className="py-12 text-center text-gray-500 dark:text-gray-400">Loading providers...</div>
+        ) : error ? (
+          <div className="py-12 text-center">
+            <p className="text-red-500">{error}</p>
+            <button
+              type="button"
+              onClick={() => setFilters({ ...filters })}
+              className="mt-3 text-sm font-medium text-primary-600 hover:underline"
+            >
+              Retry
+            </button>
+          </div>
         ) : providers.length === 0 ? (
           <div className="py-12 text-center text-gray-500 dark:text-gray-400">
             <Search className="mx-auto mb-4 h-12 w-12 text-gray-300 dark:text-gray-600" />

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { getSession } from "../../lib/auth";
+import prisma from "../../lib/prisma";
 import { generateQuoteFromBooking, generateInvoiceFromBooking, generateProformaInvoice, generateTaxInvoice } from "../../lib/documents";
 import { sendDocumentNotification } from "../../lib/email";
 
@@ -23,6 +24,24 @@ router.post("/", async (req, res) => {
   }
 
   try {
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      select: { providerId: true },
+    });
+    if (!booking) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
+
+    if (session.role === "PROVIDER") {
+      const provider = await prisma.providerProfile.findUnique({
+        where: { userId: session.id },
+        select: { id: true },
+      });
+      if (!provider || provider.id !== booking.providerId) {
+        return res.status(403).json({ error: "You can only generate documents for your own bookings" });
+      }
+    }
+
     let document;
     if (type === "quote") {
       document = await generateQuoteFromBooking(bookingId);

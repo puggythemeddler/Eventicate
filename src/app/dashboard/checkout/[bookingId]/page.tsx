@@ -49,6 +49,7 @@ export default function CheckoutPage() {
   const [selectedMethod, setSelectedMethod] = useState<string>("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [paying, setPaying] = useState(false);
   const [result, setResult] = useState<PaymentResult | null>(null);
   const [polling, setPolling] = useState(false);
@@ -59,13 +60,16 @@ export default function CheckoutPage() {
     if (!bookingId) return;
     Promise.all([
       fetch("/api/payments/methods").then((r) => r.json()),
-      fetch(`/api/bookings/${bookingId}`).then((r) => r.json()),
+      fetch(`/api/bookings/${bookingId}`).then((r) => {
+        if (!r.ok) throw new Error(`Failed to load booking (${r.status})`);
+        return r.json();
+      }),
     ])
       .then(([methodsData, bookingData]) => {
         setMethods(methodsData.methods || []);
         setBooking(bookingData.booking || bookingData);
       })
-      .catch(() => {})
+      .catch(() => setLoadError("Failed to load booking details"))
       .finally(() => setLoading(false));
   }, [bookingId]);
 
@@ -150,6 +154,12 @@ export default function CheckoutPage() {
         }),
       });
 
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setResult({ success: false, error: err.error || `Payment request failed (${res.status})` });
+        return;
+      }
+
       const data = await res.json();
       setResult(data);
 
@@ -184,7 +194,7 @@ export default function CheckoutPage() {
       <div className="flex min-h-screen">
         <Sidebar role="CUSTOMER" />
         <PageContent>
-          <p className="text-gray-500">Booking not found.</p>
+          <p className="text-gray-500">{loadError || "Booking not found."}</p>
         </PageContent>
       </div>
     );

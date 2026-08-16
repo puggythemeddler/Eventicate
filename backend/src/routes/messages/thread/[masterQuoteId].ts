@@ -23,8 +23,17 @@ router.get("/", async (req, res) => {
     },
   });
 
+  // Authorization: session must be a participant of at least one of the thread's bookings.
+  const isParticipant = documents.some(
+    (doc) =>
+      doc.booking &&
+      (doc.booking.customer.userId === session.id || doc.booking.provider.userId === session.id)
+  );
+  if (!isParticipant) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
   const participants = new Map<string, { id: string; firstName: string; lastName: string; role: string; email: string }>();
-  let conversations: string[] = [];
 
   for (const doc of documents) {
     if (!doc.booking) continue;
@@ -32,26 +41,22 @@ router.get("/", async (req, res) => {
     participants.set(customer.id, customer);
     const provider = doc.booking.provider.user;
     participants.set(provider.id, provider);
-
-    const msgs = await prisma.message.findMany({
-      where: { OR: [{ senderId: customer.id }, { receiverId: customer.id }, { senderId: provider.id }, { receiverId: provider.id }] },
-      include: {
-        sender: { select: { id: true, firstName: true, lastName: true, role: true } },
-        receiver: { select: { id: true, firstName: true, lastName: true, role: true } },
-      },
-      orderBy: { createdAt: "asc" },
-    });
-    conversations = [...new Set([...conversations, ...msgs.map((m) => m.conversationId)])];
   }
 
-  const messages = await prisma.message.findMany({
-    where: { conversationId: { in: conversations } },
-    include: {
-      sender: { select: { id: true, firstName: true, lastName: true, role: true } },
-      receiver: { select: { id: true, firstName: true, lastName: true, role: true } },
-    },
-    orderBy: { createdAt: "asc" },
+  const conversation = await prisma.conversation.findUnique({
+    where: { masterQuoteId: masterQuoteId as string },
   });
+
+  const messages = conversation
+    ? await prisma.message.findMany({
+        where: { conversationId: conversation.id },
+        include: {
+          sender: { select: { id: true, firstName: true, lastName: true, role: true } },
+          receiver: { select: { id: true, firstName: true, lastName: true, role: true } },
+        },
+        orderBy: { createdAt: "asc" },
+      })
+    : [];
 
   return res.status(200).json({
     participants: Array.from(participants.values()),
@@ -88,6 +93,15 @@ router.post("/", async (req, res) => {
       return res.status(404).json({ error: "No documents found" });
     }
 
+    const isParticipant = documents.some(
+      (doc) =>
+        doc.booking &&
+        (doc.booking.customer.userId === session.id || doc.booking.provider.userId === session.id)
+    );
+    if (!isParticipant) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
     const participantIds = new Set<string>();
     for (const doc of documents) {
       if (!doc.booking) continue;
@@ -96,11 +110,18 @@ router.post("/", async (req, res) => {
     }
     participantIds.delete(session.id);
 
+    // Messages in a thread share a conversation keyed by masterQuoteId.
+    const conversation = await prisma.conversation.upsert({
+      where: { masterQuoteId: masterQuoteId as string },
+      create: { masterQuoteId },
+      update: {},
+    });
+
     const messages = [];
     for (const receiverId of participantIds) {
       const msg = await prisma.message.create({
         data: {
-          conversationId: "",
+          conversationId: conversation.id,
           senderId: session.id,
           receiverId,
           type: "TEXT",

@@ -1,10 +1,17 @@
 import { Router } from "express";
 import prisma from "../../lib/prisma";
-import { extractStkCallback } from "../../lib/mpesa";
+import { extractStkCallback, stkQuery } from "../../lib/mpesa";
+
+const CALLBACK_SECRET = process.env.MPESA_CALLBACK_SECRET || "";
 
 const router = Router();
 
 router.post("/", async (req, res) => {
+  // Reject requests that don't carry the shared callback secret when one is configured.
+  if (CALLBACK_SECRET && req.get("x-eventicate-callback") !== CALLBACK_SECRET) {
+    return res.status(401).json({ ResultCode: 1, ResultDesc: "Unauthorized" });
+  }
+
   const cb = extractStkCallback(req.body);
 
   if (!cb.checkoutRequestId) {
@@ -15,6 +22,18 @@ router.post("/", async (req, res) => {
 
   try {
     if (cb.resultCode === "0") {
+      // Defense in depth: confirm with Safaricom before trusting a callback body.
+      const confirmed = await stkQuery(checkoutRequestId);
+      if (confirmed.status !== "COMPLETED") {
+        return res.status(400).json({ ResultCode: 1, ResultDesc: "Payment not confirmed with provider" });
+      }
+
+      // Validate the callback amount matches the recorded payment amount.
+      const recorded = await prisma.payment.findFirst({ where: { transactionId: checkoutRequestId } });
+      if (recorded && cb.amount && Math.round(recorded.amount) !== Math.round(cb.amount)) {
+        return res.status(400).json({ ResultCode: 1, ResultDesc: "Amount mismatch" });
+      }
+
       // Find a booking payment row by its transactionId (set to the checkout request id at initiate).
       const payment = await prisma.payment.findFirst({
         where: { transactionId: checkoutRequestId },

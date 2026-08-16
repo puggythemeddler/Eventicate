@@ -43,10 +43,42 @@ router.post("/", async (req, res) => {
   try {
     const data = messageSchema.parse(req.body);
 
+    if (data.receiverId === session.id) {
+      return res.status(400).json({ error: "Cannot message yourself" });
+    }
+
+    // Only allow messaging users you share a booking with (or an existing conversation).
+    const sharedBooking = data.bookingId
+      ? await prisma.booking.findFirst({
+          where: {
+            id: data.bookingId,
+            OR: [
+              { customer: { userId: session.id }, provider: { userId: data.receiverId } },
+              { customer: { userId: data.receiverId }, provider: { userId: session.id } },
+            ],
+          },
+        })
+      : null;
+
+    const sharedConversation = data.conversationId
+      ? await prisma.conversation.findFirst({
+          where: {
+            id: data.conversationId,
+            messages: { some: { senderId: session.id, receiverId: data.receiverId } },
+          },
+        })
+      : null;
+
+    if (!sharedBooking && !sharedConversation) {
+      return res.status(403).json({
+        error: "You can only message providers or customers you share a booking with",
+      });
+    }
+
     let conversationId = data.conversationId;
     if (!conversationId) {
       const conversation = await prisma.conversation.create({
-        data: { bookingId: data.bookingId },
+        data: { bookingId: sharedBooking?.id },
       });
       conversationId = conversation.id;
     }

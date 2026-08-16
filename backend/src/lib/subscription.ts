@@ -53,7 +53,7 @@ export interface SubscriptionWithPlan {
   daysRemaining?: number;
 }
 
-const TRIAL_DAYS = 30;
+const DEFAULT_TRIAL_DAYS = 30;
 
 function getDefaultFreePlanLimits() {
   return {
@@ -263,7 +263,7 @@ export async function startTrial(providerId: string): Promise<SubscriptionWithPl
   const freePlan = await getOrCreateFreePlan();
 
   const trialStart = new Date();
-  const trialEnd = new Date(trialStart.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+  const trialEnd = new Date(trialStart.getTime() + DEFAULT_TRIAL_DAYS * 24 * 60 * 60 * 1000);
 
   let subscription = await prisma.providerSubscription.findUnique({
     where: { providerId },
@@ -356,7 +356,7 @@ export async function startTrial(providerId: string): Promise<SubscriptionWithPl
       features,
       trialDays: subscription.plan.trialDays,
     },
-    daysRemaining: TRIAL_DAYS,
+    daysRemaining: DEFAULT_TRIAL_DAYS,
   };
 }
 

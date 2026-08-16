@@ -4,6 +4,7 @@ import prisma from "../../lib/prisma";
 import { getSession } from "../../lib/auth";
 import { initiatePayment, type PaymentGateway } from "../../lib/payments";
 import { sendPaymentConfirmation } from "../../lib/email";
+import { paymentLimiter } from "../../lib/rate-limit";
 
 const initiateSchema = z.object({
   gateway: z.enum(["mpesa", "pesapal", "stripe"]),
@@ -17,7 +18,7 @@ const initiateSchema = z.object({
 
 const router = Router();
 
-router.post("/", async (req, res) => {
+router.post("/", paymentLimiter, async (req, res) => {
   const session = await getSession(req);
   if (!session) return res.status(401).json({ error: "Unauthorized" });
 
@@ -35,8 +36,21 @@ router.post("/", async (req, res) => {
 
       const planId = data.bookingId.slice(4);
 
+      const plan = await prisma.subscriptionPlan.findUnique({ where: { id: planId } });
+      if (!plan) return res.status(404).json({ error: "Plan not found" });
+      if (!plan.isActive) return res.status(400).json({ error: "Plan is not active" });
+      if (plan.price <= 0) {
+        return res.status(400).json({ error: "Free plans do not require payment" });
+      }
+
+      // Ignore the client-supplied amount; derive it from the plan server-side.
+      const amount =
+        data.billingPeriod === "ANNUAL"
+          ? (plan.annualPrice ?? Math.round(plan.price * 12 * 0.85))
+          : plan.price;
+
       const result = await initiatePayment(data.gateway as PaymentGateway, {
-        amount: data.amount,
+        amount,
         currency: data.currency,
         bookingId: data.bookingId,
         customerEmail: provider.user.email,
