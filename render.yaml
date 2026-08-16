@@ -11,7 +11,9 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        value: postgresql://neondb_owner:npg_B0q2CnJOFjSd@ep-divine-salad-axlsvn0s-pooler.c-4.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+        value: postgresql://neondb_owner:npg_B0q2CnJOFjSd@ep-divine-salad-axlsvn0s-pooler.c-4.us-east-2.aws.neon.tech/neondb?sslmode=require
+      - key: DATABASE_URL_DIRECT
+        value: postgresql://neondb_owner:npg_B0q2CnJOFjSd@ep-divine-salad-axlsvn0s.c-4.us-east-2.aws.neon.tech/neondb?sslmode=require
       - key: JWT_SECRET
         value: "Bpt/2FwkwW0mn/ZWmljXWclqhVnJHeXBqXih5Affkhw="
       - key: APP_URL
