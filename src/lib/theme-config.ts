@@ -9,7 +9,8 @@ export function getSystemTheme(): "light" | "dark" {
 
 export function getStoredTheme(): Theme {
   if (typeof window === "undefined") return "system";
-  return (localStorage.getItem(THEME_KEY) as Theme) || "system";
+  const t = localStorage.getItem(THEME_KEY);
+  return t === "light" || t === "dark" ? t : "system";
 }
 
 export function setStoredTheme(theme: Theme) {
@@ -22,7 +23,30 @@ export function applyTheme(theme: Theme) {
   document.documentElement.classList.toggle("dark", resolved === "dark");
 }
 
+/**
+ * Self-contained: runs as an inline <script> before paint via toString().
+ * Must not reference any other module functions — only globals are available.
+ * Applies the initial theme and keeps it in sync with the OS when in "system" mode.
+ */
 export function initTheme() {
-  const theme = getStoredTheme();
-  applyTheme(theme);
+  const key = "eventicate-theme";
+  const getStored = () => {
+    try {
+      const t = localStorage.getItem(key);
+      return t === "light" || t === "dark" ? t : "system";
+    } catch {
+      return "system";
+    }
+  };
+  const apply = () => {
+    const t = getStored();
+    const dark =
+      t === "dark" ||
+      (t === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.classList.toggle("dark", dark);
+  };
+  apply();
+  window
+    .matchMedia("(prefers-color-scheme: dark)")
+    .addEventListener("change", apply);
 }
