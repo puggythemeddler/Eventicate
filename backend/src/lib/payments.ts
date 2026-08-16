@@ -1,4 +1,7 @@
-// REAL INTEGRATION: Replace stubs with actual SDK calls. See DOCUMENTATION.md for setup
+// M-Pesa (Daraja STK Push) is integrated for real via src/lib/mpesa.ts.
+// PesaPal and Stripe are stubs and are disabled in the payment methods list until integrated.
+
+import { stkPush, stkQuery } from "./mpesa";
 
 export type PaymentGateway = "mpesa" | "pesapal" | "stripe";
 export type Currency = "KES" | "USD";
@@ -31,55 +34,80 @@ export interface PaymentStatusResponse {
 }
 
 async function initiateMpesaPayment(req: PaymentInitRequest): Promise<PaymentInitResponse> {
-  console.log(`STK Push sent to ${req.customerPhone} for KES ${req.amount}`);
+  if (!req.customerPhone) {
+    return { success: false, error: "A phone number is required for M-Pesa" };
+  }
+
+  const result = await stkPush({
+    amount: req.amount,
+    phone: req.customerPhone,
+    accountReference: req.bookingId,
+    transactionDesc: req.description,
+  });
+
+  if (!result.success || !result.checkoutRequestId) {
+    return {
+      success: false,
+      error: result.error || result.responseDescription || "M-Pesa request failed",
+    };
+  }
+
   return {
     success: true,
-    transactionId: `MP-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    checkoutRequestId: `CR-${Date.now()}`,
+    transactionId: result.checkoutRequestId,
+    checkoutRequestId: result.checkoutRequestId,
   };
 }
 
-async function checkMpesaStatus(_checkoutRequestId: string): Promise<PaymentStatusResponse> {
-  void _checkoutRequestId;
+async function checkMpesaStatus(checkoutRequestId: string): Promise<PaymentStatusResponse> {
+  const result = await stkQuery(checkoutRequestId);
+
+  if (result.status === "COMPLETED") {
+    return {
+      success: true,
+      status: "COMPLETED",
+      transactionId: checkoutRequestId,
+    };
+  }
+  if (result.status === "FAILED") {
+    return {
+      success: false,
+      status: "FAILED",
+      transactionId: checkoutRequestId,
+      error: result.resultDesc || "M-Pesa payment failed",
+    };
+  }
   return {
     success: true,
-    status: "COMPLETED",
-    transactionId: `MP-${Date.now()}`,
+    status: "PENDING",
+    transactionId: checkoutRequestId,
+    error: result.resultDesc,
   };
 }
 
-async function initiatePesapalPayment(_req: PaymentInitRequest): Promise<PaymentInitResponse> {
-  void _req;
-  const orderTrackingId = `PP-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  return {
-    success: true,
-    transactionId: orderTrackingId,
-    redirectUrl: `/api/payments/pesapal-callback?order_tracking_id=${orderTrackingId}`,
-  };
+async function initiatePesapalPayment(): Promise<PaymentInitResponse> {
+  return { success: false, error: "PesaPal is not configured" };
 }
 
 async function checkPesapalStatus(orderTrackingId: string): Promise<PaymentStatusResponse> {
   return {
-    success: true,
-    status: "COMPLETED",
+    success: false,
+    status: "FAILED",
     transactionId: orderTrackingId,
+    error: "PesaPal is not configured",
   };
 }
 
-async function initiateStripePayment(_req: PaymentInitRequest): Promise<PaymentInitResponse> {
-  void _req;
-  return {
-    success: true,
-    transactionId: `cs_test_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    redirectUrl: `/checkout/session-complete?session_id=cs_test_${Date.now()}`,
-  };
+async function initiateStripePayment(): Promise<PaymentInitResponse> {
+  return { success: false, error: "Stripe is not configured" };
 }
 
 async function checkStripeStatus(sessionId: string): Promise<PaymentStatusResponse> {
   return {
-    success: true,
-    status: "COMPLETED",
+    success: false,
+    status: "FAILED",
     transactionId: sessionId,
+    error: "Stripe is not configured",
   };
 }
 
@@ -91,9 +119,9 @@ export async function initiatePayment(
     case "mpesa":
       return initiateMpesaPayment(req);
     case "pesapal":
-      return initiatePesapalPayment(req);
+      return initiatePesapalPayment();
     case "stripe":
-      return initiateStripePayment(req);
+      return initiateStripePayment();
     default:
       return { success: false, error: `Unsupported gateway: ${gateway}` };
   }

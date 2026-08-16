@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
 import { formatCurrency } from "@/lib/utils";
-import { Check, X, Clock, CreditCard, Shield, Star, Loader2, Smartphone, Landmark } from "lucide-react";
+import { Check, X, Clock, CreditCard, Shield, Star, Loader2, Smartphone } from "lucide-react";
 import type { PaymentGateway } from "@/lib/payments";
 
 interface Plan {
@@ -56,8 +56,6 @@ interface LimitsData {
 
 const GATEWAYS: { value: PaymentGateway; label: string; icon: React.ReactNode }[] = [
   { value: "mpesa", label: "M-Pesa", icon: <Smartphone className="h-5 w-5" /> },
-  { value: "pesapal", label: "PesaPal", icon: <Landmark className="h-5 w-5" /> },
-  { value: "stripe", label: "Credit/Debit Card", icon: <CreditCard className="h-5 w-5" /> },
 ];
 
 export default function ProviderSubscriptionPage() {
@@ -78,6 +76,7 @@ export default function ProviderSubscriptionPage() {
   const [processing, setProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState("");
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<"idle" | "waiting" | "success" | "failed">("idle");
 
   useEffect(() => {
     (async () => {
@@ -171,6 +170,8 @@ export default function ProviderSubscriptionPage() {
     if (!selectedPlan) return;
     setProcessing(true);
     setPaymentError("");
+    setPaymentSuccess(false);
+    setPaymentStatus("idle");
 
     try {
       const payRes = await fetch("/api/payments/initiate", {
@@ -180,18 +181,55 @@ export default function ProviderSubscriptionPage() {
           gateway: selectedGateway,
           bookingId: `sub_${selectedPlan.id}`,
           amount: getEffectivePrice(selectedPlan),
-          currency: "USD",
+          currency: "KES",
           phone: selectedGateway === "mpesa" ? paymentPhone : undefined,
+          billingPeriod: selectedBilling,
         }),
       });
 
       if (!payRes.ok) {
         const err = await payRes.json();
         setPaymentError(err.error || "Payment initiation failed");
+        setPaymentStatus("failed");
         return;
       }
 
-      setPaymentSuccess(true);
+      const data = await payRes.json();
+      if (!data.success || !data.checkoutRequestId) {
+        setPaymentError(data.error || "Payment initiation failed");
+        setPaymentStatus("failed");
+        return;
+      }
+
+      setPaymentStatus("waiting");
+      const checkoutRequestId: string = data.checkoutRequestId;
+
+      let confirmed = false;
+      for (let attempt = 0; attempt < 30; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, 4000));
+        const statusRes = await fetch(
+          `/api/payments/status?gateway=mpesa&transactionId=${checkoutRequestId}`
+        );
+        const statusData = await statusRes.json();
+
+        if (statusData.status === "COMPLETED") {
+          confirmed = true;
+          break;
+        }
+        if (statusData.status === "FAILED") {
+          setPaymentError(statusData.error || "Payment failed. Please try again.");
+          setPaymentStatus("failed");
+          return;
+        }
+      }
+
+      if (!confirmed) {
+        setPaymentError(
+          "We couldn't confirm your payment. It may still be processing on M-Pesa — check the status on your booking page shortly."
+        );
+        setPaymentStatus("failed");
+        return;
+      }
 
       const subRes = await fetch("/api/provider/subscription", {
         method: "POST",
@@ -200,13 +238,19 @@ export default function ProviderSubscriptionPage() {
       });
 
       if (subRes.ok) {
-        const data = await subRes.json();
-        setSubscription(data.subscription);
+        const subData = await subRes.json();
+        setSubscription(subData.subscription);
+        setPaymentSuccess(true);
+        setPaymentStatus("success");
         setShowPayment(false);
         router.refresh();
+      } else {
+        setPaymentError("Payment confirmed, but activation failed. Please contact support.");
+        setPaymentStatus("failed");
       }
     } catch {
       setPaymentError("An unexpected error occurred");
+      setPaymentStatus("failed");
     } finally {
       setProcessing(false);
     }
@@ -538,6 +582,13 @@ export default function ProviderSubscriptionPage() {
                 <p className="mb-4 text-sm text-red-500">{paymentError}</p>
               )}
 
+              {paymentStatus === "waiting" && (
+                <div className="mb-4 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  STK push sent! Enter your M-Pesa PIN to confirm the payment...
+                </div>
+              )}
+
               {paymentSuccess ? (
                 <div className="mb-4 flex items-center gap-2 text-sm text-green-600">
                   <Check className="h-4 w-4" />
@@ -550,14 +601,14 @@ export default function ProviderSubscriptionPage() {
                   variant="outline"
                   className="flex-1"
                   onClick={() => setShowPayment(false)}
-                  disabled={processing}
+                  disabled={processing || paymentStatus === "waiting"}
                 >
                   Cancel
                 </Button>
                 <Button
                   className="flex-1"
                   onClick={handlePay}
-                  disabled={processing || paymentSuccess}
+                  disabled={processing || paymentSuccess || paymentStatus === "waiting"}
                 >
                   {processing ? (
                     <>

@@ -23,13 +23,13 @@ router.get("/", async (req, res) => {
   try {
     const result = await checkPaymentStatus(gateway, transactionId);
 
-    if (result.success && result.status === "COMPLETED") {
+    if (result.status === "COMPLETED") {
       const payment = await prisma.payment.findFirst({
         where: { transactionId },
         include: { booking: { include: { payments: true, event: true } } },
       });
 
-      if (payment) {
+      if (payment?.booking) {
         const totalPaid = payment.booking.payments.reduce((s, p) => s + p.amount, 0);
         const totalDue = payment.booking.finalPrice || payment.booking.quotedPrice || 0;
         const newStatus = totalPaid >= totalDue ? "FULLY_PAID" : "DEPOSIT_PAID";
@@ -43,6 +43,28 @@ router.get("/", async (req, res) => {
           where: { id: payment.bookingId },
           data: { depositPaid: true, status: newStatus === "FULLY_PAID" ? "COMPLETED" : "DEPOSIT_PAID" },
         });
+      } else {
+        const subscription = await prisma.providerSubscription.findFirst({
+          where: { paymentRef: transactionId },
+        });
+
+        if (subscription) {
+          const now = new Date();
+          const days = subscription.billingPeriod === "ANNUAL" ? 365 : 30;
+          const periodEnd = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+
+          await prisma.providerSubscription.update({
+            where: { id: subscription.id },
+            data: {
+              status: "ACTIVE",
+              trialStartAt: null,
+              trialEndAt: null,
+              currentPeriodStart: now,
+              currentPeriodEnd: periodEnd,
+              cancelledAt: null,
+            },
+          });
+        }
       }
     }
 

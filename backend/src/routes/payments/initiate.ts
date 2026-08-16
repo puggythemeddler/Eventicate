@@ -12,6 +12,7 @@ const initiateSchema = z.object({
   currency: z.enum(["KES", "USD"]).default("KES"),
   phone: z.string().optional(),
   isDeposit: z.boolean().optional().default(false),
+  billingPeriod: z.enum(["MONTHLY", "ANNUAL"]).optional(),
 });
 
 const router = Router();
@@ -32,6 +33,8 @@ router.post("/", async (req, res) => {
       });
       if (!provider) return res.status(404).json({ error: "Provider not found" });
 
+      const planId = data.bookingId.slice(4);
+
       const result = await initiatePayment(data.gateway as PaymentGateway, {
         amount: data.amount,
         currency: data.currency,
@@ -44,6 +47,25 @@ router.post("/", async (req, res) => {
 
       if (!result.success) {
         return res.status(502).json({ error: result.error || "Payment initiation failed" });
+      }
+
+      if (result.checkoutRequestId) {
+        await prisma.providerSubscription.upsert({
+          where: { providerId: provider.id },
+          create: {
+            providerId: provider.id,
+            planId,
+            billingPeriod: data.billingPeriod || "MONTHLY",
+            paymentMethod: "MPESA",
+            paymentRef: result.checkoutRequestId,
+          },
+          update: {
+            planId,
+            billingPeriod: data.billingPeriod || "MONTHLY",
+            paymentMethod: "MPESA",
+            paymentRef: result.checkoutRequestId,
+          },
+        });
       }
 
       return res.status(200).json(result);

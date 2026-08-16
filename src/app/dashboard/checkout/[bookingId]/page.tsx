@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { Sidebar } from "@/components/layout/Navigation";
@@ -51,6 +51,9 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [result, setResult] = useState<PaymentResult | null>(null);
+  const [polling, setPolling] = useState(false);
+  const [pollStatus, setPollStatus] = useState<"PENDING" | "COMPLETED" | "FAILED">("PENDING");
+  const [pollError, setPollError] = useState("");
 
   useEffect(() => {
     if (!bookingId) return;
@@ -94,12 +97,44 @@ export default function CheckoutPage() {
     return totalDue;
   };
 
+  const pollStatusFn = useCallback(async (checkoutRequestId: string) => {
+    const res = await fetch(`/api/payments/status?gateway=mpesa&transactionId=${checkoutRequestId}`);
+    const data = await res.json();
+    if (data.status === "COMPLETED") {
+      setPollStatus("COMPLETED");
+      setPolling(false);
+      router.refresh();
+    } else if (data.status === "FAILED") {
+      setPollStatus("FAILED");
+      setPollError(data.error || "Payment failed");
+      setPolling(false);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (!polling || !result?.checkoutRequestId) return;
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts += 1;
+      if (attempts > 30) {
+        clearInterval(interval);
+        setPolling(false);
+        setPollStatus("FAILED");
+        setPollError("Payment is taking longer than expected. Check your phone and try again.");
+        return;
+      }
+      pollStatusFn(result.checkoutRequestId!);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [polling, result, pollStatusFn]);
+
   const handlePay = async () => {
     if (!selectedMethod || !bookingId) return;
     if (selectedMethod === "mpesa" && !phone.trim()) return;
 
     setPaying(true);
     setResult(null);
+    setPolling(false);
 
     try {
       const res = await fetch("/api/payments/initiate", {
@@ -120,6 +155,9 @@ export default function CheckoutPage() {
 
       if (data.success && data.redirectUrl) {
         window.location.href = data.redirectUrl;
+      } else if (data.success && data.checkoutRequestId) {
+        setPollStatus("PENDING");
+        setPolling(true);
       }
     } catch {
       setResult({ success: false, error: "Payment request failed" });
@@ -249,6 +287,49 @@ export default function CheckoutPage() {
               <p className="text-sm text-gray-500">No outstanding balance for this booking.</p>
             </div>
           </Card>
+        ) : pollStatus === "COMPLETED" ? (
+          <Card>
+            <div className="flex flex-col items-center gap-3 py-6">
+              <CheckCircle className="h-12 w-12 text-green-500" />
+              <CardTitle>Payment Successful</CardTitle>
+              <p className="text-sm text-gray-500">Thank you! Your payment has been received.</p>
+              <Button variant="primary" onClick={() => router.push(`/dashboard/bookings/${bookingId}`)}>
+                View Booking
+              </Button>
+            </div>
+          </Card>
+        ) : pollStatus === "FAILED" ? (
+          <Card>
+            <div className="flex flex-col items-center gap-3 py-6">
+              <XCircle className="h-12 w-12 text-red-500" />
+              <CardTitle>Payment Failed</CardTitle>
+              <p className="text-sm text-red-500">{pollError || "The payment was not completed."}</p>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setPollStatus("PENDING");
+                  setPollError("");
+                  setPolling(false);
+                  setResult(null);
+                }}
+              >
+                Try Again
+              </Button>
+            </div>
+          </Card>
+        ) : polling ? (
+          <Card>
+            <div className="flex flex-col items-center gap-3 py-6">
+              <Loader2 className="h-12 w-12 animate-spin text-primary-600" />
+              <CardTitle>Waiting for Payment</CardTitle>
+              <p className="text-sm text-gray-500">
+                Check your phone for the M-Pesa STK push prompt and enter your PIN
+                <br />
+                to complete the payment.
+              </p>
+              <p className="text-xs text-gray-400">Checking status every few seconds...</p>
+            </div>
+          </Card>
         ) : result?.success ? (
           <Card>
             <div className="flex flex-col items-center gap-3 py-6">
@@ -331,22 +412,6 @@ export default function CheckoutPage() {
                 />
                 <p className="mt-1 text-xs text-gray-500">
                   You will receive an STK push prompt on your phone to complete payment.
-                </p>
-              </Card>
-            )}
-
-            {selectedMethod === "stripe" && (
-              <Card className="mb-6">
-                <p className="text-sm text-gray-600">
-                  You will be redirected to the Stripe checkout page to enter your card details.
-                </p>
-              </Card>
-            )}
-
-            {selectedMethod === "pesapal" && (
-              <Card className="mb-6">
-                <p className="text-sm text-gray-600">
-                  You will be redirected to PesaPal to complete your payment.
                 </p>
               </Card>
             )}
