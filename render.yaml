@@ -7,51 +7,7 @@ services:
     buildCommand: npm ci && npm run build
     startCommand: npx prisma db push --skip-generate && npm start
     healthCheckPath: /health
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: DATABASE_URL
-        sync: false
-      - key: JWT_SECRET
-        sync: false
-      - key: APP_URL
-        sync: false
-      - key: NEXT_PUBLIC_APP_URL
-        sync: false
-      - key: MPESA_ENV
-        sync: false
-      - key: MPESA_CONSUMER_KEY
-        sync: false
-      - key: MPESA_CONSUMER_SECRET
-        sync: false
-      - key: MPESA_PASSKEY
-        sync: false
-      - key: MPESA_SHORTCODE
-        sync: false
-      - key: MPESA_CALLBACK_URL
-        sync: false
-      - key: GOOGLE_CLIENT_ID
-        sync: false
-      - key: GOOGLE_CLIENT_SECRET
-        sync: false
-      - key: GOOGLE_REDIRECT_URI
-        sync: false
-      - key: SMTP_HOST
-        sync: false
-      - key: SMTP_PORT
-        sync: false
-      - key: SMTP_SECURE
-        sync: false
-      - key: SMTP_USER
-        sync: false
-      - key: SMTP_PASS
-        sync: false
-      - key: SMTP_FROM
-        sync: false
-      - key: LOCAL_SYNC_ENABLED
-        sync: false
-      - key: LOCAL_SYNC_API_KEY
-        sync: false
+    envFromFile: .env.render
     disk:
       name: eventicate-uploads
       mountPath: /opt/render/project/src/backend/uploads
