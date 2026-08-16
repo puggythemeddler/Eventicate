@@ -14,7 +14,7 @@ const registerSchema = z.object({
   businessName: z.string().optional(),
   category: z
     .enum([
-      "VENUE", "PA_SYSTEM", "CATERING", "TRANSPORT",
+      "VENUE", "PA_SYSTEM", "CATERING", "TENTS", "TRANSPORT",
       "PHOTOGRAPHY", "VIDEOGRAPHY", "DECORATION", "ENTERTAINMENT", "OTHER",
     ])
     .optional(),

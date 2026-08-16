@@ -3,7 +3,7 @@ export type EventType =
   | "CONCERT" | "CHURCH" | "GRADUATION" | "OTHER";
 
 export type ServiceCategory =
-  | "VENUE" | "PA_SYSTEM" | "CATERING" | "TRANSPORT"
+  | "VENUE" | "PA_SYSTEM" | "CATERING" | "TENTS" | "TRANSPORT"
   | "PHOTOGRAPHY" | "VIDEOGRAPHY" | "DECORATION" | "ENTERTAINMENT" | "OTHER";
 
 export type BookingStatus =
@@ -25,6 +25,7 @@ export const SERVICE_CATEGORIES: { value: ServiceCategory; label: string; icon: 
   { value: "VENUE", label: "Venues", icon: "🏛️" },
   { value: "PA_SYSTEM", label: "PA & Audio", icon: "🔊" },
   { value: "CATERING", label: "Catering", icon: "🍽️" },
+  { value: "TENTS", label: "Tents & Canopies", icon: "⛺" },
   { value: "TRANSPORT", label: "Transport", icon: "🚌" },
   { value: "PHOTOGRAPHY", label: "Photography", icon: "📷" },
   { value: "VIDEOGRAPHY", label: "Videography", icon: "🎬" },

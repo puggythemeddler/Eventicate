@@ -3,6 +3,17 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+// Demo images (hosted on Cloudinary, uploaded to eventicate/<businessName>/<type>)
+const IMG = {
+  grandBallroom: "https://res.cloudinary.com/u1ucoiox/image/upload/v1786893153/eventicate/Grand-Hall-Events/venues/grand-ballroom.jpg",
+  gardenPavilion: "https://res.cloudinary.com/u1ucoiox/image/upload/v1786893154/eventicate/Grand-Hall-Events/venues/garden-pavilion.jpg",
+  weddingBuffet: "https://res.cloudinary.com/u1ucoiox/image/upload/v1786893155/eventicate/Delight-Catering-Co/catering/wedding-buffet.jpg",
+  signaturePlate: "https://res.cloudinary.com/u1ucoiox/image/upload/v1786893159/eventicate/Delight-Catering-Co/catering/signature-plate.jpg",
+  marqueeTent: "https://res.cloudinary.com/u1ucoiox/image/upload/v1786893163/eventicate/Tents-Africa/tents/marquee-tent.jpg",
+  concertRig: "https://res.cloudinary.com/u1ucoiox/image/upload/v1786893165/eventicate/SoundPro-PA-Systems/pa/concert-rig.jpg",
+  djBooth: "https://res.cloudinary.com/u1ucoiox/image/upload/v1786893167/eventicate/SoundPro-PA-Systems/pa/dj-booth.jpg",
+};
+
 async function main() {
   console.log("Seeding Eventicate database...");
 
@@ -183,9 +194,47 @@ async function main() {
     include: { providerProfile: true },
   });
 
+  // Tents Provider
+  const tentsProvider = await prisma.user.upsert({
+    where: { email: "tents@canopy.com" },
+    update: {},
+    create: {
+      email: "tents@canopy.com",
+      passwordHash,
+      firstName: "Dennis",
+      lastName: "Canopy",
+      role: "PROVIDER",
+      isVerified: true,
+      providerProfile: {
+        create: {
+          businessName: "Tents Africa",
+          description: "Marquee and canopy tents for weddings, outdoor events, and corporate functions. Setup and teardown included.",
+          category: "TENTS",
+          city: "Nairobi",
+          country: "Kenya",
+          isApproved: true,
+          averageRating: 4.7,
+          totalReviews: 31,
+        },
+      },
+    },
+    include: { providerProfile: true },
+  });
+
   const paProfile = paProvider.providerProfile!;
   const cateringProfile = cateringProvider.providerProfile!;
   const venueProfile = venueProvider.providerProfile!;
+  const tentsProfile = tentsProvider.providerProfile!;
+
+  // Clear demo content (idempotent re-seed)
+  await prisma.$transaction([
+    prisma.equipment.deleteMany({ where: { providerId: { in: [paProfile.id, tentsProfile.id] } } }),
+    prisma.menuPackage.deleteMany({ where: { providerId: cateringProfile.id } }),
+    prisma.venue.deleteMany({ where: { providerId: venueProfile.id } }),
+    prisma.pricingRule.deleteMany({ where: { providerId: { in: [paProfile.id, cateringProfile.id, venueProfile.id, tentsProfile.id] } } }),
+    prisma.booking.deleteMany({ where: { providerId: { in: [paProfile.id, cateringProfile.id, venueProfile.id, tentsProfile.id] } } }),
+    prisma.service.deleteMany({ where: { providerId: { in: [paProfile.id, cateringProfile.id, venueProfile.id, tentsProfile.id] } } }),
+  ]);
 
   // PA Services & Equipment
   const paService = await prisma.service.create({
@@ -194,31 +243,31 @@ async function main() {
       name: "Full PA System Package",
       description: "Complete sound system with speakers, mixer, microphones, and operator",
       category: "PA_SYSTEM",
-      basePrice: 500,
-      images: JSON.stringify([]),
+      basePrice: 35000,
+      images: JSON.stringify([IMG.concertRig, IMG.djBooth]),
     },
   });
 
   await prisma.equipment.createMany({
     data: [
-      { providerId: paProfile.id, name: "JBL PRX Speakers", category: "audio", subcategory: "Speakers", quantity: 4, rentalPrice: 150, setupCharge: 50, operatorCharge: 100, images: "[]" },
-      { providerId: paProfile.id, name: "Yamaha MG16 Mixer", category: "audio", subcategory: "Mixers", quantity: 2, rentalPrice: 80, setupCharge: 30, images: "[]" },
-      { providerId: paProfile.id, name: "Shure SM58 Microphones", category: "audio", subcategory: "Microphones", quantity: 6, rentalPrice: 25, images: "[]" },
-      { providerId: paProfile.id, name: "Moving Head Lights", category: "lighting", subcategory: "Moving Heads", quantity: 8, rentalPrice: 40, setupCharge: 60, images: "[]" },
+      { providerId: paProfile.id, name: "JBL PRX Speakers", category: "audio", subcategory: "Speakers", quantity: 4, rentalPrice: 15000, setupCharge: 3000, operatorCharge: 5000, images: JSON.stringify([IMG.concertRig]) },
+      { providerId: paProfile.id, name: "Yamaha MG16 Mixer", category: "audio", subcategory: "Mixers", quantity: 2, rentalPrice: 8000, setupCharge: 2000, images: JSON.stringify([IMG.djBooth]) },
+      { providerId: paProfile.id, name: "Shure SM58 Microphones", category: "audio", subcategory: "Microphones", quantity: 6, rentalPrice: 2500, images: JSON.stringify([]) },
+      { providerId: paProfile.id, name: "Moving Head Lights", category: "lighting", subcategory: "Moving Heads", quantity: 8, rentalPrice: 6000, setupCharge: 3000, images: JSON.stringify([]) },
     ],
   });
 
-  // Dynamic pricing for PA
+  // Dynamic pricing for PA (KES)
   await prisma.pricingRule.createMany({
     data: [
-      { providerId: paProfile.id, serviceId: paService.id, name: "Wedding Rate", eventType: "WEDDING", priceModifier: 500, modifierType: "fixed" },
-      { providerId: paProfile.id, serviceId: paService.id, name: "Funeral Rate", eventType: "FUNERAL", priceModifier: 250, modifierType: "fixed" },
-      { providerId: paProfile.id, serviceId: paService.id, name: "Corporate Rate", eventType: "CORPORATE", priceModifier: 800, modifierType: "fixed" },
+      { providerId: paProfile.id, serviceId: paService.id, name: "Wedding Rate", eventType: "WEDDING", priceModifier: 50000, modifierType: "fixed" },
+      { providerId: paProfile.id, serviceId: paService.id, name: "Funeral Rate", eventType: "FUNERAL", priceModifier: 20000, modifierType: "fixed" },
+      { providerId: paProfile.id, serviceId: paService.id, name: "Corporate Rate", eventType: "CORPORATE", priceModifier: 60000, modifierType: "fixed" },
       { providerId: paProfile.id, name: "Weekend Surcharge", isWeekend: true, priceModifier: 1.2, modifierType: "multiplier" },
     ],
   });
 
-  // Catering packages
+  // Catering packages (KES)
   await prisma.menuPackage.createMany({
     data: [
       {
@@ -232,9 +281,9 @@ async function main() {
         includesDessert: true,
         menuItems: JSON.stringify(["Grilled chicken", "Beef stew", "Salad bar", "Rice dishes", "Wedding cake"]),
         dietaryOptions: JSON.stringify(["Vegetarian", "Halal", "Gluten-free"]),
-        basePrice: 8000,
-        pricePerGuest: 25,
-        images: "[]",
+        basePrice: 150000,
+        pricePerGuest: 1500,
+        images: JSON.stringify([IMG.weddingBuffet]),
       },
       {
         providerId: cateringProfile.id,
@@ -247,31 +296,59 @@ async function main() {
         includesDessert: false,
         menuItems: JSON.stringify(["Simple meal", "Tea service", "Sandwiches"]),
         dietaryOptions: JSON.stringify(["Vegetarian"]),
-        basePrice: 2000,
-        pricePerGuest: 15,
-        images: "[]",
+        basePrice: 45000,
+        pricePerGuest: 450,
+        images: JSON.stringify([IMG.signaturePlate]),
       },
     ],
   });
 
-  // Venue
-  await prisma.venue.create({
-    data: {
-      providerId: venueProfile.id,
-      name: "Grand Ballroom",
-      description: "Our flagship ballroom with crystal chandeliers and panoramic views",
-      location: "123 Event Avenue, New York, NY",
-      capacity: 500,
-      facilities: JSON.stringify(["Parking", "AC", "Stage", "Bridal suite", "Kitchen", "WiFi"]),
-      images: JSON.stringify([]),
-      videos: JSON.stringify([]),
-      basePrice: 5000,
-      packages: JSON.stringify([
-        { name: "Basic", price: 5000, hours: 6 },
-        { name: "Premium", price: 8000, hours: 10, includes: ["Decoration", "Coordinator"] },
-      ]),
-      eventPricing: JSON.stringify({ WEDDING: 8000, CORPORATE: 6000, FUNERAL: 3000 }),
-    },
+  // Venues (KES)
+  await prisma.venue.createMany({
+    data: [
+      {
+        providerId: venueProfile.id,
+        name: "Grand Ballroom",
+        description: "Our flagship ballroom with crystal chandeliers and panoramic views",
+        location: "123 Event Avenue, New York, NY",
+        capacity: 500,
+        facilities: JSON.stringify(["Parking", "AC", "Stage", "Bridal suite", "Kitchen", "WiFi"]),
+        images: JSON.stringify([IMG.grandBallroom]),
+        videos: JSON.stringify([]),
+        basePrice: 120000,
+        packages: JSON.stringify([
+          { name: "Basic", price: 120000, hours: 6 },
+          { name: "Premium", price: 180000, hours: 10, includes: ["Decoration", "Coordinator"] },
+        ]),
+        eventPricing: JSON.stringify({ WEDDING: 180000, CORPORATE: 150000, FUNERAL: 80000 }),
+      },
+      {
+        providerId: venueProfile.id,
+        name: "Garden Pavilion",
+        description: "Outdoor garden pavilion surrounded by landscaped lawns, ideal for open-air receptions",
+        location: "45 Rosewood Lane, New York, NY",
+        capacity: 250,
+        facilities: JSON.stringify(["Parking", "Garden", "Stage", "WiFi"]),
+        images: JSON.stringify([IMG.gardenPavilion]),
+        videos: JSON.stringify([]),
+        basePrice: 90000,
+        packages: JSON.stringify([
+          { name: "Basic", price: 90000, hours: 6 },
+          { name: "Premium", price: 140000, hours: 10, includes: ["Decoration", "Coordinator"] },
+        ]),
+        eventPricing: JSON.stringify({ WEDDING: 140000, CORPORATE: 110000, FUNERAL: 60000 }),
+      },
+    ],
+  });
+
+  // Tents equipment (KES)
+  await prisma.equipment.createMany({
+    data: [
+      { providerId: tentsProfile.id, name: "10x20 Marquee Tent", category: "tents", subcategory: "Marquees", quantity: 4, rentalPrice: 25000, setupCharge: 5000, transportCharge: 3000, images: JSON.stringify([IMG.marqueeTent]) },
+      { providerId: tentsProfile.id, name: "15x30 Wedding Marquee", category: "tents", subcategory: "Marquees", quantity: 2, rentalPrice: 45000, setupCharge: 8000, transportCharge: 4000, images: JSON.stringify([IMG.marqueeTent]) },
+      { providerId: tentsProfile.id, name: "20x20 Canopy Tent", category: "tents", subcategory: "Canopies", quantity: 6, rentalPrice: 20000, setupCharge: 4000, transportCharge: 3000, images: JSON.stringify([]) },
+      { providerId: tentsProfile.id, name: "Side Walls (Full Set)", category: "tents", subcategory: "Accessories", quantity: 20, rentalPrice: 3000, images: JSON.stringify([]) },
+    ],
   });
 
   // Sample event for customer
@@ -288,10 +365,10 @@ async function main() {
         eventDate: new Date("2026-09-15T16:00:00"),
         location: "Grand Hall Events, New York",
         guestCount: 200,
-        budgetMin: 15000,
-        budgetMax: 25000,
+        budgetMin: 500000,
+        budgetMax: 900000,
         description: "Outdoor ceremony with indoor reception",
-        requiredServices: JSON.stringify(["VENUE", "CATERING", "PA_SYSTEM", "PHOTOGRAPHY"]),
+        requiredServices: JSON.stringify(["VENUE", "CATERING", "PA_SYSTEM", "TENTS"]),
       },
     });
 
@@ -302,7 +379,7 @@ async function main() {
         providerId: paProfile.id,
         serviceId: paService.id,
         status: "QUOTATION_REQUESTED",
-        quotedPrice: 500,
+        quotedPrice: 35000,
         customerNotes: "Need full PA setup for ceremony and reception",
       },
     });
@@ -346,6 +423,7 @@ async function main() {
   console.log("  PA:       pa@soundpro.com");
   console.log("  Catering: catering@delight.com");
   console.log("  Venue:    venue@grandhall.com");
+  console.log("  Tents:    tents@canopy.com");
 }
 
 main()
