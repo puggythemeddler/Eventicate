@@ -12,6 +12,7 @@ import { CategoryIcon } from "@/components/layout/Navigation";
 import { SERVICE_CATEGORIES } from "@/lib/constants";
 import { Search, MapPin } from "lucide-react";
 import { fetchCountries, COUNTRIES, type CountryData } from "@/lib/locations";
+import { useDetectedLocation, LocationBanner } from "@/components/location/LocationDetector";
 
 interface Provider {
   id: string;
@@ -39,6 +40,7 @@ function SearchContent() {
     country: searchParams.get("country") || "",
     travelOutside: searchParams.get("travelOutside") || "",
   });
+  const { detected, dismissed, dismiss } = useDetectedLocation();
 
   useEffect(() => {
     fetchCountries().then(setDbCountries);
@@ -69,6 +71,14 @@ function SearchContent() {
       <PublicHeader />
       <div className="mx-auto max-w-7xl px-4 py-8">
         <h1 className="mb-6 text-3xl font-bold">Find Event Services</h1>
+
+        {detected && !dismissed && !filters.country && (
+          <LocationBanner
+            detected={detected}
+            onUse={() => setFilters((f) => ({ ...f, country: detected.country, city: "" }))}
+            onDismiss={dismiss}
+          />
+        )}
 
         <div className="mb-4 grid gap-4 md:grid-cols-4">
           <Input
