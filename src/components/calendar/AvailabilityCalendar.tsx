@@ -14,7 +14,7 @@ interface AvailabilityCalendarProps {
   slots: CalendarSlot[];
   month: number;
   year: number;
-  onMonthChange: (month: number, year: number) => void;
+  onMonthChange?: (month: number, year: number) => void;
   onDateSelect?: (date: Date) => void;
   selectable?: boolean;
 }
@@ -36,7 +36,7 @@ export function AvailabilityCalendar({
   slots,
   month,
   year,
-  onMonthChange,
+  onMonthChange = () => {},
   onDateSelect,
   selectable = false,
 }: AvailabilityCalendarProps) {

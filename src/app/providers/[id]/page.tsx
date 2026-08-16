@@ -385,7 +385,6 @@ export default async function ProviderProfilePage({
               }))}
               month={now.getMonth()}
               year={now.getFullYear()}
-              onMonthChange={() => {}}
             />
 
             {session ? (
