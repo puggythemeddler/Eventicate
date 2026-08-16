@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import prisma from "../lib/prisma";
 import { getSession } from "../lib/auth";
-import { uploadBuffer, cloudinaryEnabled } from "../lib/cloudinary";
+import { uploadBuffer, cloudinaryEnabled, sanitizeFolderName } from "../lib/cloudinary";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
 const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "svg"];
@@ -46,7 +46,7 @@ router.post("/", (req, res) => {
     });
 
     const folderName = (provider?.businessName || "anonymous").trim();
-    const safeFolder = folderName.replace(/[^a-zA-Z0-9_-]/g, "-").replace(/-+/g, "-");
+    const safeFolder = sanitizeFolderName(folderName);
 
     try {
       const url = await uploadBuffer(req.file.buffer, `eventicate/${safeFolder}/${type}`);

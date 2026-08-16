@@ -15,6 +15,19 @@ export function cloudinaryEnabled(): boolean {
   return configured;
 }
 
+export function sanitizeFolderName(name: string): string {
+  return name.trim().replace(/[^a-zA-Z0-9_-]/g, "-").replace(/-+/g, "-");
+}
+
+export function renameFolder(oldFolder: string, newFolder: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    cloudinary.api.rename_folder(oldFolder, newFolder, (error: unknown) => {
+      if (error) return reject(error);
+      resolve();
+    });
+  });
+}
+
 export function uploadBuffer(buffer: Buffer, folder: string, publicId?: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(

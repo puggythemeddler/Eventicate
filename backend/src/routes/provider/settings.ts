@@ -4,6 +4,7 @@ import type { ServiceCategory } from "@prisma/client";
 import prisma from "../../lib/prisma";
 import { getSession } from "../../lib/auth";
 import { SERVICE_CATEGORIES } from "../../lib/constants";
+import { renameFolder, sanitizeFolderName, cloudinaryEnabled } from "../../lib/cloudinary";
 
 const categoryValues = SERVICE_CATEGORIES.map((c) => c.value) as [ServiceCategory, ...ServiceCategory[]];
 
@@ -64,10 +65,25 @@ router.patch("/", async (req, res) => {
     const body = req.body;
     const data = updateSchema.parse(body);
 
+    const oldName = provider.businessName.trim();
+    const newName = data.businessName?.trim();
+
     const updated = await prisma.providerProfile.update({
       where: { id: provider.id },
       data,
     });
+
+    if (newName && newName !== oldName && cloudinaryEnabled()) {
+      const oldFolder = sanitizeFolderName(oldName);
+      const newFolder = sanitizeFolderName(newName);
+      if (oldFolder !== newFolder) {
+        try {
+          await renameFolder(`eventicate/${oldFolder}`, `eventicate/${newFolder}`);
+        } catch {
+          // folder may not exist yet (no uploads) or rename conflict; ignore
+        }
+      }
+    }
 
     return res.status(200).json({ provider: updated });
   } catch (error) {
