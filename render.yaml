@@ -55,8 +55,8 @@ services:
       - key: LOCAL_SYNC_API_KEY
         value: ""
       - key: CLOUDINARY_CLOUD_NAME
-        value: ""
+        value: u1ucoiox
       - key: CLOUDINARY_API_KEY
-        value: ""
+        value: "235992485733465"
       - key: CLOUDINARY_API_SECRET
-        value: ""
+        value: "w9Bsmx1uu7gMky4hksY7ji17fdA"
