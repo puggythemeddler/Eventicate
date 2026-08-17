@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { formatCurrency, parseJsonArray } from "@/lib/utils";
+import { useCurrency } from "@/hooks/useCurrency";
 import { Trash2, Package } from "lucide-react";
 import Image from "next/image";
 
@@ -40,6 +41,7 @@ function ToggleSwitch({ enabled, onClick }: { enabled: boolean; onClick: () => v
 }
 
 export function EquipmentActions({ item }: EquipmentActionsProps) {
+  const currency = useCurrency();
   const [isActive, setIsActive] = useState(item.isActive);
   const [deleting, setDeleting] = useState(false);
   const router = useRouter();
@@ -103,11 +105,11 @@ export function EquipmentActions({ item }: EquipmentActionsProps) {
           <span className="font-medium">
             {hasDiscount ? (
               <span className="flex items-center gap-1">
-                <span className="text-sm text-gray-400 line-through">{formatCurrency(item.rentalPrice)}</span>
-                <span className="text-primary-600">{formatCurrency(discountedPrice)}</span>
+                <span className="text-sm text-gray-400 line-through">{formatCurrency(item.rentalPrice, currency)}</span>
+                <span className="text-primary-600">{formatCurrency(discountedPrice, currency)}</span>
               </span>
             ) : (
-              formatCurrency(item.rentalPrice)
+              formatCurrency(item.rentalPrice, currency)
             )}
           </span>
         </div>
@@ -116,19 +118,19 @@ export function EquipmentActions({ item }: EquipmentActionsProps) {
             {item.setupCharge > 0 && (
               <div className="flex justify-between text-gray-500">
                 <span>Setup</span>
-                <span>{formatCurrency(item.setupCharge)}</span>
+                <span>{formatCurrency(item.setupCharge, currency)}</span>
               </div>
             )}
             {item.transportCharge > 0 && (
               <div className="flex justify-between text-gray-500">
                 <span>Transport</span>
-                <span>{formatCurrency(item.transportCharge)}</span>
+                <span>{formatCurrency(item.transportCharge, currency)}</span>
               </div>
             )}
             {item.operatorCharge > 0 && (
               <div className="flex justify-between text-gray-500">
                 <span>Operator</span>
-                <span>{formatCurrency(item.operatorCharge)}</span>
+                <span>{formatCurrency(item.operatorCharge, currency)}</span>
               </div>
             )}
           </>

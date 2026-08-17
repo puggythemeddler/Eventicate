@@ -22,6 +22,7 @@ export interface SessionUser {
   role: UserRole;
   firstName: string;
   lastName: string;
+  country?: string | null;
 }
 
 export async function hashPassword(password: string) {

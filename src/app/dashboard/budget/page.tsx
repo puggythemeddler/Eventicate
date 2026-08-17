@@ -7,6 +7,7 @@ import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input, Select } from "@/components/ui/Input";
 import { formatCurrency } from "@/lib/utils";
+import { useCurrency } from "@/hooks/useCurrency";
 import { EVENT_TYPES, SERVICE_CATEGORIES } from "@/lib/constants";
 import { Calculator, BarChart3 } from "lucide-react";
 
@@ -24,6 +25,7 @@ interface BudgetResult {
 const CATEGORY_ORDER = ["VENUE", "CATERING", "PA_SYSTEM", "PHOTOGRAPHY", "TRANSPORT", "DECORATION"];
 
 export default function BudgetPage() {
+  const currency = useCurrency();
   const [eventType, setEventType] = useState("WEDDING");
   const [guestCount, setGuestCount] = useState(100);
   const [location, setLocation] = useState("");
@@ -128,7 +130,7 @@ export default function BudgetPage() {
                               <span>{catInfo?.icon}</span>
                               <span className="font-medium">{catInfo?.label || cat}</span>
                             </div>
-                            <span className="text-primary-600 font-medium">{formatCurrency(est.avg)}</span>
+                            <span className="text-primary-600 font-medium">{formatCurrency(est.avg, currency)}</span>
                           </div>
                           <div className="mb-1 h-2 w-full rounded-full bg-gray-100">
                             <div
@@ -137,8 +139,8 @@ export default function BudgetPage() {
                             />
                           </div>
                           <div className="flex justify-between text-xs text-gray-400">
-                            <span>Min: {formatCurrency(est.min)}</span>
-                            <span>Max: {formatCurrency(est.max)}</span>
+                            <span>Min: {formatCurrency(est.min, currency)}</span>
+                            <span>Max: {formatCurrency(est.max, currency)}</span>
                           </div>
                         </div>
                       );
@@ -149,15 +151,15 @@ export default function BudgetPage() {
                 <div className="grid gap-4 md:grid-cols-3">
                   <Card>
                     <p className="text-xs text-gray-500">Estimated Total (Avg)</p>
-                    <p className="text-2xl font-bold text-primary-600">{formatCurrency(result.total.avg)}</p>
+                    <p className="text-2xl font-bold text-primary-600">{formatCurrency(result.total.avg, currency)}</p>
                   </Card>
                   <Card>
                     <p className="text-xs text-gray-500">Budget Friendly</p>
-                    <p className="text-2xl font-bold text-green-600">{formatCurrency(result.total.min)}</p>
+                    <p className="text-2xl font-bold text-green-600">{formatCurrency(result.total.min, currency)}</p>
                   </Card>
                   <Card>
                     <p className="text-xs text-gray-500">Premium Options</p>
-                    <p className="text-2xl font-bold text-amber-600">{formatCurrency(result.total.max)}</p>
+                    <p className="text-2xl font-bold text-amber-600">{formatCurrency(result.total.max, currency)}</p>
                   </Card>
                 </div>
               </>

@@ -8,6 +8,8 @@ import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Select, Textarea } from "@/components/ui/Input";
+import { formatCurrency } from "@/lib/utils";
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface EventOption {
   id: string;
@@ -32,6 +34,7 @@ export default function NewBookingPage() {
 }
 
 function NewBookingContent() {
+  const currency = useCurrency();
   const router = useRouter();
   const searchParams = useSearchParams();
   const providerId = searchParams.get("providerId") || "";
@@ -142,8 +145,8 @@ function NewBookingContent() {
                     return {
                       value: s.id,
                       label: svcDiscount
-                        ? `${s.name} - $${s.basePrice} (${s.discountPercent}% off → $${svcDiscounted.toFixed(2)})`
-                        : `${s.name} - $${s.basePrice}`,
+                        ? `${s.name} - ${formatCurrency(s.basePrice, currency)} (${s.discountPercent}% off → ${formatCurrency(svcDiscounted, currency)})`
+                        : `${s.name} - ${formatCurrency(s.basePrice, currency)}`,
                     };
                   }),
                 ]}
@@ -199,18 +202,18 @@ function NewBookingContent() {
                   <div className="flex justify-between">
                     <span className="text-gray-500">{selectedService.name}</span>
                     <span className={hasDiscount ? "text-gray-400 line-through" : "font-medium"}>
-                      ${selectedService.basePrice.toFixed(2)}
+                      {formatCurrency(selectedService.basePrice, currency)}
                     </span>
                   </div>
                   {hasDiscount && (
                     <>
                       <div className="flex justify-between text-green-600">
                         <span>Discount ({selectedService.discountPercent}%)</span>
-                        <span>-${(selectedService.basePrice - discountedPrice).toFixed(2)}</span>
+                        <span>-{formatCurrency(selectedService.basePrice - discountedPrice, currency)}</span>
                       </div>
                       <div className="flex justify-between border-t border-gray-200 pt-1 font-medium dark:border-gray-600">
                         <span>Final Price</span>
-                        <span className="text-primary-600">${discountedPrice.toFixed(2)}</span>
+                        <span className="text-primary-600">{formatCurrency(discountedPrice, currency)}</span>
                       </div>
                     </>
                   )}

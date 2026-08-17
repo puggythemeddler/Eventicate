@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
 import { formatCurrency } from "@/lib/utils";
+import { useCurrency } from "@/hooks/useCurrency";
 import { ArrowLeft, CreditCard, Smartphone, ExternalLink, Loader2, CheckCircle, XCircle } from "lucide-react";
 
 interface BookingData {
@@ -43,6 +44,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const params = useParams<{ bookingId: string }>();
   const bookingId = params.bookingId;
+  const currency = useCurrency();
 
   const [booking, setBooking] = useState<BookingData | null>(null);
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
@@ -148,7 +150,7 @@ export default function CheckoutPage() {
           gateway: selectedMethod,
           bookingId,
           amount: getPayAmount(),
-          currency: "KES",
+          currency,
           phone: phone.trim() || undefined,
           isDeposit: paymentMode === "deposit",
         }),
@@ -222,13 +224,13 @@ export default function CheckoutPage() {
           </Card>
           <Card>
             <CardTitle className="mb-1">Total</CardTitle>
-            <p className="text-2xl font-bold text-primary-600">{totalDue ? formatCurrency(totalDue) : "—"}</p>
+            <p className="text-2xl font-bold text-primary-600">{totalDue ? formatCurrency(totalDue, currency) : "—"}</p>
           </Card>
           <Card>
             <CardTitle className="mb-1">Remaining</CardTitle>
-            <p className="text-2xl font-bold">{formatCurrency(remaining)}</p>
+            <p className="text-2xl font-bold">{formatCurrency(remaining, currency)}</p>
             {totalPaid > 0 && (
-              <p className="text-xs text-gray-500">{formatCurrency(totalPaid)} already paid</p>
+              <p className="text-xs text-gray-500">{formatCurrency(totalPaid, currency)} already paid</p>
             )}
           </Card>
         </div>
@@ -248,9 +250,9 @@ export default function CheckoutPage() {
                 >
                   <div>
                     <p className="font-medium">Pay Deposit</p>
-                    <p className="text-sm text-gray-500">Pay {formatCurrency(depositAmount)} to secure your booking</p>
+                    <p className="text-sm text-gray-500">Pay {formatCurrency(depositAmount, currency)} to secure your booking</p>
                   </div>
-                  <span className="text-lg font-bold text-primary-600">{formatCurrency(depositAmount)}</span>
+                  <span className="text-lg font-bold text-primary-600">{formatCurrency(depositAmount, currency)}</span>
                 </button>
               )}
               {depositPaid && remaining > 0 && (
@@ -264,9 +266,9 @@ export default function CheckoutPage() {
                 >
                   <div>
                     <p className="font-medium">Pay Remaining Balance</p>
-                    <p className="text-sm text-gray-500">Deposit of {formatCurrency(depositAmount)} already paid</p>
+                    <p className="text-sm text-gray-500">Deposit of {formatCurrency(depositAmount, currency)} already paid</p>
                   </div>
-                  <span className="text-lg font-bold text-primary-600">{formatCurrency(remaining)}</span>
+                  <span className="text-lg font-bold text-primary-600">{formatCurrency(remaining, currency)}</span>
                 </button>
               )}
               {!depositPaid && (
@@ -282,7 +284,7 @@ export default function CheckoutPage() {
                     <p className="font-medium">Pay Full Amount</p>
                     <p className="text-sm text-gray-500">Pay the full quoted price now</p>
                   </div>
-                  <span className="text-lg font-bold text-primary-600">{formatCurrency(totalDue)}</span>
+                  <span className="text-lg font-bold text-primary-600">{formatCurrency(totalDue, currency)}</span>
                 </button>
               )}
             </div>
@@ -439,7 +441,7 @@ export default function CheckoutPage() {
                 </>
               ) : (
                 <>
-                  Pay {formatCurrency(getPayAmount())}
+                  Pay {formatCurrency(getPayAmount(), currency)}
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </>
               )}

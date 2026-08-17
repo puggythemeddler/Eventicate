@@ -62,6 +62,7 @@ router.post("/", authLimiter, async (req, res) => {
       role: user.role,
       firstName: user.firstName,
       lastName: user.lastName,
+      country: user.customerProfile?.country ?? user.providerProfile?.country ?? null,
     });
 
     setSessionCookie(res, token);
@@ -75,6 +76,7 @@ router.post("/", authLimiter, async (req, res) => {
         role: user.role,
         firstName: user.firstName,
         lastName: user.lastName,
+        country: user.customerProfile?.country ?? user.providerProfile?.country ?? null,
       },
     });
   } catch (error) {

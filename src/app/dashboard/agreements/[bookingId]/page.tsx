@@ -9,6 +9,7 @@ import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { formatCurrency } from "@/lib/utils";
+import { useCurrency } from "@/hooks/useCurrency";
 import { ArrowLeft, Loader2, FileSignature, CheckCircle } from "lucide-react";
 
 interface BookingData {
@@ -27,6 +28,7 @@ export default function AgreementPage() {
   const router = useRouter();
   const params = useParams<{ bookingId: string }>();
   const bookingId = params.bookingId;
+  const currency = useCurrency();
 
   const [booking, setBooking] = useState<BookingData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -74,8 +76,8 @@ export default function AgreementPage() {
   const termsText = quoteDoc?.terms || `AGREEMENT TERMS & CONDITIONS
 
 1. This agreement is between the customer and ${booking?.provider?.businessName || "the service provider"}.
-2. The total amount of ${formatCurrency(totalAmount)} shall be paid as agreed.
-${depositAmount > 0 ? `3. A deposit of ${formatCurrency(depositAmount)} is required to confirm the booking.` : ""}
+2. The total amount of ${formatCurrency(totalAmount, currency)} shall be paid as agreed.
+${depositAmount > 0 ? `3. A deposit of ${formatCurrency(depositAmount, currency)} is required to confirm the booking.` : ""}
 ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment schedule.` : "3. Payment is due as per the invoice terms."}
 5. Cancellation policy applies as per the provider's terms.
 6. Any changes to the agreement must be made in writing.
@@ -203,9 +205,9 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
           </Card>
           <Card>
             <CardTitle className="mb-1">Total Amount</CardTitle>
-            <p className="text-2xl font-bold text-primary-600">{formatCurrency(totalAmount)}</p>
+            <p className="text-2xl font-bold text-primary-600">{formatCurrency(totalAmount, currency)}</p>
             {depositAmount > 0 && (
-              <p className="text-xs text-gray-500">Deposit: {formatCurrency(depositAmount)}</p>
+              <p className="text-xs text-gray-500">Deposit: {formatCurrency(depositAmount, currency)}</p>
             )}
           </Card>
         </div>
@@ -227,8 +229,8 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
                   <tr key={i} className="border-b border-gray-100">
                     <td className="py-2">{li.description}</td>
                     <td className="py-2">{li.quantity}</td>
-                    <td className="py-2">{formatCurrency(li.unitPrice)}</td>
-                    <td className="py-2 text-right">{formatCurrency(li.total)}</td>
+                    <td className="py-2">{formatCurrency(li.unitPrice, currency)}</td>
+                    <td className="py-2 text-right">{formatCurrency(li.total, currency)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { StatusBadge } from "@/components/ui/Badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface BookingRowProps {
   booking: {
@@ -18,6 +19,7 @@ interface BookingRowProps {
 
 export function BookingRow({ booking }: BookingRowProps) {
   const router = useRouter();
+  const currency = useCurrency();
 
   return (
     <tr
@@ -40,7 +42,7 @@ export function BookingRow({ booking }: BookingRowProps) {
         <StatusBadge status={booking.status} />
       </td>
       <td className="px-6 py-4 text-right text-sm font-medium">
-        {booking.quotedPrice ? formatCurrency(booking.quotedPrice) : "—"}
+        {booking.quotedPrice ? formatCurrency(booking.quotedPrice, currency) : "—"}
       </td>
       <td className="px-6 py-4 text-right text-xs text-gray-400 dark:text-gray-500">
         {formatDate(booking.createdAt)}

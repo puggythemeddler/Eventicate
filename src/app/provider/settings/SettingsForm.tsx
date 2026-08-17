@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { SERVICE_CATEGORIES, EVENT_TYPES } from "@/lib/constants";
 import { formatCurrency } from "@/lib/utils";
+import { useCurrency } from "@/hooks/useCurrency";
 import { Tag } from "lucide-react";
 import { CardTitle, Card } from "@/components/ui/Card";
 
@@ -44,6 +45,7 @@ interface SettingsFormProps {
 export function SettingsForm({
   provider, countryOptions, allSubdivisions, pricingRules, currentServices,
 }: SettingsFormProps) {
+  const currency = useCurrency();
   const discountedServicesCount = currentServices.filter((s) => s.discountPercent > 0).length;
 
   async function handleBusinessSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -272,7 +274,7 @@ export function SettingsForm({
                           ? `×${rule.priceModifier}`
                           : rule.modifierType === "percentage"
                           ? `+${rule.priceModifier}%`
-                          : formatCurrency(rule.priceModifier)}
+                          : formatCurrency(rule.priceModifier, currency)}
                       </span>
                     </div>
                   ))}

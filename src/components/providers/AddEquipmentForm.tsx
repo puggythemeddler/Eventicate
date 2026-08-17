@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { EQUIPMENT_CATEGORIES } from "@/lib/constants";
 import { formatCurrency } from "@/lib/utils";
+import { useCurrency } from "@/hooks/useCurrency";
 import { Plus, X } from "lucide-react";
 import Image from "next/image";
 
@@ -17,6 +18,7 @@ const categoryOptions = [
 ];
 
 export function AddEquipmentForm() {
+  const currency = useCurrency();
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -96,7 +98,7 @@ export function AddEquipmentForm() {
       <Input label="Discount (%)" name="discountPercent" type="number" min="0" max="100" value={discountPercent} onChange={(e) => setDiscountPercent(Math.min(100, Math.max(0, Number(e.target.value) || 0)))} />
       {discountPercent > 0 && (
         <p className="text-sm text-gray-500">
-          Discounted price: <span className="font-semibold text-primary-600">{formatCurrency(discountedPrice)}</span>
+          Discounted price: <span className="font-semibold text-primary-600">{formatCurrency(discountedPrice, currency)}</span>
           <span className="ml-2 text-xs text-green-600">({discountPercent}% off)</span>
         </p>
       )}

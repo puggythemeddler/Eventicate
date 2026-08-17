@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { DocumentPrintStyles } from "@/components/documents/DocumentPrintStyles";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useCurrency } from "@/hooks/useCurrency";
 import type { LineItem } from "@/lib/documents";
 
 type PrintFormat = "a4" | "thermal";
@@ -58,6 +59,7 @@ const statusBadgeVariant: Record<string, "default" | "success" | "warning" | "da
 };
 
 export function DocumentView({ document, role, logoUrl }: DocumentViewProps) {
+  const currency = useCurrency();
   const [format, setFormat] = useState<PrintFormat>("a4");
 
   const handlePrint = () => {
@@ -143,7 +145,7 @@ export function DocumentView({ document, role, logoUrl }: DocumentViewProps) {
           </div>
           <div className="text-right">
             <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
-              {formatCurrency(document.total)}
+              {formatCurrency(document.total, currency)}
             </p>
           </div>
         </div>
@@ -191,9 +193,9 @@ export function DocumentView({ document, role, logoUrl }: DocumentViewProps) {
               <tr key={i} className="border-b border-gray-100 dark:border-gray-800">
                 <td className="py-2 text-sm text-gray-900 dark:text-gray-100">{item.description}</td>
                 <td className="py-2 text-right text-sm text-gray-500">{item.quantity}</td>
-                <td className="py-2 text-right text-sm text-gray-500">{formatCurrency(item.unitPrice)}</td>
+                <td className="py-2 text-right text-sm text-gray-500">{formatCurrency(item.unitPrice, currency)}</td>
                 <td className="py-2 text-right text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {formatCurrency(item.total)}
+                  {formatCurrency(item.total, currency)}
                 </td>
               </tr>
             ))}
@@ -204,29 +206,29 @@ export function DocumentView({ document, role, logoUrl }: DocumentViewProps) {
         <div className="mt-3 space-y-1 border-t border-gray-200 pt-3 dark:border-gray-700">
           <div className="flex justify-between text-sm text-gray-500">
             <span>Subtotal</span>
-            <span>{formatCurrency(document.subtotal)}</span>
+            <span>{formatCurrency(document.subtotal, currency)}</span>
           </div>
           {document.discountAmount > 0 && (
             <div className="flex justify-between text-sm text-gray-500">
               <span>Discount ({document.discountRate}%)</span>
-              <span>-{formatCurrency(document.discountAmount)}</span>
+              <span>-{formatCurrency(document.discountAmount, currency)}</span>
             </div>
           )}
           {document.taxAmount > 0 && (
             <div className="flex justify-between text-sm text-gray-500">
               <span>Tax ({document.taxRate}%)</span>
-              <span>{formatCurrency(document.taxAmount)}</span>
+              <span>{formatCurrency(document.taxAmount, currency)}</span>
             </div>
           )}
           <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-gray-100">
             <span>Total</span>
-            <span>{formatCurrency(document.total)}</span>
+            <span>{formatCurrency(document.total, currency)}</span>
           </div>
         </div>
 
         {document.depositRequired != null && document.type === "QUOTE" && (
           <div className="mt-3 rounded-lg bg-yellow-50 p-3 text-sm text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-            Deposit Required: {formatCurrency(document.depositRequired)}
+            Deposit Required: {formatCurrency(document.depositRequired, currency)}
             {document.depositPaid && " (Paid)"}
           </div>
         )}

@@ -8,7 +8,7 @@ import { Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { serverApi } from "@/lib/server-api";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, getCurrencyForCountry } from "@/lib/utils";
 import { CreateDocumentModal } from "./CreateDocumentModal";
 
 const typeOptions = [
@@ -81,6 +81,7 @@ export default async function ProviderDocumentsPage({
     }>("/api/bookings?role=PROVIDER"),
   ]);
 
+  const currency = getCurrencyForCountry(session.country);
   const documents = docsResult.documents;
   const bookings = providerBookings.bookings.slice(0, 50).map((b) => ({
     id: b.id,
@@ -164,7 +165,7 @@ export default async function ProviderDocumentsPage({
                       </Badge>
                     </td>
                     <td className="px-6 py-4 text-right text-sm font-medium">
-                      {formatCurrency(doc.total)}
+                      {formatCurrency(doc.total, currency)}
                     </td>
                     <td className="px-6 py-4 text-right text-xs text-gray-400 dark:text-gray-500">
                       {formatDate(doc.createdAt)}

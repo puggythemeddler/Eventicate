@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Select, Textarea } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { formatCurrency } from "@/lib/utils";
+import { useCurrency } from "@/hooks/useCurrency";
 import { SERVICE_CATEGORIES } from "@/lib/constants";
 import { Trash2, Plus, ShoppingCart } from "lucide-react";
 
@@ -51,6 +52,7 @@ export default function PackageBuilderPage() {
 }
 
 function PackageBuilderContent() {
+  const currency = useCurrency();
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedEventId = searchParams.get("eventId");
@@ -236,7 +238,7 @@ function PackageBuilderContent() {
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
-                      <p className="mt-1 text-sm font-medium text-primary-600">{formatCurrency(s.price)}</p>
+                      <p className="mt-1 text-sm font-medium text-primary-600">{formatCurrency(s.price, currency)}</p>
                       <Textarea
                         placeholder="Notes for provider (optional)"
                         value={s.customerNotes}
@@ -249,7 +251,7 @@ function PackageBuilderContent() {
                   <div className="border-t border-gray-200 pt-3">
                     <div className="flex items-center justify-between font-semibold">
                       <span>Total</span>
-                      <span className="text-primary-600">{formatCurrency(totalCost)}</span>
+                      <span className="text-primary-600">{formatCurrency(totalCost, currency)}</span>
                     </div>
                   </div>
                 </div>
@@ -280,6 +282,7 @@ function ProviderSelector({
   onSelectProvider: () => void;
   onSelectService: (svc: ServiceOption) => void;
 }) {
+  const currency = useCurrency();
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -318,7 +321,7 @@ function ProviderSelector({
                 <div key={svc.id} className="flex items-center justify-between rounded bg-gray-50 px-3 py-2">
                   <div>
                     <p className="text-sm font-medium">{svc.name}</p>
-                    <p className="text-xs text-primary-600">{formatCurrency(svc.basePrice)}</p>
+                    <p className="text-xs text-primary-600">{formatCurrency(svc.basePrice, currency)}</p>
                   </div>
                   <Button size="sm" onClick={() => onSelectService(svc)}>Select</Button>
                 </div>

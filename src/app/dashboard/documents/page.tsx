@@ -8,7 +8,7 @@ import { Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { serverApi } from "@/lib/server-api";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, getCurrencyForCountry } from "@/lib/utils";
 
 const typeOptions = [
   { value: "ALL", label: "All Types" },
@@ -71,6 +71,7 @@ export default async function CustomerDocumentsPage({
       createdAt: string;
     }>;
   }>(`/api/documents${qs ? `?${qs}` : ""}`);
+  const currency = getCurrencyForCountry(session.country);
 
   return (
     <div className="flex min-h-screen">
@@ -148,7 +149,7 @@ export default async function CustomerDocumentsPage({
                       </Badge>
                     </td>
                     <td className="px-6 py-4 text-right text-sm font-medium">
-                      {formatCurrency(doc.total)}
+                      {formatCurrency(doc.total, currency)}
                     </td>
                     <td className="px-6 py-4 text-right text-xs text-gray-400 dark:text-gray-500">
                       {formatDate(doc.createdAt)}

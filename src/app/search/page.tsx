@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { StarRating } from "@/components/ui/Badge";
 import { CategoryIcon } from "@/components/layout/Navigation";
 import { SERVICE_CATEGORIES } from "@/lib/constants";
+import { formatCurrency, getCurrencyForCountry } from "@/lib/utils";
 import { Search, MapPin } from "lucide-react";
 import { fetchCountries, COUNTRIES, type CountryData } from "@/lib/locations";
 import { useDetectedLocation, LocationBanner } from "@/components/location/LocationDetector";
@@ -202,7 +203,7 @@ function SearchContent() {
                   </div>
                   {provider.services.length > 0 && (
                     <p className="mt-2 text-sm text-primary-600">
-                      From ${provider.services[0].basePrice}
+                      From {formatCurrency(provider.services[0].basePrice, getCurrencyForCountry(provider.country))}
                     </p>
                   )}
                 </Card>

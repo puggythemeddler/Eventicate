@@ -10,7 +10,7 @@ const initiateSchema = z.object({
   gateway: z.enum(["mpesa", "pesapal", "stripe"]),
   bookingId: z.string(),
   amount: z.number().positive(),
-  currency: z.enum(["KES", "USD"]).default("KES"),
+  currency: z.enum(["KES", "UGX", "TZS", "USD"]).default("KES"),
   phone: z.string().optional(),
   isDeposit: z.boolean().optional().default(false),
   billingPeriod: z.enum(["MONTHLY", "ANNUAL"]).optional(),

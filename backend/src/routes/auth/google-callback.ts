@@ -28,7 +28,10 @@ router.get("/", async (req, res) => {
       return res.redirect(303, `${APP_URL}/auth/login?error=no_email`);
     }
 
-    let user = await prisma.user.findUnique({ where: { email: googleUser.email } });
+    let user = await prisma.user.findUnique({
+      where: { email: googleUser.email },
+      include: { customerProfile: true, providerProfile: true },
+    });
 
     if (user) {
       if (!user.isActive) {
@@ -36,7 +39,7 @@ router.get("/", async (req, res) => {
       }
     } else {
       const nameParts = googleUser.name?.split(" ") || ["Google", "User"];
-      user = await prisma.user.create({
+      const created = await prisma.user.create({
         data: {
           email: googleUser.email,
           passwordHash: "", // Google-authenticated users have no password
@@ -47,9 +50,15 @@ router.get("/", async (req, res) => {
           role: "CUSTOMER",
           customerProfile: { create: {} },
         },
+        include: { customerProfile: true, providerProfile: true },
       });
+      user = created;
 
       sendWelcomeEmail(user.email, user.firstName).catch((e) => console.error("Welcome email failed:", e));
+    }
+
+    if (!user) {
+      return res.redirect(303, `${APP_URL}/auth/login?error=google_auth_failed`);
     }
 
     const token = await createToken({
@@ -58,6 +67,7 @@ router.get("/", async (req, res) => {
       role: user.role,
       firstName: user.firstName,
       lastName: user.lastName,
+      country: user.customerProfile?.country ?? user.providerProfile?.country ?? null,
     });
 
     setSessionCookie(res, token);

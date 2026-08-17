@@ -6,7 +6,7 @@ import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { serverApi } from "@/lib/server-api";
-import { formatDate, formatCurrency } from "@/lib/utils";
+import { formatDate, formatCurrency, getCurrencyForCountry } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/Badge";
 import { Calendar, Package, Plus } from "lucide-react";
 
@@ -38,6 +38,7 @@ export default async function CustomerDashboard() {
   } catch {
     notFound();
   }
+  const currency = getCurrencyForCountry(session.country);
 
   return (
     <div className="flex min-h-screen">
@@ -135,7 +136,7 @@ export default async function CustomerDashboard() {
                     </div>
                     {booking.finalPrice && (
                       <p className="mt-1 text-sm text-primary-600">
-                        {formatCurrency(booking.finalPrice)}
+                        {formatCurrency(booking.finalPrice, currency)}
                       </p>
                     )}
                   </div>

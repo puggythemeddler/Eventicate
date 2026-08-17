@@ -7,7 +7,7 @@ import { Card, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge, StatusBadge } from "@/components/ui/Badge";
 import { serverApi } from "@/lib/server-api";
-import { formatDate, formatCurrency, parseJsonArray } from "@/lib/utils";
+import { formatDate, formatCurrency, parseJsonArray, getCurrencyForCountry } from "@/lib/utils";
 import { EVENT_TYPES, SERVICE_CATEGORIES } from "@/lib/constants";
 import { Calendar, MapPin, Users, DollarSign, ArrowLeft, Search, Plus, Package, BarChart3, Clock } from "lucide-react";
 
@@ -60,6 +60,7 @@ export default async function EventDetailPage({
 
   if (!event) redirect("/dashboard/events");
 
+  const currency = getCurrencyForCountry(session.country);
   const requiredServices = parseJsonArray<string>(event.requiredServices);
 
   return (
@@ -153,7 +154,7 @@ export default async function EventDetailPage({
                 <p className="text-xs text-gray-500">Budget</p>
                 <p className="text-sm font-medium">
                   {event.budgetMin || event.budgetMax
-                    ? `${event.budgetMin ? formatCurrency(event.budgetMin) : "$0"} - ${event.budgetMax ? formatCurrency(event.budgetMax) : "Unlimited"}`
+                    ? `${event.budgetMin ? formatCurrency(event.budgetMin, currency) : formatCurrency(0, currency)} - ${event.budgetMax ? formatCurrency(event.budgetMax, currency) : "Unlimited"}`
                     : "Not set"}
                 </p>
               </div>
@@ -204,7 +205,7 @@ export default async function EventDetailPage({
                     </span>
                     {booking.quotedPrice && (
                       <span className="font-medium text-primary-600">
-                        {formatCurrency(booking.quotedPrice)}
+                        {formatCurrency(booking.quotedPrice, currency)}
                       </span>
                     )}
                   </div>

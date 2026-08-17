@@ -4,7 +4,7 @@
 import { stkPush, stkQuery } from "./mpesa";
 
 export type PaymentGateway = "mpesa" | "pesapal" | "stripe";
-export type Currency = "KES" | "USD";
+export type Currency = "KES" | "UGX" | "TZS" | "USD";
 
 export interface PaymentInitRequest {
   amount: number;

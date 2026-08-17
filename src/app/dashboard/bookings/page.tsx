@@ -8,7 +8,7 @@ import { Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Badge";
 import { serverApi } from "@/lib/server-api";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, getCurrencyForCountry } from "@/lib/utils";
 import { BOOKING_STATUS_LABELS } from "@/lib/constants";
 
 const statusOptions = [
@@ -42,6 +42,7 @@ export default async function BookingsPage({
   const allBookings = (
     await serverApi<{ bookings: CustomerBooking[] }>("/api/bookings?role=CUSTOMER")
   ).bookings;
+  const currency = getCurrencyForCountry(session.country);
 
   const bookings =
     status && status !== "ALL"
@@ -115,9 +116,9 @@ export default async function BookingsPage({
                     </td>
                     <td className="px-6 py-4 text-right text-sm font-medium">
                       {booking.finalPrice
-                        ? formatCurrency(booking.finalPrice)
+                        ? formatCurrency(booking.finalPrice, currency)
                         : booking.quotedPrice
-                          ? formatCurrency(booking.quotedPrice)
+                          ? formatCurrency(booking.quotedPrice, currency)
                           : "—"}
                     </td>
                   </tr>

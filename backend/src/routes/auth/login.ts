@@ -15,7 +15,10 @@ router.post("/", authLimiter, async (req, res) => {
   try {
     const { email, password } = loginSchema.parse(req.body);
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { customerProfile: true, providerProfile: true },
+    });
     if (!user || !(await verifyPassword(password, user.passwordHash))) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
@@ -30,6 +33,7 @@ router.post("/", authLimiter, async (req, res) => {
       role: user.role,
       firstName: user.firstName,
       lastName: user.lastName,
+      country: user.customerProfile?.country ?? user.providerProfile?.country ?? null,
     });
 
     setSessionCookie(res, token);
@@ -41,6 +45,7 @@ router.post("/", authLimiter, async (req, res) => {
         role: user.role,
         firstName: user.firstName,
         lastName: user.lastName,
+        country: user.customerProfile?.country ?? user.providerProfile?.country ?? null,
       },
     });
   } catch (error) {

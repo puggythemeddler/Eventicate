@@ -4,7 +4,7 @@ import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { serverApi } from "@/lib/server-api";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getCurrencyForCountry } from "@/lib/utils";
 import { ApproveButton } from "./providers/ApproveProvider";
 
 interface AnalyticsData {
@@ -42,6 +42,7 @@ export default async function AdminDashboard() {
   } catch {
     notFound();
   }
+  const currency = getCurrencyForCountry(session.country);
 
   const {
     totalUsers,
@@ -79,7 +80,7 @@ export default async function AdminDashboard() {
           <Card>
             <CardTitle className="mb-2">Platform Revenue</CardTitle>
             <p className="text-3xl font-bold text-green-600">
-              {formatCurrency(totalRevenue)}
+              {formatCurrency(totalRevenue, currency)}
             </p>
           </Card>
           <Card>

@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { serverApi } from "@/lib/server-api";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, getCurrencyForCountry } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/Badge";
 import { Package, Calendar, DollarSign, Star, Clock, AlertTriangle, CreditCard } from "lucide-react";
 
@@ -149,6 +149,7 @@ export default async function ProviderDashboard() {
   }
   if (!dashboard) redirect("/auth/login");
 
+  const currency = getCurrencyForCountry(session.country);
   const pendingBookings = dashboard.pendingBookings;
 
   return (
@@ -190,7 +191,7 @@ export default async function ProviderDashboard() {
               <DollarSign className="h-8 w-8 text-green-600" />
               <div>
                 <p className="text-2xl font-bold">
-                  {formatCurrency(dashboard.revenue)}
+                  {formatCurrency(dashboard.revenue, currency)}
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Total Revenue</p>
               </div>
@@ -236,7 +237,7 @@ export default async function ProviderDashboard() {
                       </td>
                       <td className="py-3">
                         {booking.quotedPrice
-                          ? formatCurrency(booking.quotedPrice)
+                          ? formatCurrency(booking.quotedPrice, currency)
                           : "—"}
                       </td>
                     </tr>

@@ -5,7 +5,22 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatCurrency(amount: number, currency = "USD") {
+export const CURRENCY_BY_COUNTRY: Record<string, string> = {
+  KENYA: "KES",
+  KEN: "KES",
+  UGANDA: "UGX",
+  UGA: "UGX",
+  TANZANIA: "TZS",
+  TZA: "TZS",
+};
+
+export function getCurrencyForCountry(country?: string | null): string {
+  if (!country) return "KES";
+  const key = country.trim().toUpperCase();
+  return CURRENCY_BY_COUNTRY[key] || "KES";
+}
+
+export function formatCurrency(amount: number, currency = "KES") {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,

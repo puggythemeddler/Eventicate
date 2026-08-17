@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { formatCurrency, parseJsonArray } from "@/lib/utils";
+import { useCurrency } from "@/hooks/useCurrency";
 import { SERVICE_CATEGORIES } from "@/lib/constants";
 import { Trash2 } from "lucide-react";
 import Image from "next/image";
@@ -43,6 +44,7 @@ function ToggleSwitch({ enabled, onClick }: { enabled: boolean; onClick: () => v
 }
 
 export function ServiceActions({ service }: ServiceActionsProps) {
+  const currency = useCurrency();
   const [isActive, setIsActive] = useState(service.isActive);
   const [deleting, setDeleting] = useState(false);
   const router = useRouter();
@@ -99,11 +101,11 @@ export function ServiceActions({ service }: ServiceActionsProps) {
         <div className="flex items-baseline gap-2">
           {hasDiscount ? (
             <>
-              <span className="text-sm text-gray-400 line-through">{formatCurrency(service.basePrice)}</span>
-              <p className="text-lg font-bold text-primary-600">{formatCurrency(discountedPrice)}</p>
+              <span className="text-sm text-gray-400 line-through">{formatCurrency(service.basePrice, currency)}</span>
+              <p className="text-lg font-bold text-primary-600">{formatCurrency(discountedPrice, currency)}</p>
             </>
           ) : (
-            <p className="text-lg font-bold text-primary-600">{formatCurrency(service.basePrice)}</p>
+            <p className="text-lg font-bold text-primary-600">{formatCurrency(service.basePrice, currency)}</p>
           )}
         </div>
       </div>

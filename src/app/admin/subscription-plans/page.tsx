@@ -8,6 +8,7 @@ import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
 import { formatCurrency } from "@/lib/utils";
+import { useCurrency } from "@/hooks/useCurrency";
 import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
 
 interface Plan {
@@ -57,6 +58,7 @@ const emptyForm: FormData = {
 };
 
 export default function SubscriptionPlansPage() {
+  const currency = useCurrency();
   const [authorized, setAuthorized] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -252,7 +254,7 @@ export default function SubscriptionPlansPage() {
                       <>
                         <td className="py-3 pr-4">{plan.sortOrder}</td>
                         <td className="py-3 pr-4 font-medium">{plan.name}</td>
-                        <td className="py-3 pr-4">{plan.price === 0 ? "Free" : formatCurrency(plan.price)}</td>
+                        <td className="py-3 pr-4">{plan.price === 0 ? "Free" : formatCurrency(plan.price, currency)}</td>
                         <td className="py-3 pr-4">{plan.trialDays > 0 ? `${plan.trialDays}d` : "\u2014"}</td>
                         <td className="py-3 pr-4">{plan.maxServices === -1 ? "\u221E" : plan.maxServices}</td>
                         <td className="py-3 pr-4">{plan.maxEquipment === -1 ? "\u221E" : plan.maxEquipment}</td>

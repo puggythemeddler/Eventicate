@@ -7,6 +7,7 @@ import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { formatCurrency } from "@/lib/utils";
+import { useCurrency } from "@/hooks/useCurrency";
 import Image from "next/image";
 import { ShoppingCart, Plus, Minus, Trash2, FileText, Loader2 } from "lucide-react";
 
@@ -45,6 +46,7 @@ interface ProviderGroup {
 }
 
 export default function CartPage() {
+  const currency = useCurrency();
   const [items, setItems] = useState<CartItem[]>([]);
   const [grouped, setGrouped] = useState<ProviderGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -188,7 +190,7 @@ export default function CartPage() {
                         <p className="text-xs text-gray-500">{group.items.length} item(s)</p>
                       </div>
                       <p className="text-lg font-bold text-primary-600">
-                        {pt ? formatCurrency(pt.total) : ""}
+                        {pt ? formatCurrency(pt.total, currency) : ""}
                       </p>
                     </div>
                     <div className="space-y-4">
@@ -216,7 +218,7 @@ export default function CartPage() {
                           <div className="min-w-0 flex-1">
                             <p className="font-medium">{getItemName(item)}</p>
                             <p className="text-sm text-gray-500">
-                              {formatCurrency(getUnitPrice(item))} each
+                              {formatCurrency(getUnitPrice(item), currency)} each
                             </p>
                             {item.notes && (
                               <p className="text-xs text-gray-400 italic">{item.notes}</p>
@@ -238,7 +240,7 @@ export default function CartPage() {
                             </button>
                           </div>
                           <div className="w-24 text-right">
-                            <p className="font-medium">{formatCurrency(getSubtotal(item))}</p>
+                            <p className="font-medium">{formatCurrency(getSubtotal(item), currency)}</p>
                           </div>
                           <button
                             onClick={() => removeItem(item.id)}
@@ -260,7 +262,7 @@ export default function CartPage() {
                   <p className="text-lg font-semibold">Grand Total</p>
                   <p className="text-xs text-gray-500">{grouped.length} provider(s)</p>
                 </div>
-                <p className="text-2xl font-bold text-primary-600">{formatCurrency(grandTotal)}</p>
+                <p className="text-2xl font-bold text-primary-600">{formatCurrency(grandTotal, currency)}</p>
               </div>
             </Card>
 

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
 import { formatCurrency } from "@/lib/utils";
+import { useCurrency } from "@/hooks/useCurrency";
 import { Check, X, Clock, CreditCard, Shield, Star, Loader2, Smartphone } from "lucide-react";
 import type { PaymentGateway } from "@/lib/payments";
 
@@ -59,6 +60,7 @@ const GATEWAYS: { value: PaymentGateway; label: string; icon: React.ReactNode }[
 ];
 
 export default function ProviderSubscriptionPage() {
+  const currency = useCurrency();
   const router = useRouter();
   const [authorized, setAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -181,7 +183,7 @@ export default function ProviderSubscriptionPage() {
           gateway: selectedGateway,
           bookingId: `sub_${selectedPlan.id}`,
           amount: getEffectivePrice(selectedPlan),
-          currency: "KES",
+          currency,
           phone: selectedGateway === "mpesa" ? paymentPhone : undefined,
           billingPeriod: selectedBilling,
         }),
@@ -296,7 +298,7 @@ export default function ProviderSubscriptionPage() {
                 <p className="text-2xl font-bold text-primary-600">
                   {subscription.plan.price === 0
                     ? "Free"
-                    : formatCurrency(subscription.plan.price) + "/month"}
+                    : formatCurrency(subscription.plan.price, currency) + "/month"}
                 </p>
                 {isOnTrial && subscription.daysRemaining !== undefined && (
                   <p className="flex items-center gap-2 text-sm text-yellow-600 dark:text-yellow-400">
@@ -474,7 +476,7 @@ export default function ProviderSubscriptionPage() {
                       "Free"
                     ) : (
                       <>
-                        {formatCurrency(effectivePrice)}
+                        {formatCurrency(effectivePrice, currency)}
                         <span className="text-sm font-normal text-gray-400">
                           {selectedBilling === "ANNUAL" ? "/yr" : "/mo"}
                         </span>
@@ -542,7 +544,7 @@ export default function ProviderSubscriptionPage() {
               <div className="mb-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
                 <p className="text-sm text-gray-500 dark:text-gray-400">{selectedPlan.name}</p>
                 <p className="mt-1 text-2xl font-bold text-primary-600">
-                  {formatCurrency(getEffectivePrice(selectedPlan))}
+                  {formatCurrency(getEffectivePrice(selectedPlan), currency)}
                   <span className="text-sm font-normal text-gray-400">
                     {" "}{selectedBilling === "ANNUAL" ? "/yr" : "/mo"}
                   </span>

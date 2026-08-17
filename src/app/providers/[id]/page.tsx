@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge, StarRating } from "@/components/ui/Badge";
 import { AvailabilityCalendar } from "@/components/calendar/AvailabilityCalendar";
 import { serverApi } from "@/lib/server-api";
-import { formatCurrency, parseJsonArray } from "@/lib/utils";
+import { formatCurrency, parseJsonArray, getCurrencyForCountry } from "@/lib/utils";
 import { MapPin } from "lucide-react";
 import { SERVICE_CATEGORIES, EVENT_TYPES } from "@/lib/constants";
 import { CategoryIcon } from "@/components/layout/Navigation";
@@ -89,6 +89,7 @@ export default async function ProviderProfilePage({
   const { id } = await params;
   const session = await getSession();
 
+  const currency = getCurrencyForCountry(session?.country);
   const now = new Date();
 
   let provider: ProviderData | null = null;
@@ -184,11 +185,11 @@ export default async function ProviderProfilePage({
                               <div className="text-right">
                                 {hasDiscount ? (
                                   <>
-                                    <p className="text-sm text-gray-400 line-through">{formatCurrency(service.basePrice)}</p>
-                                    <p className="font-semibold text-primary-600">{formatCurrency(discountedPrice)}</p>
+                                    <p className="text-sm text-gray-400 line-through">{formatCurrency(service.basePrice, currency)}</p>
+                                    <p className="font-semibold text-primary-600">{formatCurrency(discountedPrice, currency)}</p>
                                   </>
                                 ) : (
-                                  <p className="font-semibold text-primary-600">{formatCurrency(service.basePrice)}</p>
+                                  <p className="font-semibold text-primary-600">{formatCurrency(service.basePrice, currency)}</p>
                                 )}
                               </div>
                               <AddToCartButton serviceId={service.id} />
@@ -237,7 +238,7 @@ export default async function ProviderProfilePage({
                         <div className="flex flex-col items-end gap-2">
                           <div className="text-right">
                             <p className="text-xs text-gray-500 dark:text-gray-400">From</p>
-                            <p className="font-semibold text-primary-600">{formatCurrency(venue.basePrice)}</p>
+                            <p className="font-semibold text-primary-600">{formatCurrency(venue.basePrice, currency)}</p>
                           </div>
                           <Link href={session ? `/dashboard/bookings/new?providerId=${id}` : "/auth/login"}>
                             <Button size="sm" variant="outline">Get a Quote</Button>
@@ -259,7 +260,7 @@ export default async function ProviderProfilePage({
                       <div className="flex items-center justify-between">
                         <h4 className="font-medium">{pkg.name}</h4>
                         <span className="font-semibold text-primary-600">
-                          {formatCurrency(pkg.basePrice)}
+                          {formatCurrency(pkg.basePrice, currency)}
                         </span>
                       </div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -300,11 +301,11 @@ export default async function ProviderProfilePage({
                             <div className="text-right">
                               {hasDiscount ? (
                                 <p className="text-sm">
-                                  <span className="text-gray-400 line-through">{formatCurrency(item.rentalPrice)}</span>{' '}
-                                  <span className="font-semibold text-primary-600">{formatCurrency(discountedPrice)}/day</span>
+                                  <span className="text-gray-400 line-through">{formatCurrency(item.rentalPrice, currency)}</span>{' '}
+                                  <span className="font-semibold text-primary-600">{formatCurrency(discountedPrice, currency)}/day</span>
                                 </p>
                               ) : (
-                                <p className="text-sm text-primary-600">{formatCurrency(item.rentalPrice)}/day</p>
+                                <p className="text-sm text-primary-600">{formatCurrency(item.rentalPrice, currency)}/day</p>
                               )}
                             </div>
                             <AddToCartButton equipmentId={item.id} />
@@ -335,7 +336,7 @@ export default async function ProviderProfilePage({
                           ? `×${rule.priceModifier}`
                           : rule.modifierType === "percentage"
                           ? `+${rule.priceModifier}%`
-                          : formatCurrency(rule.priceModifier)}
+                          : formatCurrency(rule.priceModifier, currency)}
                       </span>
                     </div>
                   ))}

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
 import { StatusBadge } from "@/components/ui/Badge";
 import { serverApi } from "@/lib/server-api";
-import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
+import { formatCurrency, formatDate, formatDateTime, getCurrencyForCountry } from "@/lib/utils";
 import { ArrowLeft, Calendar, DollarSign, MessageSquare, Mail, User } from "lucide-react";
 
 type BookingDetail = {
@@ -125,7 +125,7 @@ function ProviderBookingActions({ bookingId, status }: { bookingId: string; stat
             className="flex flex-wrap items-end gap-3"
           >
             <Input
-              label="Deposit Amount ($)"
+              label="Deposit Amount"
               name="depositAmount"
               type="number"
               step="0.01"
@@ -257,8 +257,9 @@ export default async function ProviderBookingDetailPage({
     notFound();
   }
 
-  if (!booking) notFound();
+if (!booking) notFound();
 
+  const currency = getCurrencyForCountry(session.country);
   return (
     <div className="flex min-h-screen">
       <Sidebar role="PROVIDER" />
@@ -337,19 +338,19 @@ export default async function ProviderBookingDetailPage({
           <Card>
             <CardTitle className="mb-1">Quoted Price</CardTitle>
             <p className="text-2xl font-bold text-primary-600">
-              {booking.quotedPrice ? formatCurrency(booking.quotedPrice) : "—"}
+              {booking.quotedPrice ? formatCurrency(booking.quotedPrice, currency) : "—"}
             </p>
           </Card>
           <Card>
             <CardTitle className="mb-1">Final Price</CardTitle>
             <p className="text-2xl font-bold">
-              {booking.finalPrice ? formatCurrency(booking.finalPrice) : "—"}
+              {booking.finalPrice ? formatCurrency(booking.finalPrice, currency) : "—"}
             </p>
           </Card>
           <Card>
             <CardTitle className="mb-1">Deposit</CardTitle>
             <p className="text-2xl font-bold">
-              {booking.depositAmount ? formatCurrency(booking.depositAmount) : "—"}
+              {booking.depositAmount ? formatCurrency(booking.depositAmount, currency) : "—"}
             </p>
           </Card>
         </div>
@@ -387,7 +388,7 @@ export default async function ProviderBookingDetailPage({
                     className="flex items-center justify-between rounded-lg border border-gray-100 p-3"
                   >
                     <div>
-                      <p className="font-medium">{formatCurrency(payment.amount)}</p>
+                      <p className="font-medium">{formatCurrency(payment.amount, currency)}</p>
                       <p className="text-xs text-gray-500">
                         {payment.method.replace(/_/g, " ")} · {formatDateTime(new Date(payment.createdAt))}
                       </p>
