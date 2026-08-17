@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { EventicateLogo } from "@/components/ui/EventicateLogo";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import {
   Calendar, Home, MessageSquare, Search, Star, User,
   LayoutDashboard, Package, Settings, Truck, Music,
@@ -199,7 +200,7 @@ export function PublicHeader() {
     setMobileOpen(false);
   }, [pathname]);
 
-  const links = (
+  const leftLinks = (
     <>
       <Link href="/search" className="text-sm text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400">
         Find Services
@@ -207,6 +208,11 @@ export function PublicHeader() {
       <Link href="/how-it-works" className="text-sm text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400">
         How It Works
       </Link>
+    </>
+  );
+
+  const rightLinks = (
+    <>
       <Link href="/auth/login" className="text-sm text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400">
         Sign In
       </Link>
@@ -221,14 +227,17 @@ export function PublicHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur dark:border-gray-800 dark:bg-gray-950/95">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-        <Link href="/">
-          <EventicateLogo className="h-8" />
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4">
+        <div className="flex flex-1 items-center gap-6">
+          <nav className="hidden items-center gap-6 md:flex">{leftLinks}</nav>
+        </div>
+
+        <Link href="/" aria-label="Eventicate home" className="shrink-0">
+          <BrandLogo markClassName="h-9 w-9" />
         </Link>
-        <div className="flex items-center gap-3">
-          <nav className="hidden items-center gap-6 md:flex">
-            {links}
-          </nav>
+
+        <div className="flex flex-1 items-center justify-end gap-3">
+          <nav className="hidden items-center gap-6 md:flex">{rightLinks}</nav>
           <div className="md:hidden">
             <ThemeToggle />
           </div>
@@ -245,7 +254,8 @@ export function PublicHeader() {
       </div>
       {mobileOpen && (
         <nav className="flex flex-col gap-4 border-t border-gray-200 bg-white px-4 py-4 dark:border-gray-800 dark:bg-gray-950 md:hidden">
-          {links}
+          {leftLinks}
+          <div className="flex flex-col gap-4">{rightLinks}</div>
         </nav>
       )}
     </header>

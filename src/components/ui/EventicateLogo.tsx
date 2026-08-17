@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 
 interface LogoConfig {
   logoLight: string | null;
@@ -40,9 +41,5 @@ export function EventicateLogo({ className, showText }: EventicateLogoProps) {
     );
   }
 
-  return (
-    <span className={cn("text-2xl font-bold text-primary-700", className)}>
-      Eventicate
-    </span>
-  );
+  return <BrandLogo className={className} showText={showText} />;
 }
