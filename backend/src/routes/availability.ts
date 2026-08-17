@@ -53,6 +53,20 @@ router.post("/", async (req, res) => {
     dateOnly.setHours(0, 0, 0, 0);
 
     if (data.status === "AVAILABLE") {
+      // Only clear slots that aren't tied to an active booking (PENDING/CONFIRMED).
+      const locked = await prisma.availabilitySlot.findMany({
+        where: {
+          providerId: provider.id,
+          date: dateOnly,
+          status: { in: ["PENDING", "CONFIRMED"] },
+        },
+        select: { id: true },
+      });
+      if (locked.length > 0) {
+        return res.status(409).json({
+          error: "Cannot make this date available: it is locked by an active booking",
+        });
+      }
       await prisma.availabilitySlot.deleteMany({
         where: { providerId: provider.id, date: dateOnly },
       });

@@ -16,7 +16,6 @@ const agreementSchema = z.object({
   totalAmount: z.number().positive(),
   depositAmount: z.number().optional(),
 });
-
 const router = Router();
 
 router.post("/", async (req, res) => {
@@ -39,6 +38,18 @@ router.post("/", async (req, res) => {
     });
     if (!customer || booking.customerId !== customer.id) {
       return res.status(403).json({ error: "You can only sign agreements for your own bookings" });
+    }
+
+    // Cross-check the amount the customer signed against the booking's real price.
+    const expectedTotal = booking.finalPrice || booking.quotedPrice || null;
+    if (expectedTotal === null) {
+      return res.status(400).json({ error: "Booking has no price yet" });
+    }
+    if (Math.abs(expectedTotal - data.totalAmount) > 0.001) {
+      return res.status(400).json({ error: "Signed amount does not match the booking total" });
+    }
+    if (data.depositAmount && (data.depositAmount <= 0 || data.depositAmount > expectedTotal)) {
+      return res.status(400).json({ error: "Invalid deposit amount" });
     }
 
     const existing = await prisma.agreement.findFirst({

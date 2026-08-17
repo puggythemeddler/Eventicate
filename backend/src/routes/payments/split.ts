@@ -14,7 +14,7 @@ const router = Router();
 router.post("/", async (req, res) => {
   const session = await getSession(req);
   if (!session || session.role !== "CUSTOMER") {
-    return res.status(401).json({ error: "Unauthorized" });
+    return res.status(403).json({ error: "Forbidden" });
   }
 
   try {
@@ -38,13 +38,23 @@ router.post("/", async (req, res) => {
       return res.status(404).json({ error: "No documents found for this master quote" });
     }
 
+    // Only the customer who owns these bookings may split-pay them.
+    const customer = await prisma.customerProfile.findUnique({ where: { userId: session.id } });
+    if (!customer) return res.status(403).json({ error: "Forbidden" });
+    const foreignBooking = documents.find((doc) => doc.booking && doc.booking.customerId !== customer.id);
+    if (foreignBooking) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
     const results: { bookingId: string; providerName: string; amount: number; status: string; checkoutRequestId?: string; error?: string }[] = [];
 
     for (const doc of documents) {
       if (!doc.booking) continue;
       const booking = doc.booking;
 
-      const totalPaid = booking.payments.reduce((sum, p) => sum + p.amount, 0);
+      const totalPaid = booking.payments
+        .filter((p) => p.status === "DEPOSIT_PAID" || p.status === "FULLY_PAID")
+        .reduce((sum, p) => sum + p.amount, 0);
       const totalDue = booking.finalPrice || booking.quotedPrice || 0;
       const remaining = Math.max(0, totalDue - totalPaid);
 

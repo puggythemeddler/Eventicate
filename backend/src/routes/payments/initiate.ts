@@ -21,6 +21,9 @@ const router = Router();
 router.post("/", paymentLimiter, async (req, res) => {
   const session = await getSession(req);
   if (!session) return res.status(401).json({ error: "Unauthorized" });
+  if (session.role !== "CUSTOMER" && session.role !== "PROVIDER") {
+    return res.status(403).json({ error: "Forbidden" });
+  }
 
   try {
     const data = initiateSchema.parse(req.body);
@@ -28,6 +31,7 @@ router.post("/", paymentLimiter, async (req, res) => {
     const isSubscription = data.bookingId.startsWith("sub_");
 
     if (isSubscription) {
+      if (session.role !== "PROVIDER") return res.status(403).json({ error: "Forbidden" });
       const provider = await prisma.providerProfile.findUnique({
         where: { userId: session.id },
         include: { user: { select: { firstName: true, lastName: true, email: true, phone: true } } },
@@ -85,6 +89,8 @@ router.post("/", paymentLimiter, async (req, res) => {
       return res.status(200).json(result);
     }
 
+    if (session.role !== "CUSTOMER") return res.status(403).json({ error: "Forbidden" });
+
     const booking = await prisma.booking.findFirst({
       where: { id: data.bookingId },
       include: {
@@ -95,6 +101,12 @@ router.post("/", paymentLimiter, async (req, res) => {
     });
     if (!booking) return res.status(404).json({ error: "Booking not found" });
 
+    // Only the booking's customer may initiate payment.
+    const customer = await prisma.customerProfile.findUnique({ where: { userId: session.id } });
+    if (!customer || booking.customerId !== customer.id) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
     if (data.isDeposit) {
       if (booking.depositAmount && data.amount !== booking.depositAmount) {
         return res.status(400).json({ error: "Amount does not match deposit amount" });
@@ -103,7 +115,9 @@ router.post("/", paymentLimiter, async (req, res) => {
         return res.status(400).json({ error: "Deposit already paid" });
       }
     } else {
-      const totalPaid = booking.payments.reduce((sum, p) => sum + p.amount, 0);
+      const totalPaid = booking.payments
+        .filter((p) => p.status === "DEPOSIT_PAID" || p.status === "FULLY_PAID")
+        .reduce((sum, p) => sum + p.amount, 0);
       const remaining = (booking.finalPrice || booking.quotedPrice || 0) - totalPaid;
       if (data.amount > remaining) {
         return res.status(400).json({ error: "Amount exceeds remaining balance" });
@@ -141,13 +155,6 @@ router.post("/", paymentLimiter, async (req, res) => {
         notes: JSON.stringify({ gateway: data.gateway, checkoutRequestId: result.checkoutRequestId }),
       },
     });
-
-    if (data.isDeposit) {
-      await prisma.booking.update({
-        where: { id: data.bookingId },
-        data: { depositPaid: true, status: "DEPOSIT_PAID" },
-      });
-    }
 
     sendPaymentConfirmation(booking.customer.user.email, booking.customer.user.firstName, {
       amount: data.amount,

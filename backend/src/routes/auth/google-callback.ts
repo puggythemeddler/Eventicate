@@ -1,6 +1,6 @@
 import { Router } from "express";
 import prisma from "../../lib/prisma";
-import { getGoogleTokens, getGoogleUser, GOOGLE_CONFIG } from "../../lib/google-auth";
+import { getGoogleTokens, getGoogleUser, verifyOAuthState, GOOGLE_CONFIG } from "../../lib/google-auth";
 import { createToken, setSessionCookie } from "../../lib/auth";
 import { sendWelcomeEmail } from "../../lib/email";
 
@@ -15,6 +15,12 @@ router.get("/", async (req, res) => {
 
   const code = req.query.code as string | undefined;
   const error = req.query.error as string | undefined;
+  const state = req.query.state as string | undefined;
+
+  // CSRF protection: reject callbacks whose state token we didn't issue.
+  if (!verifyOAuthState(state)) {
+    return res.redirect(303, `${APP_URL}/auth/login?error=google_auth_failed`);
+  }
 
   if (error || !code) {
     return res.redirect(303, `${APP_URL}/auth/login?error=google_auth_failed`);
@@ -26,6 +32,11 @@ router.get("/", async (req, res) => {
 
     if (!googleUser.email) {
       return res.redirect(303, `${APP_URL}/auth/login?error=no_email`);
+    }
+
+    // Only accept Google accounts whose email has been verified by Google.
+    if (!googleUser.verified_email) {
+      return res.redirect(303, `${APP_URL}/auth/login?error=unverified_email`);
     }
 
     let user = await prisma.user.findUnique({

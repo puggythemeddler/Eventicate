@@ -52,8 +52,6 @@ function NewBookingContent() {
   const discountedPrice = selectedService
     ? selectedService.basePrice * (100 - selectedService.discountPercent) / 100
     : 0;
-  const [paymentMethod, setPaymentMethod] = useState("MPESA");
-  const [mpesaPhone, setMpesaPhone] = useState("");
 
   useEffect(() => {
     fetch("/api/events")
@@ -74,10 +72,7 @@ function NewBookingContent() {
     if (!selectedEventId || !providerId) return;
     setLoading(true);
     try {
-      const paymentInfo = paymentMethod === "MPESA" ? { paymentMethod, phone: mpesaPhone } : { paymentMethod };
-      const notes = customerNotes
-        ? `${customerNotes}\n__payment:${JSON.stringify(paymentInfo)}`
-        : `__payment:${JSON.stringify(paymentInfo)}`;
+      const notes = customerNotes || undefined;
 
       const quotationDetails = selectedService
         ? {
@@ -159,41 +154,6 @@ function NewBookingContent() {
               rows={3}
               placeholder="Tell the provider about your requirements..."
             />
-
-            <div className="space-y-3 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Payment Method</p>
-              <div className="grid gap-2 sm:grid-cols-3">
-                {[
-                  { value: "MPESA", label: "M-Pesa" },
-                  { value: "PESAPAL", label: "PesaPal" },
-                  { value: "CARD", label: "Card" },
-                  { value: "BANK_TRANSFER", label: "Bank Transfer" },
-                  { value: "CASH", label: "Cash" },
-                ].map((m) => (
-                  <button
-                    key={m.value}
-                    type="button"
-                    onClick={() => setPaymentMethod(m.value)}
-                    className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                      paymentMethod === m.value
-                        ? "border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300"
-                        : "border-gray-200 text-gray-600 hover:border-gray-300 dark:border-gray-600 dark:text-gray-400"
-                    }`}
-                  >
-                    {m.label}
-                  </button>
-                ))}
-              </div>
-              {paymentMethod === "MPESA" && (
-                <input
-                  type="tel"
-                  placeholder="M-Pesa phone number"
-                  value={mpesaPhone}
-                  onChange={(e) => setMpesaPhone(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                />
-              )}
-            </div>
 
             {selectedService && (
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">

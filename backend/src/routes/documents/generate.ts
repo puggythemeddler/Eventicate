@@ -62,8 +62,8 @@ router.post("/", async (req, res) => {
 
     return res.status(201).json({ document });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to generate document";
-    return res.status(500).json({ error: message });
+    console.error("Document generation error:", error);
+    return res.status(500).json({ error: "Failed to generate document" });
   }
 });
 

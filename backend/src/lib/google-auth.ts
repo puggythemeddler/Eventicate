@@ -1,8 +1,31 @@
+import crypto from "crypto";
+
 export const GOOGLE_CONFIG = {
   clientId: process.env.GOOGLE_CLIENT_ID || "",
   clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
   redirectUri: process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/api/auth/google/callback",
 };
+
+// OAuth CSRF protection: a random state token is bound to the user's session.
+export function generateOAuthState(): string {
+  const state = crypto.randomBytes(16).toString("hex");
+  const encoded = Buffer.from(JSON.stringify({ state, ts: Date.now() })).toString("base64url");
+  return `${state}.${encoded}`;
+}
+
+export function verifyOAuthState(state: string | undefined): boolean {
+  if (!state) return false;
+  const [, encoded] = state.split(".");
+  if (!encoded) return false;
+  try {
+    const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8"));
+    if (payload.state !== state.split(".")[0]) return false;
+    if (Date.now() - payload.ts > 10 * 60 * 1000) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export function getGoogleAuthURL() {
   const params = new URLSearchParams({
@@ -12,6 +35,7 @@ export function getGoogleAuthURL() {
     scope: "openid email profile",
     access_type: "offline",
     prompt: "consent",
+    state: generateOAuthState(),
   });
   return `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
 }

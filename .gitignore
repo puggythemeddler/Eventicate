@@ -7,3 +7,5 @@ node_modules/
 .env.production
 public/uploads/logos/*
 !public/uploads/logos/.gitkeep
+
+backend/New Microsoft Word Document.docx

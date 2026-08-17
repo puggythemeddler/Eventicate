@@ -6,8 +6,8 @@ import { getSession } from "../lib/auth";
 const addItemSchema = z.object({
   serviceId: z.string().optional(),
   equipmentId: z.string().optional(),
-  quantity: z.number().int().positive().default(1),
-  notes: z.string().optional(),
+  quantity: z.number().int().positive().max(1000).default(1),
+  notes: z.string().max(500).optional(),
 });
 
 const router = Router();
@@ -74,12 +74,38 @@ router.post("/", async (req, res) => {
         include: { provider: true },
       });
       if (!service) return res.status(404).json({ error: "Service not found" });
+      if (!service.isActive) return res.status(400).json({ error: "Service is not active" });
     } else if (data.equipmentId) {
       const equipment = await prisma.equipment.findUnique({
         where: { id: data.equipmentId },
         include: { provider: true },
       });
       if (!equipment) return res.status(404).json({ error: "Equipment not found" });
+      if (!equipment.isActive) return res.status(400).json({ error: "Equipment is not active" });
+      if (data.quantity > equipment.quantity) {
+        return res.status(400).json({ error: `Only ${equipment.quantity} unit(s) available` });
+      }
+    }
+
+    // Dedupe: adding the same item increments quantity instead of creating a duplicate row.
+    const existing = await prisma.cartItem.findFirst({
+      where: {
+        customerId: customer.id,
+        serviceId: data.serviceId || null,
+        equipmentId: data.equipmentId || null,
+      },
+    });
+
+    if (existing) {
+      const item = await prisma.cartItem.update({
+        where: { id: existing.id },
+        data: { quantity: existing.quantity + data.quantity },
+        include: {
+          service: { include: { provider: true } },
+          equipment: { include: { provider: true } },
+        },
+      });
+      return res.status(200).json({ item });
     }
 
     const item = await prisma.cartItem.create({

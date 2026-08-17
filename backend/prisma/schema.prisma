@@ -220,6 +220,9 @@ model Event {
   bookings        Booking[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+
+  @@index([customerId])
+  @@index([eventDate])
 }
 
 // ─── Services & Listings ─────────────────────────────────────────────────────
@@ -443,10 +446,14 @@ model Booking {
   agreements      Agreement[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+
+  @@index([status])
+  @@index([providerId, status])
+  @@index([customerId, status])
+  @@index([eventId])
 }
 
 // ─── Payments ────────────────────────────────────────────────────────────────
-
 model Payment {
   id            String        @id @default(cuid())
   bookingId     String
@@ -454,12 +461,16 @@ model Payment {
   amount        Float
   method        PaymentMethod @default(CARD)
   status        PaymentStatus @default(PENDING)
-  transactionId String?
+  transactionId String?       @unique
   isDeposit     Boolean       @default(false)
   notes         String?
   paidAt        DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+
+  @@index([bookingId, status])
+  @@index([status])
+  @@index([createdAt])
 }
 
 // ─── Documents (Quotes, Invoices, Receipts) ────────────────────────────────────
@@ -508,6 +519,7 @@ model Document {
   @@index([recipientId])
   @@index([status])
   @@index([bookingId])
+  @@index([masterQuoteId])
 }
 
 // ─── Messaging ───────────────────────────────────────────────────────────────
@@ -536,6 +548,10 @@ model Message {
   fileUrl        String?
   isRead         Boolean      @default(false)
   createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+  @@index([senderId, isRead])
+  @@index([receiverId, isRead])
 }
 
 // ─── Reviews ─────────────────────────────────────────────────────────────────
@@ -588,6 +604,9 @@ model Notification {
   link      String?
   isRead    Boolean          @default(false)
   createdAt DateTime         @default(now())
+
+  @@index([userId, isRead])
+  @@index([createdAt])
 }
 
 // ─── Admin & Complaints ────────────────────────────────────────────────────────

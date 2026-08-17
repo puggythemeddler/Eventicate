@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import prisma from "../lib/prisma";
 import { getSession } from "../lib/auth";
-import { blockAvailability, calculateDynamicPrice, createNotification } from "../lib/booking-engine";
+import { calculateDynamicPrice, createNotification } from "../lib/booking-engine";
 import { sendBookingConfirmation, sendNewBookingNotification } from "../lib/email";
 
 const bookingSchema = z.object({
@@ -97,34 +97,47 @@ router.post("/", async (req, res) => {
         })
       : null;
 
-    // Atomically check availability and create the booking so two customers
-    // can't claim the same provider+date (race-free via serializable check).
-    const booking = await prisma.$transaction(async (tx) => {
-      const dateOnly = new Date(event.eventDate);
-      dateOnly.setHours(0, 0, 0, 0);
-      const existingSlot = await tx.availabilitySlot.findUnique({
-        where: { providerId_date: { providerId: provider.id, date: dateOnly } },
-      });
-      if (existingSlot && (existingSlot.status === "CONFIRMED" || existingSlot.status === "PENDING")) {
-        const err = new Error("This date is no longer available for the selected provider");
-        (err as Error & { status?: number }).status = 409;
-        throw err;
-      }
+    // Atomically check availability, reserve the slot, and create the booking so
+    // two customers can't claim the same provider+date. Serializable isolation
+    // plus the @@unique([providerId, date]) slot constraint closes the race.
+    const booking = await prisma.$transaction(
+      async (tx) => {
+        const dateOnly = new Date(event.eventDate);
+        dateOnly.setHours(0, 0, 0, 0);
+        const existingSlot = await tx.availabilitySlot.findUnique({
+          where: { providerId_date: { providerId: provider.id, date: dateOnly } },
+        });
+        if (existingSlot && existingSlot.status !== "AVAILABLE") {
+          const err = new Error("This date is no longer available for the selected provider");
+          (err as Error & { status?: number }).status = 409;
+          throw err;
+        }
 
-      return tx.booking.create({
-        data: {
-          eventId: data.eventId,
-          customerId: customer.id,
-          providerId: data.providerId,
-          serviceId: data.serviceId,
-          customerNotes: data.customerNotes,
-          quotationDetails: data.quotationDetails,
-          quotedPrice,
-          status: "QUOTATION_REQUESTED",
-        },
-        include: { event: true, provider: { include: { user: true } }, customer: { include: { user: true } }, service: true },
-      });
-    });
+        const created = await tx.booking.create({
+          data: {
+            eventId: data.eventId,
+            customerId: customer.id,
+            providerId: data.providerId,
+            serviceId: data.serviceId,
+            customerNotes: data.customerNotes,
+            quotationDetails: data.quotationDetails,
+            quotedPrice,
+            status: "QUOTATION_REQUESTED",
+          },
+          include: { event: true, provider: { include: { user: true } }, customer: { include: { user: true } }, service: true },
+        });
+
+        // Reserve the slot inside the same transaction.
+        await tx.availabilitySlot.upsert({
+          where: { providerId_date: { providerId: provider.id, date: dateOnly } },
+          create: { providerId: provider.id, date: dateOnly, status: "PENDING", bookingId: created.id },
+          update: { status: "PENDING", bookingId: created.id },
+        });
+
+        return created;
+      },
+      { isolationLevel: "Serializable" }
+    );
 
     sendBookingConfirmation(booking.customer.user.email, booking.customer.user.firstName, {
       id: booking.id,
@@ -142,8 +155,6 @@ router.post("/", async (req, res) => {
       customerName: `${booking.customer.user.firstName} ${booking.customer.user.lastName}`,
       totalCost: booking.quotedPrice || 0,
     }).catch((e) => console.error("New booking notification email failed:", e));
-
-    await blockAvailability(provider.id, event.eventDate, booking.id, "PENDING");
 
     await createNotification(
       provider.userId,

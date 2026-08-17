@@ -42,9 +42,24 @@ router.post("/", async (req, res) => {
     const documents: Awaited<ReturnType<typeof generateQuoteFromBooking>>[] = [];
 
     for (const [providerId, items] of providerGroups) {
+      // Price from the source of truth, honoring discounts and per-item charges.
       const totalPrice = items.reduce((sum, item) => {
-        const unitPrice = item.service?.basePrice || item.equipment?.rentalPrice || 0;
-        return sum + unitPrice * item.quantity;
+        if (item.service) {
+          const svc = item.service;
+          const discounted = svc.discountPercent > 0
+            ? (svc.basePrice * (100 - svc.discountPercent)) / 100
+            : svc.basePrice;
+          return sum + Math.round(discounted * item.quantity * 100) / 100;
+        }
+        if (item.equipment) {
+          const eq = item.equipment;
+          const discounted = eq.discountPercent > 0
+            ? (eq.rentalPrice * (100 - eq.discountPercent)) / 100
+            : eq.rentalPrice;
+          const perItem = discounted + (eq.setupCharge || 0) + (eq.transportCharge || 0) + (eq.operatorCharge || 0);
+          return sum + Math.round(perItem * item.quantity * 100) / 100;
+        }
+        return sum;
       }, 0);
 
       const event = await prisma.event.create({

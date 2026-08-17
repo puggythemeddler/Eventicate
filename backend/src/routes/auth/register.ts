@@ -34,27 +34,37 @@ router.post("/", authLimiter, async (req, res) => {
 
     const passwordHash = await hashPassword(data.password);
 
-    const user = await prisma.user.create({
-      data: {
-        email: data.email,
-        passwordHash,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phone: data.phone,
-        role: data.role,
-        ...(data.role === "CUSTOMER"
-          ? { customerProfile: { create: {} } }
-          : {
-              providerProfile: {
-                create: {
-                  businessName: data.businessName || `${data.firstName}'s Business`,
-                  category: data.category || "OTHER",
+    let user;
+    try {
+      user = await prisma.user.create({
+        data: {
+          email: data.email,
+          passwordHash,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone,
+          role: data.role,
+          ...(data.role === "CUSTOMER"
+            ? { customerProfile: { create: {} } }
+            : {
+                providerProfile: {
+                  create: {
+                    businessName: data.businessName || `${data.firstName}'s Business`,
+                    category: data.category || "OTHER",
+                  },
                 },
-              },
-            }),
-      },
-      include: { customerProfile: true, providerProfile: true },
-    });
+              }),
+        },
+        include: { customerProfile: true, providerProfile: true },
+      });
+    } catch (err) {
+      // Unique violation (P2002) = email already taken. Return the same generic
+      // error as other failures to avoid account enumeration.
+      if ((err as { code?: string }).code === "P2002") {
+        return res.status(409).json({ error: "Email already registered" });
+      }
+      throw err;
+    }
 
     const token = await createToken({
       id: user.id,

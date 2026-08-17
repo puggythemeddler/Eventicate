@@ -1,3 +1,9 @@
+# NOTE ON SECRETS
+# Sensitive values (DATABASE_URL*, JWT_SECRET, CLOUDINARY_*) are managed in the
+# Render dashboard (Settings -> Environment) and marked `sync: false` here so
+# they are never committed to git. If you clone this repo fresh, set them in
+# the dashboard before first deploy. Rotate the JWT_SECRET and the Cloudinary
+# credentials if this file ever leaked.
 services:
   - type: web
     name: eventicate-api
@@ -11,11 +17,11 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        value: postgresql://neondb_owner:npg_B0q2CnJOFjSd@ep-divine-salad-axlsvn0s-pooler.c-4.us-east-2.aws.neon.tech/neondb?sslmode=require
+        sync: false
       - key: DATABASE_URL_DIRECT
-        value: postgresql://neondb_owner:npg_B0q2CnJOFjSd@ep-divine-salad-axlsvn0s.c-4.us-east-2.aws.neon.tech/neondb?sslmode=require
+        sync: false
       - key: JWT_SECRET
-        value: "Bpt/2FwkwW0mn/ZWmljXWclqhVnJHeXBqXih5Affkhw="
+        sync: false
       - key: APP_URL
         value: https://eventicate.vercel.app
       - key: NEXT_PUBLIC_APP_URL
@@ -25,44 +31,44 @@ services:
       - key: MPESA_ENV
         value: sandbox
       - key: MPESA_CONSUMER_KEY
-        value: ""
+        sync: false
       - key: MPESA_CONSUMER_SECRET
-        value: ""
+        sync: false
       - key: MPESA_PASSKEY
-        value: ""
+        sync: false
       - key: MPESA_SHORTCODE
         value: "174379"
       - key: MPESA_CALLBACK_URL
-        value: ""
+        sync: false
       - key: MPESA_CALLBACK_SECRET
-        value: ""
+        sync: false
       - key: CORS_ORIGINS
         value: https://eventicate.vercel.app,http://localhost:3000
       - key: GOOGLE_CLIENT_ID
-        value: ""
+        sync: false
       - key: GOOGLE_CLIENT_SECRET
-        value: ""
+        sync: false
       - key: GOOGLE_REDIRECT_URI
         value: https://eventicate.vercel.app/api/auth/google/callback
       - key: SMTP_HOST
-        value: ""
+        sync: false
       - key: SMTP_PORT
         value: "587"
       - key: SMTP_SECURE
         value: "false"
       - key: SMTP_USER
-        value: ""
+        sync: false
       - key: SMTP_PASS
-        value: ""
+        sync: false
       - key: SMTP_FROM
-        value: ""
+        sync: false
       - key: LOCAL_SYNC_ENABLED
         value: "false"
       - key: LOCAL_SYNC_API_KEY
-        value: ""
+        sync: false
       - key: CLOUDINARY_CLOUD_NAME
         value: u1ucoiox
       - key: CLOUDINARY_API_KEY
-        value: "235992485733465"
+        sync: false
       - key: CLOUDINARY_API_SECRET
-        value: "w9Bsmx1uu7gMky4hksY7ji17fdA"
+        sync: false

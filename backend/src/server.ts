@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import path from "path";
 import fs from "fs";
 import sessionRouter from "./routes/auth/session";
@@ -72,6 +73,8 @@ import providerDashboardRouter from "./routes/provider/dashboard";
 import customerDashboardRouter from "./routes/customer/dashboard";
 import logosRouter from "./routes/logos";
 import localSyncRouter from "./routes/local-sync";
+import { generalLimiter } from "./lib/rate-limit";
+import prisma from "./lib/prisma";
 
 const app = express();
 
@@ -83,6 +86,13 @@ const allowedOrigins = (
   .filter(Boolean);
 
 app.set("trust proxy", 1);
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+app.use(generalLimiter);
 app.use(
   cors({
     origin(origin, callback) {
@@ -205,6 +215,28 @@ app.use(
 );
 
 const PORT = parseInt(process.env.PORT || "3001", 10);
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Eventicate backend listening on port ${PORT}`);
 });
+
+// Graceful shutdown: stop accepting connections, close the Prisma pool, exit.
+async function shutdown(signal: string) {
+  console.log(`${signal} received, shutting down gracefully...`);
+  server.close(async () => {
+    try {
+      await prisma.$disconnect();
+    } catch (err) {
+      console.error("Error disconnecting Prisma:", err);
+    }
+    console.log("Shutdown complete");
+    process.exit(0);
+  });
+  // Force-exit if connections refuse to drain.
+  setTimeout(() => {
+    console.error("Forced shutdown after timeout");
+    process.exit(1);
+  }, 10000).unref();
+}
+
+process.on("SIGTERM", () => void shutdown("SIGTERM"));
+process.on("SIGINT", () => void shutdown("SIGINT"));

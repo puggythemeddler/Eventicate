@@ -54,12 +54,27 @@ router.post("/", uploadLimiter, (req, res) => {
       return res.status(400).json({ error: "Invalid upload folder type" });
     }
 
+    // Role gate: only providers (own content) and admins (branding/global) may upload.
+    const PROVIDER_FOLDERS = new Set([
+      "services", "venues", "equipment", "vehicles", "menuPackages", "photoPackages",
+    ]);
+    const ADMIN_FOLDERS = new Set(["logos", "providers"]);
+    if (session.role === "CUSTOMER") {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    if (session.role === "PROVIDER" && !PROVIDER_FOLDERS.has(type)) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    if (session.role === "ADMIN" && !ADMIN_FOLDERS.has(type)) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
     const provider = await prisma.providerProfile.findUnique({
       where: { userId: session.id },
       select: { businessName: true },
     });
 
-    const folderName = (provider?.businessName || "anonymous").trim();
+    const folderName = (provider?.businessName || (session.role === "ADMIN" ? "admin" : "anonymous")).trim();
     const safeFolder = sanitizeFolderName(folderName);
 
     try {

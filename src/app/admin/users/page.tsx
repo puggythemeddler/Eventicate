@@ -33,22 +33,25 @@ export default async function AdminUsersPage({
   if (search) params.set("search", search);
   const qs = params.toString();
 
-  const enriched = (
-    await serverApi<{
-      users: Array<{
-        id: string;
-        firstName: string;
-        lastName: string;
-        email: string;
-        role: string;
-        isActive: boolean;
-        isVerified: boolean;
-        createdAt: string;
-        bookingCount: number;
-      }>;
-      total: number;
-    }>(`/api/admin/users${qs ? `?${qs}` : ""}`)
-  ).users;
+  const data = await serverApi<{
+    users: Array<{
+      id: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      role: string;
+      isActive: boolean;
+      isVerified: boolean;
+      createdAt: string;
+      bookingCount: number;
+    }>;
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  }>(`/api/admin/users${qs ? `?${qs}` : ""}`);
+
+  const enriched = data.users;
 
   return (
     <div className="flex min-h-screen">
@@ -57,7 +60,7 @@ export default async function AdminUsersPage({
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Users</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{enriched.length} total users</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{data.total} total users</p>
           </div>
         </div>
 

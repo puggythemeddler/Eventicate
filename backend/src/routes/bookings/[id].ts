@@ -18,7 +18,32 @@ const updateSchema = z.object({
   quotationDetails: z.string().optional(),
 });
 
+// Provider-allowed transitions (who can set which status, and from which states).
+const PROVIDER_TRANSITIONS: Record<string, string[]> = {
+  QUOTATION_REQUESTED: ["QUOTATION_SENT", "REJECTED", "CANCELLED"],
+  QUOTATION_SENT: ["PENDING_APPROVAL", "REJECTED", "CANCELLED"],
+  PENDING_APPROVAL: ["CONFIRMED", "REJECTED", "CANCELLED"],
+  CONFIRMED: ["DEPOSIT_PAID", "COMPLETED", "CANCELLED"],
+  DEPOSIT_PAID: ["COMPLETED", "CANCELLED"],
+  COMPLETED: [],
+  CANCELLED: [],
+  REJECTED: [],
+};
+
+// Customer-allowed transitions: accept/reject a quotation, cancel own confirmed booking.
+const CUSTOMER_TRANSITIONS: Record<string, string[]> = {
+  QUOTATION_SENT: ["CONFIRMED", "REJECTED"],
+  PENDING_APPROVAL: ["CONFIRMED", "REJECTED"],
+  CONFIRMED: ["CANCELLED"],
+};
+
 const router = Router({ mergeParams: true });
+
+function assertTransition(allowed: Record<string, string[]>, from: string, to: string): string | null {
+  if (!allowed[from]) return `Booking in status ${from} cannot be changed`;
+  if (!allowed[from].includes(to)) return `Cannot change status from ${from} to ${to}`;
+  return null;
+}
 
 router.patch("/", async (req, res) => {
   const session = await getSession(req);
@@ -39,11 +64,58 @@ router.patch("/", async (req, res) => {
     });
     if (!booking) return res.status(404).json({ error: "Booking not found" });
 
+    // Role-based ownership: only the booking's provider or customer may update it.
+    let actorProfileId: string | null = null;
+    if (session.role === "PROVIDER") {
+      const provider = await prisma.providerProfile.findUnique({ where: { userId: session.id } });
+      if (!provider || booking.providerId !== provider.id) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+      actorProfileId = provider.id;
+    } else if (session.role === "CUSTOMER") {
+      const customer = await prisma.customerProfile.findUnique({ where: { userId: session.id } });
+      if (!customer || booking.customerId !== customer.id) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+      actorProfileId = customer.id;
+    } else {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    // Customers may only change status — never prices or notes.
+    if (session.role === "CUSTOMER") {
+      const allowedFields = ["status"];
+      const attempted = Object.keys(data);
+      if (attempted.some((k) => !allowedFields.includes(k))) {
+        return res.status(400).json({ error: "Customers may only update booking status" });
+      }
+    }
+
+    // Enforce a valid state transition.
+    if (data.status) {
+      const roleTransitions = session.role === "PROVIDER" ? PROVIDER_TRANSITIONS : CUSTOMER_TRANSITIONS;
+      const transitionError = assertTransition(roleTransitions, booking.status, data.status);
+      if (transitionError) {
+        return res.status(400).json({ error: transitionError });
+      }
+    }
+
+    // Price fields are provider-owned.
+    if (data.quotedPrice !== undefined && data.quotedPrice < 0) {
+      return res.status(400).json({ error: "Price cannot be negative" });
+    }
+
     const updated = await prisma.booking.update({
       where: { id },
       data: {
         ...data,
-        depositPaid: data.status === "DEPOSIT_PAID" ? true : undefined,
+        // depositPaid is only true once a real deposit payment is recorded (payments flow).
+        depositPaid:
+          data.status === "DEPOSIT_PAID"
+            ? true
+            : data.status === "CANCELLED" || data.status === "REJECTED"
+              ? false
+              : undefined,
       },
       include: { event: true, provider: true, service: true },
     });

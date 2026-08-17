@@ -43,6 +43,19 @@ router.post("/", async (req, res) => {
     }
     participantIds.add(customerId);
 
+    // Only the customer or a participating provider may open the thread.
+    if (!participantIds.has(session.id)) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    // Reuse an existing thread instead of creating duplicate conversations.
+    const existing = await prisma.conversation.findUnique({
+      where: { masterQuoteId: data.masterQuoteId },
+    });
+    if (existing) {
+      return res.status(200).json({ conversation: existing, participantCount: participantIds.size });
+    }
+
     const conversation = await prisma.conversation.create({
       data: { masterQuoteId: data.masterQuoteId },
     });

@@ -14,6 +14,26 @@ const updateSchema = z.object({
   paidAt: z.string().datetime().optional(),
 });
 
+const PROVIDER_TRANSITIONS: Record<string, string[]> = {
+  DRAFT: ["SENT", "CANCELLED"],
+  SENT: ["OVERDUE", "CANCELLED"],
+  OVERDUE: ["CANCELLED"],
+  ACCEPTED: ["OVERDUE", "CANCELLED"],
+  REJECTED: [],
+  PAID: ["OVERDUE"],
+  CANCELLED: [],
+};
+
+const CUSTOMER_TRANSITIONS: Record<string, string[]> = {
+  DRAFT: ["SENT"],
+  SENT: ["ACCEPTED", "REJECTED", "PAID"],
+  OVERDUE: ["ACCEPTED", "REJECTED", "PAID"],
+  ACCEPTED: ["PAID", "REJECTED"],
+  REJECTED: [],
+  PAID: [],
+  CANCELLED: [],
+};
+
 const router = Router({ mergeParams: true });
 
 router.get("/", async (req, res) => {
@@ -67,6 +87,22 @@ router.patch("/", async (req, res) => {
     }
 
     const updateData: Record<string, unknown> = { ...data };
+
+    // State machine: role determines which transitions are legal.
+    if (data.status && data.status !== existing.status) {
+      const allowed = session.role === "PROVIDER" ? PROVIDER_TRANSITIONS : CUSTOMER_TRANSITIONS;
+      const transitions = allowed[existing.status] || [];
+      if (!transitions.includes(data.status)) {
+        return res.status(400).json({
+          error: `Cannot transition ${existing.type} from ${existing.status} to ${data.status}`,
+        });
+      }
+      // A provider can never self-certify a document as PAID.
+      if (session.role === "PROVIDER" && data.status === "PAID") {
+        return res.status(403).json({ error: "Only the customer (or a confirmed payment) can mark a document as paid" });
+      }
+    }
+
     if (data.status === "PAID") {
       updateData.paidAt = data.paidAt ? new Date(data.paidAt) : new Date();
     }

@@ -30,7 +30,16 @@ router.get("/", async (req, res) => {
     await prisma.customerProfile.findUnique({ where: { userId: session.id } })
   )?.id;
 
-  const isProvider = session.role === "PROVIDER";
+  let isProvider = false;
+  if (session.role === "PROVIDER") {
+    const provider = await prisma.providerProfile.findUnique({
+      where: { userId: session.id },
+      select: { id: true },
+    });
+    isProvider = provider
+      ? (await prisma.booking.count({ where: { eventId, providerId: provider.id } })) > 0
+      : false;
+  }
   if (!isOwner && !isProvider) {
     return res.status(403).json({ error: "Unauthorized" });
   }

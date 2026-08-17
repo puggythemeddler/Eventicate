@@ -121,6 +121,15 @@ export async function getProviderLimits(providerId: string): Promise<ProviderLim
     }),
   ]);
 
+  // Only an ACTIVE subscription (within its current billing period) unlocks the
+  // linked plan's limits. A TRIAL subscription or a row pointing at a paid plan
+  // that has not been paid still counts as a paid-plan: require ACTIVE status.
+  const now = new Date();
+  const isPaidPlanActive =
+    subscription?.status === "ACTIVE" &&
+    subscription.plan.price > 0 &&
+    (!subscription.currentPeriodEnd || subscription.currentPeriodEnd > now);
+
   const activeStatuses: string[] = ["TRIAL", "ACTIVE"];
   let isActive = subscription ? activeStatuses.includes(subscription.status) : false;
   const expiredOrNoSub = !subscription || ["EXPIRED", "CANCELLED", "PAST_DUE"].includes(subscription.status);
@@ -131,7 +140,7 @@ export async function getProviderLimits(providerId: string): Promise<ProviderLim
   let maxVenues: number;
   let maxVehicles: number;
 
-  if (expiredOrNoSub) {
+  if (expiredOrNoSub || !isPaidPlanActive) {
     // Providers without an active paid subscription get the Free plan limits
     // (5 services / 10 equipment / 25 bookings / 1 venue / 1 vehicle) so the
     // platform is usable out of the box.
@@ -292,6 +301,39 @@ export async function startTrial(providerId: string): Promise<SubscriptionWithPl
         providerId: subscription.providerId,
         planId: subscription.planId,
         status: subscription.status,
+        trialStartAt: subscription.trialStartAt,
+        trialEndAt: subscription.trialEndAt,
+        currentPeriodStart: subscription.currentPeriodStart,
+        currentPeriodEnd: subscription.currentPeriodEnd,
+        cancelledAt: subscription.cancelledAt,
+        createdAt: subscription.createdAt,
+        billingPeriod: subscription.billingPeriod,
+        plan: {
+          id: plan.id,
+          name: plan.name,
+          price: plan.price,
+          annualPrice: plan.annualPrice,
+          maxServices: plan.maxServices,
+          maxEquipment: plan.maxEquipment,
+          maxBookings: plan.maxBookings,
+          maxVenues: plan.maxVenues,
+          maxVehicles: plan.maxVehicles,
+          features,
+          trialDays: plan.trialDays,
+        },
+      };
+    }
+
+    // Do not re-arm a fresh 30-day trial for someone who has already had one
+    // (trialStartAt was set before). They fall back to the free-plan limits.
+    if (subscription.trialStartAt) {
+      const plan = subscription.plan;
+      const features = JSON.parse(plan.features) as string[];
+      return {
+        id: subscription.id,
+        providerId: subscription.providerId,
+        planId: subscription.planId,
+        status: "EXPIRED",
         trialStartAt: subscription.trialStartAt,
         trialEndAt: subscription.trialEndAt,
         currentPeriodStart: subscription.currentPeriodStart,

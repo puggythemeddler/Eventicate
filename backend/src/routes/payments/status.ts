@@ -21,53 +21,43 @@ router.get("/", async (req, res) => {
   }
 
   try {
-    const result = await checkPaymentStatus(gateway, transactionId);
+    // The status endpoint is read-only. Confirm the caller owns the payment
+    // (or its booking / subscription) before returning any state.
+    const payment = await prisma.payment.findFirst({
+      where: { transactionId },
+      include: { booking: { select: { customerId: true, providerId: true } } },
+    });
 
-    if (result.status === "COMPLETED") {
-      const payment = await prisma.payment.findFirst({
-        where: { transactionId },
-        include: { booking: { include: { payments: true, event: true } } },
+    if (payment?.booking) {
+      const customer = session.role === "CUSTOMER"
+        ? await prisma.customerProfile.findUnique({ where: { userId: session.id } })
+        : null;
+      const provider = session.role === "PROVIDER"
+        ? await prisma.providerProfile.findUnique({ where: { userId: session.id } })
+        : null;
+      const ownsBooking =
+        (session.role === "CUSTOMER" && customer?.id === payment.booking.customerId) ||
+        (session.role === "PROVIDER" && provider?.id === payment.booking.providerId);
+      if (!ownsBooking) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+    } else {
+      // Subscription payments: only the owning provider may poll.
+      const subscription = await prisma.providerSubscription.findFirst({
+        where: { paymentRef: transactionId },
       });
-
-      if (payment?.booking) {
-        const totalPaid = payment.booking.payments.reduce((s, p) => s + p.amount, 0);
-        const totalDue = payment.booking.finalPrice || payment.booking.quotedPrice || 0;
-        const newStatus = totalPaid >= totalDue ? "FULLY_PAID" : "DEPOSIT_PAID";
-
-        await prisma.payment.update({
-          where: { id: payment.id },
-          data: { status: newStatus, paidAt: new Date() },
-        });
-
-        await prisma.booking.update({
-          where: { id: payment.bookingId },
-          data: { depositPaid: true, status: newStatus === "FULLY_PAID" ? "COMPLETED" : "DEPOSIT_PAID" },
-        });
-      } else {
-        const subscription = await prisma.providerSubscription.findFirst({
-          where: { paymentRef: transactionId },
-        });
-
-        if (subscription) {
-          const now = new Date();
-          const days = subscription.billingPeriod === "ANNUAL" ? 365 : 30;
-          const periodEnd = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
-
-          await prisma.providerSubscription.update({
-            where: { id: subscription.id },
-            data: {
-              status: "ACTIVE",
-              trialStartAt: null,
-              trialEndAt: null,
-              currentPeriodStart: now,
-              currentPeriodEnd: periodEnd,
-              cancelledAt: null,
-            },
-          });
-        }
+      if (!subscription) {
+        return res.status(404).json({ error: "Payment not found" });
+      }
+      const provider = await prisma.providerProfile.findUnique({ where: { userId: session.id } });
+      if (!provider || subscription.providerId !== provider.id) {
+        return res.status(403).json({ error: "Forbidden" });
       }
     }
 
+    // Read-only: report the upstream status; the M-Pesa callback performs the
+    // booking/subscription state transitions when funds actually settle.
+    const result = await checkPaymentStatus(gateway, transactionId);
     return res.status(200).json(result);
   } catch {
     return res.status(500).json({ error: "Failed to check payment status" });
