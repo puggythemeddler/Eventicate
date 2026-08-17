@@ -92,7 +92,9 @@ app.use(
     crossOriginResourcePolicy: { policy: "cross-origin" },
   })
 );
-app.use(generalLimiter);
+app.use(
+  generalLimiter.skip((req) => req.path === "/health")
+);
 app.use(
   cors({
     origin(origin, callback) {
