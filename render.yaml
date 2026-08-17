@@ -2,8 +2,8 @@
 # Sensitive values (DATABASE_URL*, JWT_SECRET, CLOUDINARY_*) are managed in the
 # Render dashboard (Settings -> Environment) and marked `sync: false` here so
 # they are never committed to git. If you clone this repo fresh, set them in
-# the dashboard before first deploy. Rotate the JWT_SECRET and the Cloudinary
-# credentials if this file ever leaked.
+# the dashboard before first deploy. This repo stays private; rotate the
+# JWT_SECRET and the Cloudinary credentials if the environment ever leaks.
 services:
   - type: web
     name: eventicate-api
