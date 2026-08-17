@@ -86,8 +86,13 @@ app.set("trust proxy", 1);
 app.use(
   cors({
     origin(origin, callback) {
-      // Allow requests with no Origin (server-to-server, curl, health checks).
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Allow requests with no Origin (server-to-server, curl, health checks),
+      // configured origins, and any Vercel preview deployment (eventicate-*.vercel.app).
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)
+      ) {
         return callback(null, true);
       }
       return callback(new Error("Not allowed by CORS"));
