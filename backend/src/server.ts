@@ -21,6 +21,7 @@ import adminSubscriptionPlansRouter from "./routes/admin/subscription-plans";
 import adminComplaintsRouter from "./routes/admin/complaints";
 import adminLogosRouter from "./routes/admin/logos";
 import adminPaymentsRouter from "./routes/admin/payments";
+import adminWhatsAppRouter from "./routes/admin/whatsapp";
 
 // bookings / events / services / equipment / packages / availability / timeline / budget
 import bookingsRouter from "./routes/bookings";
@@ -57,6 +58,7 @@ import agreementsRouter from "./routes/agreements";
 import messagesRouter from "./routes/messages";
 import messagesThreadRouter from "./routes/messages/thread";
 import messagesThreadByIdRouter from "./routes/messages/thread/[masterQuoteId]";
+import whatsappRouter from "./routes/whatsapp";
 
 // locations / provider / local-sync
 import locationsImportRouter from "./routes/locations/import";
@@ -143,6 +145,7 @@ app.use("/api/admin/subscription-plans", adminSubscriptionPlansRouter);
 app.use("/api/admin/complaints", adminComplaintsRouter);
 app.use("/api/admin/logos", adminLogosRouter);
 app.use("/api/admin/payments", adminPaymentsRouter);
+app.use("/api/admin/whatsapp", adminWhatsAppRouter);
 
 // bookings / events / services / equipment / packages / availability / timeline / budget
 app.use("/api/bookings", bookingsRouter);
@@ -176,9 +179,10 @@ app.use("/api/documents", documentsRouter);
 app.use("/api/documents/generate", documentsGenerateRouter);
 app.use("/api/documents/:id", documentByIdRouter);
 app.use("/api/agreements", agreementsRouter);
-app.use("/api/messages", messagesRouter);
-app.use("/api/messages/thread", messagesThreadRouter);
-app.use("/api/messages/thread/:masterQuoteId", messagesThreadByIdRouter);
+  app.use("/api/messages", messagesRouter);
+  app.use("/api/messages/thread", messagesThreadRouter);
+  app.use("/api/messages/thread/:masterQuoteId", messagesThreadByIdRouter);
+  app.use("/api/whatsapp", whatsappRouter);
 
 // locations / provider / local-sync
 app.use("/api/locations/import", locationsImportRouter);

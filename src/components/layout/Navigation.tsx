@@ -12,6 +12,7 @@ import {
   LayoutDashboard, Package, Settings, Truck, Music,
   Camera, UtensilsCrossed, Building2, RefreshCw, BarChart3,
   CreditCard, FileText, MapPin, ShoppingCart, Menu, X, Palette,
+  MessageCircle,
 } from "lucide-react";
 
 interface NavItem {
@@ -66,11 +67,12 @@ const adminLocationsItem: NavItem = { href: "/admin/locations", label: "Location
 const adminSubscriptionsItem: NavItem = { href: "/admin/subscription-plans", label: "Subscriptions", icon: <CreditCard className="h-4 w-4" /> };
 const adminBrandingItem: NavItem = { href: "/admin/branding", label: "Branding", icon: <Palette className="h-4 w-4" /> };
 const adminPaymentsItem: NavItem = { href: "/admin/payments", label: "Payments", icon: <CreditCard className="h-4 w-4" /> };
+const adminWhatsAppItem: NavItem = { href: "/admin/whatsapp", label: "WhatsApp", icon: <MessageCircle className="h-4 w-4" /> };
 
 const adminGroups: NavGroup[] = [
   { label: "Overview", items: [adminOverviewItem] },
   { label: "People", items: [adminUsersItem, adminProvidersItem, adminComplaintsItem] },
-  { label: "Platform", items: [adminLocationsItem, adminSubscriptionsItem, adminBrandingItem, adminPaymentsItem] },
+  { label: "Platform", items: [adminLocationsItem, adminSubscriptionsItem, adminBrandingItem, adminPaymentsItem, adminWhatsAppItem] },
 ];
 
 const groupByRole: Record<"CUSTOMER" | "PROVIDER" | "ADMIN", NavGroup[]> = {

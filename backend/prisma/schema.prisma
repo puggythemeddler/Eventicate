@@ -83,6 +83,12 @@ enum MessageType {
   BOOKING_UPDATE
 }
 
+enum WhatsAppStatus {
+  NONE
+  SENT
+  FAILED
+}
+
 enum NotificationType {
   BOOKING
   MESSAGE
@@ -548,6 +554,10 @@ model Message {
   fileUrl        String?
   isRead         Boolean      @default(false)
   createdAt      DateTime     @default(now())
+  // WhatsApp bridge: dedupe inbound webhook messages and track outbound delivery.
+  waMessageId    String?      @unique
+  waStatus       WhatsAppStatus @default(NONE)
+  waError        String?
 
   @@index([conversationId])
   @@index([senderId, isRead])
@@ -716,6 +726,11 @@ model SystemConfig {
   mpesaShortcode String @default("174379")
   mpesaCallbackUrl String?
   mpesaCallbackSecret String?
+  // WhatsApp Cloud API config (admin-editable)
+  whatsappAccessToken String?
+  whatsappPhoneId     String?
+  whatsappVerifyToken String?
+  whatsappBusinessPhone String?
   updatedAt DateTime @updatedAt
 }
 

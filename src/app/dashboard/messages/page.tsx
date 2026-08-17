@@ -29,6 +29,8 @@ interface Message {
   sender: UserInfo;
   receiver: UserInfo;
   conversationId: string;
+  waStatus?: string;
+  waError?: string | null;
 }
 
 interface Conversation {
@@ -469,7 +471,15 @@ function MessagesContent() {
                               }`}
                             >
                               {msg.type === "FILE" ? renderAttachment(msg) : <p className="whitespace-pre-wrap break-words">{msg.content}</p>}
-                              <p className={`mt-1 text-[11px] ${isMine ? "text-primary-200" : "text-gray-400"}`}>
+                              <p className={`mt-1 flex items-center gap-1 text-[11px] ${isMine ? "text-primary-200" : "text-gray-400"}`}>
+                                {msg.waStatus === "SENT" && (
+                                  <MessageCircle className="h-3 w-3" aria-label="Delivered via WhatsApp" />
+                                )}
+                                {msg.waStatus === "FAILED" && (
+                                  <span className="text-red-400" title={msg.waError || "WhatsApp delivery failed"}>
+                                    (WhatsApp failed)
+                                  </span>
+                                )}
                                 {formatDateTime(msg.createdAt)}
                               </p>
                             </div>

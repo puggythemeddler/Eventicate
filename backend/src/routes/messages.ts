@@ -4,6 +4,7 @@ import prisma from "../lib/prisma";
 import { getSession } from "../lib/auth";
 import { createNotification } from "../lib/booking-engine";
 import { sendMessageNotification } from "../lib/email";
+import { sendWhatsAppText } from "../lib/whatsapp";
 
 const messageSchema = z.object({
   receiverId: z.string(),
@@ -223,6 +224,31 @@ router.post("/", async (req, res) => {
         receiver: { select: { firstName: true, lastName: true } },
       },
     });
+
+    // Bridge to WhatsApp (fire-and-forget): if the recipient has a phone and
+    // WhatsApp is configured, mirror the message there. Delivery state is
+    // written back to the message row so the UI can show it.
+    const recipientWithPhone = await prisma.user.findUnique({
+      where: { id: data.receiverId },
+      select: { phone: true, firstName: true },
+    });
+    if (recipientWithPhone?.phone) {
+      sendWhatsAppText({
+        to: recipientWithPhone.phone,
+        text: data.type === "FILE"
+          ? `${session.firstName} sent you a file: ${data.content} — open Eventicate to view it`
+          : `${session.firstName}: ${data.content}`,
+      })
+        .then(async (result) => {
+          await prisma.message.update({
+            where: { id: message.id },
+            data: result.ok
+              ? { waStatus: "SENT", waMessageId: result.messageId }
+              : { waStatus: "FAILED", waError: result.error?.slice(0, 500) || "WhatsApp send failed" },
+          });
+        })
+        .catch((err) => console.error("WhatsApp mirror failed:", err));
+    }
 
     const recipient = await prisma.user.findUnique({
       where: { id: data.receiverId },
