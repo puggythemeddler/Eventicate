@@ -2,7 +2,7 @@
 
 > **Full-Stack Event Management Marketplace Platform**
 >
-> Version 1.0.0 | Last Updated: June 2026
+> Version 1.0.0 | Last Updated: August 2026
 
 ---
 
@@ -55,43 +55,51 @@ This section explains every technology used to build Eventicate, from the progra
 | Language | What it's used for | File extensions |
 |----------|-------------------|-----------------|
 | **TypeScript** | The main language for ALL code — both frontend and backend | `.ts`, `.tsx` |
-| **SQL** | Database queries (handled automatically by Prisma — you don't write SQL directly) | `.prisma` (schema) |
+| **JavaScript** | Used via TypeScript (which compiles to it) and in small config/script files | `.js`, `.mjs`, `.cjs` |
 | **CSS** | Styling and layout of web pages | `.css` (in globals.css and Tailwind classes) |
+| **SQL** | Database queries (handled automatically by Prisma — you don't write SQL directly) | `.prisma` (schema), SQL in migrations |
+| **HTML/JSX** | The markup that makes up pages and components (JSX is TypeScript's HTML-like syntax in React) | `.tsx` |
 
 ### Frontend (What users see in their browser)
 
 | Technology | Version | Purpose |
 |-----------|---------|---------|
-| **Next.js** | 15 | The framework that runs the entire application — handles both the website pages AND the backend server |
+| **Next.js** | 15 | The framework that runs the website — pages, routing, server rendering |
 | **React** | 19 | A library for building user interface components (buttons, forms, cards, etc.) |
 | **Tailwind CSS** | 4 | A styling system that lets you add visual design by writing class names directly in your code (e.g., `bg-blue-500` makes a blue background, `text-lg` makes text larger) |
 | **Lucide React** | Latest | A collection of icons (calendar, search, settings, etc.) used throughout the interface |
+| **Zod** | 3 | Validates data (also used on the backend) |
+| **Jose** | Latest | Creates and verifies the JWT session token |
 
 ### Backend (The server that processes data)
 
+The backend is a **separate Express API** in the `backend/` folder. The Next.js frontend proxies all `/api/*` and `/uploads/*` requests to it.
+
 | Technology | Purpose |
 |-----------|---------|
-| **Next.js API Routes** | The backend is built into Next.js — files in `src/app/api/` automatically become API endpoints |
-| **Prisma ORM** | A tool that lets you work with the database using TypeScript. You define the database structure in `schema.prisma` and Prisma generates the code to query it |
+| **Express 5** | The web server framework that handles the REST API |
+| **Prisma ORM** | A tool that lets you work with the database using TypeScript. You define the database structure in `prisma/schema.prisma` and Prisma generates the code to query it |
 | **Jose** | Creates and verifies JSON Web Tokens (JWTs) — these are like digital ID cards that prove a user is logged in |
 | **Bcryptjs** | Scrambles (hashes) passwords so they can't be read even if the database is stolen |
-| **Zod** | Validates data — checks that form inputs, API requests, etc. have the correct format before processing them |
+| **Zod** | Validates data — checks that API requests have the correct format before processing them |
+| **Nodemailer** | Sends notification emails (quotes, invoices, welcome) |
+| **Multer + Cloudinary** | Handles file uploads and cloud image storage |
+| **express-rate-limit** | Throttles requests to protect against abuse |
+| **Helmet** | Sets security HTTP headers |
 
 ### Database
 
-| Database | When to use | File |
+| Database | When to use | Where configured |
 |----------|------------|------|
-| **SQLite** | Development & testing | `prisma/dev.db` (a single file) |
-| **PostgreSQL** | Production / live deployment | Set via `DATABASE_URL` in `.env` |
+| **PostgreSQL** | Development AND production | `DATABASE_URL` in `backend/.env` (e.g. Neon cloud Postgres) |
 
 ### Hosting / Deployment
 
-| Service | Best for | Notes |
-|---------|----------|-------|
-| **Vercel** | Easiest deployment | Made by the same company as Next.js — one-click deploy |
-| **Railway** | Good for full-stack | Supports databases and custom domains |
-| **DigitalOcean** | More control | You manage the server yourself |
-| **AWS / Azure** | Enterprise scale | Most powerful but most complex |
+| Service | What it runs | Notes |
+|---------|-------------|-------|
+| **Vercel** | Frontend (Next.js) | `/api` and `/uploads` are proxied to the backend |
+| **Render** | Backend (Express API) | Defined by `render.yaml`; migrations run on build |
+| **Neon** | PostgreSQL database | Cloud-hosted Postgres |
 
 ---
 
@@ -111,28 +119,37 @@ This section explains every technology used to build Eventicate, from the progra
                          │  HTTPS (secure internet connection)
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                  NEXT.JS SERVER                              │
+│                  NEXT.JS FRONTEND (Vercel)                  │
 │                                                             │
-│  ┌─────────────────────┐    ┌──────────────────────────┐    │
-│  │   React Components  │    │    API Routes (Backend)  │    │
-│  │   (what renders)    │───▶│   (processes requests)   │    │
-│  └─────────────────────┘    └───────────┬──────────────┘    │
-│                                         │                    │
-└─────────────────────────────────────────┼────────────────────┘
-                                          │
-                                          ▼
-                          ┌─────────────────────────────┐
-                          │        PRISMA ORM            │
-                          │  (Database query builder)    │
-                          └─────────────┬───────────────┘
-                                        │
-                                        ▼
-                          ┌─────────────────────────────┐
-                          │         DATABASE             │
-                          │  SQLite (dev) / PostgreSQL   │
-                          │  Tables: Users, Events,      │
-                          │  Bookings, Payments, etc.    │
-                          └─────────────────────────────┘
+│  ┌─────────────────────┐        ┌──────────────────────┐    │
+│  │   React Components  │        │   Server Components  │    │
+│  │   (what renders)    │        │  (fetch data / auth) │    │
+│  └─────────┬───────────┘        └──────────┬───────────┘    │
+│            └──────────────┬────────────────┘                │
+│                     proxies /api/* & /uploads/*             │
+└───────────────────────────┼────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                EXPRESS API BACKEND (Render)                 │
+│              ┌──────────────────────────────┐               │
+│              │  Auth · Bookings · Payments  │               │
+│              │  Documents · Messages · etc. │               │
+│              └──────────────┬───────────────┘               │
+└─────────────────────────────┼───────────────────────────────┘
+                              │
+                              ▼
+              ┌─────────────────────────────┐
+              │        PRISMA ORM            │
+              │  (Database query builder)    │
+              └─────────────┬───────────────┘
+                            │
+                            ▼
+              ┌─────────────────────────────┐
+              │         POSTGRESQL          │
+              │  Tables: Users, Events,     │
+              │  Bookings, Payments, etc.   │
+              └─────────────────────────────┘
 ```
 
 ### How pages become URLs
@@ -159,6 +176,9 @@ src/app/
 │   │   ├── page.tsx            →  /dashboard/bookings   (Bookings list)
 │   │   ├── [id]/page.tsx       →  /dashboard/bookings/abc
 │   │   └── new/page.tsx        →  /dashboard/bookings/new
+│   ├── cart/page.tsx           →  /dashboard/cart      (Shopping cart)
+│   ├── checkout/[bookingId]/page.tsx → /dashboard/checkout/abc (Pay for a booking)
+│   ├── agreements/[bookingId]/page.tsx → /dashboard/agreements/abc (Sign an agreement)
 │   ├── messages/page.tsx       →  /dashboard/messages
 │   ├── documents/
 │   │   ├── page.tsx            →  /dashboard/documents  (Invoices & quotes)
@@ -166,28 +186,30 @@ src/app/
 │   ├── packages/page.tsx       →  /dashboard/packages   (Package builder)
 │   ├── budget/page.tsx         →  /dashboard/budget     (Budget calculator)
 │   └── timeline/page.tsx       →  /dashboard/timeline   (Timeline planner)
-├── provider/
-│   ├── page.tsx                →  /provider             (Provider home)
-│   ├── bookings/
-│   │   └── ...                 →  /provider/bookings/...
-│   ├── services/page.tsx       →  /provider/services
-│   ├── equipment/page.tsx      →  /provider/equipment
-│   ├── calendar/page.tsx       →  /provider/calendar
-│   ├── messages/page.tsx       →  /provider/messages
-│   ├── reviews/page.tsx        →  /provider/reviews
-│   ├── documents/
-│   │   └── ...                 →  /provider/documents/...
-│   ├── subscription/page.tsx   →  /provider/subscription
-│   ├── settings/page.tsx       →  /provider/settings
-│   └── local-sync/page.tsx     →  /provider/local-sync
-├── admin/
-│   ├── page.tsx                →  /admin                (Admin home)
-│   ├── users/page.tsx          →  /admin/users
-│   ├── providers/page.tsx      →  /admin/providers
-│   ├── complaints/page.tsx     →  /admin/complaints
-│   ├── subscription-plans/     →  /admin/subscription-plans
-│   │   └── page.tsx
-│   └── branding/page.tsx       →  /admin/branding       (Logo upload)
+│   ├── provider/
+│   │   ├── page.tsx                →  /provider             (Provider home)
+│   │   ├── bookings/
+│   │   │   └── ...                 →  /provider/bookings/...
+│   │   ├── services/page.tsx       →  /provider/services
+│   │   ├── equipment/page.tsx      →  /provider/equipment
+│   │   ├── calendar/page.tsx       →  /provider/calendar
+│   │   ├── messages/page.tsx       →  /provider/messages
+│   │   ├── reviews/page.tsx        →  /provider/reviews
+│   │   ├── documents/
+│   │   │   └── ...                 →  /provider/documents/...
+│   │   ├── subscription/page.tsx   →  /provider/subscription
+│   │   ├── settings/page.tsx       →  /provider/settings
+│   │   └── local-sync/page.tsx     →  /provider/local-sync
+│   ├── admin/
+│   │   ├── page.tsx                →  /admin                (Admin home)
+│   │   ├── users/page.tsx          →  /admin/users
+│   │   ├── providers/page.tsx      →  /admin/providers
+│   │   ├── complaints/page.tsx     →  /admin/complaints
+│   │   ├── subscription-plans/     →  /admin/subscription-plans
+│   │   │   └── page.tsx
+│   │   ├── branding/page.tsx       →  /admin/branding       (Logo upload)
+│   │   ├── payments/page.tsx       →  /admin/payments       (M-Pesa credentials)
+│   │   └── locations/page.tsx      →  /admin/locations      (Countries & subdivisions)
 └── providers/
     └── [id]/page.tsx           →  /providers/abc        (Public profile)
 ```
@@ -221,43 +243,48 @@ git clone <repository-url>
 cd Eventicate
 ```
 
-### Step 3: Install dependencies
+### Step 3: Install dependencies (frontend + backend)
 
-Open a terminal/command prompt in the project folder and run:
+The project has **two apps** — the frontend (project root) and the backend (`backend/`). Install dependencies in both:
 
 ```bash
 npm install
+cd backend
+npm install
+cd ..
 ```
 
-This downloads all the libraries the project needs (React, Next.js, Prisma, etc.) into a folder called `node_modules`. This may take 1-3 minutes depending on your internet speed.
+This downloads all the libraries each app needs (React, Next.js, Prisma, Express, etc.) into their `node_modules` folders. This may take 1-3 minutes depending on your internet speed.
 
 ### Step 4: Configure environment
 
-Create a file called `.env` in the project root (copy from `.env.example`):
+There are **two** env files to create (copy the `.env.example` from each folder):
 
+**Frontend** (`/.env`):
 ```bash
-# On Windows (CMD):
-copy .env.example .env
-
-# On Mac/Linux:
 cp .env.example .env
 ```
 
-Open `.env` in a text editor. The default values work for development:
-
+**Backend** (`backend/.env`):
+```bash
+cd backend
+cp .env.example .env
+cd ..
 ```
-DATABASE_URL="file:./dev.db"
-JWT_SECRET="eventicate-dev-secret-change-in-production"
+
+The frontend `.env` needs:
+```
+BACKEND_URL="http://localhost:3001"          # Where the backend runs
+JWT_SECRET="change-this-to-a-secure-random-string"  # MUST match the backend
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
-- `DATABASE_URL` — Where the database is stored. `file:./dev.db` uses SQLite (a file).
-- `JWT_SECRET` — A secret key used to encrypt login sessions. Change this to a random string in production.
-- `NEXT_PUBLIC_APP_URL` — Your website URL. For development, `http://localhost:3000`.
+The backend `.env` needs a `DATABASE_URL` (PostgreSQL connection string) plus the same `JWT_SECRET` value. All backend options are documented in `backend/.env.example`.
 
 ### Step 5: Set up the database
 
 ```bash
+cd backend
 npm run db:push
 ```
 
@@ -271,13 +298,20 @@ npm run db:seed
 
 This fills the database with sample data so you can immediately test the system:
 
-- **5 user accounts** (admin, customer, PA provider, catering provider, venue provider)
+- **6 user accounts** (admin, customer, PA provider, catering provider, venue provider, tents provider)
 - **Sample services, equipment, menu packages**
 - **Dynamic pricing rules**
 - **A sample wedding event with a booking**
 - **Default subscription plans** (Free, Basic, Pro, Enterprise)
 
-### Step 7: Start the development server
+### Step 7: Start the backend
+
+```bash
+npm run dev
+```
+The API listens on http://localhost:3001.
+
+### Step 8: Start the frontend (new terminal, in the project root)
 
 ```bash
 npm run dev
@@ -289,82 +323,87 @@ You should see:
 - Local: http://localhost:3000
 ```
 
-### Step 8: Open in your browser
+### Step 9: Open in your browser
 
 Go to **http://localhost:3000** in your web browser.
 
-### Step 9: Stop the server
+### Step 10: Stop the servers
 
-Press `Ctrl + C` in the terminal.
+Press `Ctrl + C` in each terminal.
 
 ### Quick Reference: All npm Commands
 
+Frontend (project root):
+
 | Command | What it does |
 |---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run start` | Start production server (after build) |
+| `npm run dev` | Start the frontend dev server |
+| `npm run build` | Build the frontend for production |
+| `npm run start` | Start the production frontend (after build) |
 | `npm run lint` | Check code for errors |
-| `npm run db:push` | Update database with latest schema |
+
+Backend (`backend/`):
+
+| Command | What it does |
+|---------|-------------|
+| `npm run dev` | Start the API dev server (tsx watch) |
+| `npm run typecheck` | Type-check the whole backend |
+| `npm run test` | Run backend unit tests |
+| `npm run build` | Compile the backend to `dist/` |
+| `npm run start` | Run the compiled backend |
+| `npm run db:push` | Update database with latest schema (dev) |
+| `npm run db:migrate` | Apply migration files (production) |
 | `npm run db:seed` | Fill database with demo data |
-| `npm run db:studio` | Open Prisma Studio (visual database browser) |
-| `npm run db:generate` | Regenerate Prisma client after schema changes |
+| `npx prisma studio` | Open Prisma Studio (visual database browser) |
 
 ---
 
 ## 5. How to Host / Deploy
 
-### Option A: Deploy to Vercel (Easiest — Recommended)
+The app is deployed as **two services**: the frontend on Vercel and the backend on Render, with PostgreSQL on Neon. See `DEPLOY.md` for the full step-by-step.
 
-Vercel is made by the same team that built Next.js, so it works perfectly.
+### Option A: Deploy to Vercel (Frontend) + Render (Backend) — Recommended
 
-1. **Push your code to GitHub**
+**Backend (Render):**
+1. Push your code to GitHub
+2. In Render, click **"New" → "Blueprint"** and pick your repo — it reads `render.yaml` (defines the `eventicate-api` service, build + start commands)
+3. Set the environment variables in the Render dashboard (Settings → Environment). Secrets (DB URL, JWT secret, Cloudinary, M-Pesa) are NOT committed to the repo — they're marked `sync: false` in `render.yaml`, so set them in the dashboard:
+   - `DATABASE_URL` / `DATABASE_URL_DIRECT` → your Neon Postgres connection strings
+   - `JWT_SECRET` → a random string (must match the frontend)
+   - `APP_URL`, `NEXT_PUBLIC_APP_URL` → your frontend domain
+   - `MPESA_*`, `SMTP_*`, `GOOGLE_*`, `CLOUDINARY_*` → as needed
+4. Deploy. Migrations run automatically during the build (`node scripts/migrate-retry.mjs`). Seed once from the Render shell: `npm run db:seed`
+
+**Frontend (Vercel):**
+1. In Vercel, click **"Add New" → "Project"** and import the same repo (framework auto-detects Next.js)
+2. Set environment variables:
+   - `BACKEND_URL` → your Render backend URL (e.g. `https://eventicate-api.onrender.com`)
+   - `JWT_SECRET` → **identical** to the backend's
+   - `NEXT_PUBLIC_APP_URL` → your domain
+3. Deploy. `/api/*` and `/uploads/*` are automatically proxied to the backend by `next.config.ts`
+
+### Option B: Manual Server Deployment (DigitalOcean, AWS, etc.)
+
+You'd run the Express backend on the server and point the frontend at it:
+
+1. **Build the backend:**
    ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   # Create a repository on GitHub.com, then:
-   git remote add origin https://github.com/yourusername/eventicate.git
-   git push -u origin main
-   ```
-
-2. **Go to https://vercel.com** and sign up (free tier available)
-3. Click **"Add New" → "Project"**
-4. Import your GitHub repository
-5. **Environment Variables** — Add these:
-   - `DATABASE_URL` → Your PostgreSQL connection string (Vercel provides Postgres via Vercel Storage, or use a service like Neon.tech, Supabase, or Railway)
-   - `JWT_SECRET` → A random string (generate at https://randomkeygen.com)
-   - `NEXT_PUBLIC_APP_URL` → Your domain (e.g., `https://eventicate.vercel.app`)
-6. Click **Deploy**
-7. Your site is live! Vercel auto-deploys whenever you push to GitHub.
-
-### Option B: Deploy to Railway
-
-1. Push to GitHub (same as above)
-2. Go to https://railway.app, sign up, click **"New Project" → "Deploy from GitHub"**
-3. Railway auto-detects Next.js projects
-4. Add environment variables (same as above)
-5. Railway can also provision a PostgreSQL database for you
-
-### Option C: Manual Server Deployment (DigitalOcean, AWS, etc.)
-
-1. **Build the project:**
-   ```bash
+   cd backend
    npm run build
    ```
 
-2. **Set up PostgreSQL** on your server (or use a managed service)
+2. **Set up PostgreSQL** (or use a managed service like Neon)
 
-3. **Set up environment variables** on the server:
+3. **Set environment variables** (backend):
    ```
    DATABASE_URL="postgresql://user:password@host:5432/database"
    JWT_SECRET="your-random-secret-key"
-   NEXT_PUBLIC_APP_URL="https://yourdomain.com"
+   APP_URL="https://yourdomain.com"
    ```
 
 4. **Run database migrations:**
    ```bash
-   npm run db:push
+   npm run db:migrate
    npm run db:seed
    ```
 
@@ -373,38 +412,36 @@ Vercel is made by the same team that built Next.js, so it works perfectly.
    npm run start
    ```
 
-6. **Use a process manager** (like PM2) to keep the app running:
+6. **Use a process manager** (like PM2) to keep it running:
    ```bash
    npm install -g pm2
-   pm2 start npm --name "eventicate" -- start
+   pm2 start npm --name "eventicate-api" -- start
    pm2 save
    pm2 startup
    ```
 
 7. **Set up a reverse proxy** with Nginx to handle SSL (HTTPS) and domain routing.
 
-### Option D: Local Network / Intranet
+### Option C: Local Network / Intranet
 
 If you want to run it on your local network:
 
-1. Start the server normally: `npm run dev`
-2. Find your local IP: Run `ipconfig` (Windows) or `ifconfig` (Mac/Linux)
-3. Access from other devices: `http://YOUR_IP:3000`
-4. For permanent local use, set up the production build:
-   ```bash
-   npm run build
-   npm run start
-   ```
+1. Start the backend: `cd backend && npm run dev`
+2. Start the frontend: `npm run dev` (in the project root)
+3. Find your local IP: Run `ipconfig` (Windows) or `ifconfig` (Mac/Linux)
+4. Access from other devices: `http://YOUR_IP:3000`
+5. For permanent local use, use the production builds.
 
 ### Production Checklist
 
 Before going live, make sure to:
 
-- [ ] **Change JWT_SECRET** to a strong random value
-- [ ] **Switch to PostgreSQL** instead of SQLite
-- [ ] **Set up HTTPS/SSL** (Vercel/Railway do this automatically)
+- [ ] **Change JWT_SECRET** to a strong random value (identical on frontend + backend)
+- [ ] **Use PostgreSQL** (Neon or similar)
+- [ ] **Set up HTTPS/SSL** (Vercel/Render do this automatically)
 - [ ] **Configure Google OAuth** (if using Google login)
 - [ ] **Upload your brand logos** via `/admin/branding`
+- [ ] **Set M-Pesa credentials** via `/admin/payments` (needs a Daraja sandbox account first)
 - [ ] **Review subscription plan pricing** at `/admin/subscription-plans`
 - [ ] **Test all user flows** before announcing the platform
 - [ ] **Set up regular database backups**
@@ -418,48 +455,39 @@ Before going live, make sure to:
 ```
 Eventicate/
 │
-├── .env                        # SECRET — database URL, JWT secret, API keys
-├── .env.example                # Template showing what .env should look like
+├── .env                        # SECRET — frontend env (JWT secret, backend URL)
+├── .env.example                # Frontend env template
 ├── .gitignore                  # Files Git should ignore (node_modules, .env, etc.)
-├── package.json                # Project info, dependencies, and commands
-├── package-lock.json           # Auto-generated — locks dependency versions
-├── next.config.ts              # Next.js settings
+├── package.json                # Frontend project info, dependencies, and commands
+├── package-lock.json           # Auto-generated — locks frontend dependency versions
+├── next.config.ts              # Next.js settings (proxies /api & /uploads to backend)
 ├── tsconfig.json               # TypeScript settings
-├── postcss.config.mjs          # CSS processing settings
-├── eslint.config.mjs           # Code quality checking rules
-└── README.md                   # This documentation!
+├── vercel.json                 # Vercel deploy config
+├── render.yaml                 # Render backend blueprint (env config, build/start)
+├── README.md                   # Project overview
+├── DEPLOY.md                   # Deployment guide
+├── DOCUMENTATION.md            # This documentation!
+│
+└── backend/                    # ★ THE API SERVER (Express + Prisma)
+    ├── .env                    # SECRET — DB URL, JWT secret, API keys
+    ├── .env.example            # Backend env template (fully documented)
+    ├── package.json            # Backend dependencies & scripts
+    ├── prisma/                 # Schema, seed, and migration files
+    ├── src/                    # server.ts, lib/, routes/
+    ├── scripts/                # migrate-retry.mjs (used by Render build)
+    └── test/                   # Backend unit tests
 ```
 
-### Source code (`src/`)
+### Source code — frontend (`src/`)
 
 ```
 src/
 │
-├── app/                        # ★ ALL PAGES AND API ROUTES
-│   │                           #   (This is where the website lives)
+├── app/                        # ★ ALL PAGES (this is where the website lives)
 │   │
 │   ├── layout.tsx              # Root layout — wraps every page (has <html>, <head>)
-│   ├── globals.css              # Global styles — colors, fonts, backgrounds
+│   ├── globals.css             # Global styles — colors, fonts, backgrounds
 │   ├── page.tsx                # Homepage (/)
-│   │
-│   ├── api/                    # ★ BACKEND — All server endpoints
-│   │   ├── auth/               #   Registration, login, session management
-│   │   ├── events/             #   Event CRUD
-│   │   ├── bookings/           #   Booking CRUD + status updates
-│   │   ├── providers/          #   Provider search and profiles
-│   │   ├── services/           #   Provider services CRUD
-│   │   ├── equipment/          #   Equipment inventory CRUD
-│   │   ├── payments/           #   Payment processing
-│   │   ├── messages/           #   Chat messaging
-│   │   ├── reviews/            #   Rating system
-│   │   ├── documents/          #   Quotes, invoices, receipts
-│   │   ├── packages/           #   Multi-provider packages
-│   │   ├── budget/             #   Cost estimation
-│   │   ├── timeline/           #   Event timeline
-│   │   ├── availability/       #   Calendar availability
-│   │   ├── admin/              #   Admin operations
-│   │   ├── provider/           #   Provider settings & subscription
-│   │   └── local-sync/         #   Local system integration
 │   │
 │   ├── auth/                   # ★ PUBLIC PAGES
 │   │   ├── login/page.tsx      #   Sign in (/auth/login)
@@ -469,6 +497,9 @@ src/
 │   │   ├── page.tsx            #   Dashboard home
 │   │   ├── events/             #   Event management
 │   │   ├── bookings/           #   Booking management
+│   │   ├── cart/               #   Shopping cart
+│   │   ├── checkout/           #   Payment checkout
+│   │   ├── agreements/         #   Electronic agreements
 │   │   ├── messages/           #   Chat with providers
 │   │   ├── documents/          #   Quotes and invoices
 │   │   ├── packages/           #   Package builder
@@ -494,7 +525,9 @@ src/
 │   │   ├── providers/          #   Provider management
 │   │   ├── complaints/         #   Complaint handling
 │   │   ├── subscription-plans/ #   Pricing plans
-│   │   └── branding/           #   Logo upload
+│   │   ├── branding/           #   Logo upload
+│   │   ├── payments/           #   M-Pesa credentials
+│   │   └── locations/          #   Countries & subdivisions
 │   │
 │   ├── providers/              # ★ PUBLIC PROVIDER PROFILES
 │   │   └── [id]/page.tsx       #   Anyone can view provider profiles
@@ -507,8 +540,7 @@ src/
 │   │   ├── Button.tsx          #   Buttons (primary, secondary, outline, danger)
 │   │   ├── Card.tsx            #   Cards (containers with border/shadow)
 │   │   ├── Input.tsx           #   Input fields, dropdowns, textareas
-│   │   ├── Badge.tsx           #   Status labels, star ratings
-│   │   └── EventicateLogo.tsx  #   Logo (adapts to light/dark theme)
+│   │   └── Badge.tsx           #   Status labels, star ratings
 │   ├── layout/                 #   Navigation & layout
 │   │   └── Navigation.tsx      #   Sidebar, public header, category icons
 │   ├── auth/                   #   Login & registration forms
@@ -516,38 +548,57 @@ src/
 │   ├── theme/                  #   Dark/light theme toggle
 │   └── documents/              #   Invoice/quote display & print
 │
+├── hooks/                      # ★ REACT HOOKS
+│   └── useCurrency.ts          #   Country-aware currency formatting
+│
 └── lib/                        # ★ HELPER FUNCTIONS
-    ├── prisma.ts               #   Database connection (singleton)
-    ├── auth.ts                 #   Password hashing, JWT tokens, session cookies
-    ├── booking-engine.ts       #   Price calculation, availability management
-    ├── documents.ts            #   Invoice/quote number generation
-    ├── subscription.ts         #   Plan limits, trial management
-    ├── constants.ts            #   Event types, categories, status labels
+    ├── auth.ts                 #   JWT token verification (server components)
+    ├── server-api.ts           #   Server-side fetch proxied to the backend
     ├── utils.ts                #   Format dates, currency, JSON helpers
-    ├── google-auth.ts          #   Google OAuth configuration
-    └── theme-config.ts         #   Dark/light mode detection
+    └── ...                     #   constants, theme-config
 ```
 
-### Database & config (`prisma/`)
+### Backend source code (`backend/src/`)
 
 ```
-prisma/
+backend/src/
+├── server.ts                   # ★ App entry — middleware, routes, graceful shutdown
+├── lib/                        # ★ Helper modules
+│   ├── auth.ts                 #   Password hashing, JWT tokens, session cookies
+│   ├── prisma.ts               #   Database connection (singleton)
+│   ├── booking-engine.ts       #   Price calculation, availability, notifications
+│   ├── documents.ts            #   Invoice/quote generation
+│   ├── subscription.ts         #   Plan limits, trial management
+│   ├── payments.ts             #   M-Pesa / PesaPal / Stripe gateway helpers
+│   ├── mpesa.ts                #   Daraja STK push integration
+│   ├── email.ts                #   Nodemailer senders
+│   ├── cloudinary.ts           #   Image upload helper
+│   ├── google-auth.ts          #   Google OAuth configuration + state tokens
+│   ├── rate-limit.ts           #   express-rate-limit instances
+│   └── utils.ts                #   Formatting / parsing helpers
+└── routes/                     # ★ One file (or folder) per API area
+    ├── auth/                   #   login, register, logout, session, google
+    ├── bookings/               #   booking creation + status updates
+    ├── events/                 #   event CRUD
+    ├── payments/               #   initiate, status, split, mpesa-callback, methods
+    ├── documents/              #   quotes, invoices, generate
+    ├── messages/               #   chat + multi-provider threads
+    ├── admin/                  #   users, providers, complaints, plans, payments, logos
+    ├── provider/               #   settings, subscription, dashboard
+    ├── customer/               #   dashboard
+    ├── quotes/                 #   generate-from-cart
+    └── ...                     #   cart, packages, availability, timeline, budget, reviews, upload, locations, local-sync
+```
+
+### Database & config (`backend/prisma/`)
+
+```
+backend/prisma/
 ├── schema.prisma               # ★ THE DATABASE SCHEMA
 │                               #   Defines every table, their fields,
 │                               #   and how they relate to each other
 ├── seed.ts                     # Demo data script
-└── dev.db                      # The actual SQLite database file
-```
-
-### Other important locations
-
-```
-public/
-└── uploads/
-    └── logos/                  # ★ WHERE LOGO IMAGES ARE STORED
-        ├── logo-light-xxx.png  #   Light theme logo (uploaded via admin)
-        ├── logo-dark-yyy.png   #   Dark theme logo
-        └── logo-invoice-zzz.png #  Invoice logo
+└── migrations/                 # Versioned SQL migrations (0001_init, 0002, 0003...)
 ```
 
 ---
@@ -706,11 +757,10 @@ Once a quote is accepted and confirmed:
 
 1. Go to the booking detail page
 2. Click **"Make Payment"** (marked as deposit or full)
-3. Choose payment method (Card, Bank Transfer, Cash, Mobile Money)
-4. Enter amount
-5. Submit
-
-The system will generate a receipt automatically.
+3. Choose payment method (M-Pesa, PesaPal, Card, Bank Transfer, Cash)
+4. For **M-Pesa**, enter your phone number — you'll receive an STK push prompt to approve
+5. For bank/card, follow the checkout flow
+6. Once confirmed, the system records the payment and generates a receipt automatically
 
 ### 8.10 Messaging Providers
 
@@ -718,6 +768,7 @@ Go to `/dashboard/messages` to chat with your providers.
 
 - Select a conversation on the left
 - Type your message and click Send
+- For multi-provider quotes (from the Package Builder or cart), you'll have a **group thread** with all providers
 - Messages can be about bookings, quotes, event details, etc.
 - Attachments are supported
 
@@ -1016,12 +1067,12 @@ Go to `/admin/subscription-plans` to manage pricing:
 
 **The default plans:**
 
-| Plan | Price | Services | Equipment | Bookings/mo |
-|------|-------|----------|-----------|-------------|
-| Free | $0/mo | 5 | 10 | 25 |
-| Basic | $29/mo | 15 | 30 | 100 |
-| Pro | $79/mo | 50 | 100 | 500 |
-| Enterprise | $199/mo | Unlimited | Unlimited | Unlimited |
+| Plan | Price | Services | Equipment | Bookings/mo | Venues | Vehicles |
+|------|-------|----------|-----------|-------------|--------|----------|
+| Free | $0/mo | 5 | 10 | 25 | 1 | 1 |
+| Basic | $29/mo | 15 | 30 | 100 | 3 | 3 |
+| Pro | $79/mo | 50 | 100 | 500 | 10 | 10 |
+| Enterprise | $199/mo | Unlimited | Unlimited | Unlimited | Unlimited | Unlimited |
 
 **You can:**
 - **Create** new plans with custom limits
@@ -1093,40 +1144,47 @@ Go to `/admin/branding` to customize the look:
 | 10 | **Bookings List** | `/dashboard/bookings` | Customer |
 | 11 | **Booking Details** | `/dashboard/bookings/[id]` | Customer |
 | 12 | **Accept/Reject Quote** | Booking detail page | Customer |
-| 13 | **Make Payment** | Booking detail page | Customer |
-| 14 | **Customer Messages** | `/dashboard/messages` | Customer |
-| 15 | **Customer Documents** | `/dashboard/documents` | Customer |
-| 16 | **Package Builder** | `/dashboard/packages` | Customer |
-| 17 | **Budget Calculator** | `/dashboard/budget` | Customer |
-| 18 | **Timeline Planner** | `/dashboard/timeline` | Customer |
-| 19 | **Rate Provider** | Booking detail (after completed) | Customer |
-| 20 | **Provider Dashboard** | `/provider` | Provider |
-| 21 | **Manage Services** | `/provider/services` | Provider |
-| 22 | **Manage Equipment** | `/provider/equipment` | Provider |
-| 23 | **Availability Calendar** | `/provider/calendar` | Provider |
-| 24 | **Dynamic Pricing** | Via services management | Provider |
-| 25 | **Provider Bookings** | `/provider/bookings` | Provider |
-| 26 | **Send Quotation** | Booking detail page | Provider |
-| 27 | **Confirm/Reject Booking** | Booking detail page | Provider |
-| 28 | **Provider Messages** | `/provider/messages` | Provider |
-| 29 | **Provider Reviews** | `/provider/reviews` | Provider |
-| 30 | **Provider Documents** | `/provider/documents` | Provider |
-| 31 | **Provider Settings** | `/provider/settings` | Provider |
-| 32 | **Subscription Page** | `/provider/subscription` | Provider |
-| 33 | **Local System Sync** | `/provider/local-sync` | Provider |
-| 34 | **Admin Dashboard** | `/admin` | Admin |
-| 35 | **User Management** | `/admin/users` | Admin |
-| 36 | **Provider Management** | `/admin/providers` | Admin |
-| 37 | **Complaint Management** | `/admin/complaints` | Admin |
-| 38 | **Subscription Plans** | `/admin/subscription-plans` | Admin |
-| 39 | **Branding (Logos)** | `/admin/branding` | Admin |
-| 40 | **Dark/Light Theme** | Toggle in header/sidebar | Everyone |
-| 41 | **Print A4 Documents** | Document detail → "Print A4" | Customer/Provider |
-| 42 | **Print Thermal Receipts** | Document detail → "Print Thermal" | Customer/Provider |
-| 43 | **Invoice Auto-Generation** | Automatic on payment | System |
-| 44 | **Quote Auto-Generation** | Automatic on quote sent | System |
-| 45 | **Notifications** | On bookings, messages, payments | Everyone |
-| 46 | **Two-Way Ratings** | After completed bookings | Customer/Provider |
+| 13 | **Make Payment (M-Pesa/PesaPal/Card/Bank)** | Booking detail / `/dashboard/checkout/[bookingId]` | Customer |
+| 14 | **Sign Agreement** | `/dashboard/agreements/[bookingId]` | Customer |
+| 15 | **Shopping Cart** | `/dashboard/cart` | Customer |
+| 16 | **Cart → Quotes** | Cart page → "Generate Quotes" | Customer |
+| 17 | **Customer Messages** | `/dashboard/messages` | Customer |
+| 18 | **Multi-provider Threads** | Messages (grouped by master quote) | Customer/Provider |
+| 19 | **Customer Documents** | `/dashboard/documents` | Customer |
+| 20 | **Package Builder** | `/dashboard/packages` | Customer |
+| 21 | **Budget Calculator** | `/dashboard/budget` | Customer |
+| 22 | **Timeline Planner** | `/dashboard/timeline` | Customer |
+| 23 | **Rate Provider** | Booking detail (after completed) | Customer |
+| 24 | **Provider Dashboard** | `/provider` | Provider |
+| 25 | **Manage Services** | `/provider/services` | Provider |
+| 26 | **Manage Equipment** | `/provider/equipment` | Provider |
+| 27 | **Availability Calendar** | `/provider/calendar` | Provider |
+| 28 | **Dynamic Pricing** | Via services management | Provider |
+| 29 | **Provider Bookings** | `/provider/bookings` | Provider |
+| 30 | **Send Quotation** | Booking detail page | Provider |
+| 31 | **Confirm/Reject Booking** | Booking detail page | Provider |
+| 32 | **Provider Messages** | `/provider/messages` | Provider |
+| 33 | **Provider Reviews** | `/provider/reviews` | Provider |
+| 34 | **Provider Documents** | `/provider/documents` | Provider |
+| 35 | **Provider Settings** | `/provider/settings` | Provider |
+| 36 | **Subscription Page** | `/provider/subscription` | Provider |
+| 37 | **Local System Sync** | `/provider/local-sync` | Provider |
+| 38 | **Admin Dashboard** | `/admin` | Admin |
+| 39 | **User Management** | `/admin/users` | Admin |
+| 40 | **Provider Management** | `/admin/providers` | Admin |
+| 41 | **Complaint Management** | `/admin/complaints` | Admin |
+| 42 | **Subscription Plans** | `/admin/subscription-plans` | Admin |
+| 43 | **Branding (Logos)** | `/admin/branding` | Admin |
+| 44 | **Payment Configuration (M-Pesa)** | `/admin/payments` | Admin |
+| 45 | **Location Data** | `/admin/locations` | Admin |
+| 46 | **Dark/Light Theme** | Toggle in header/sidebar | Everyone |
+| 47 | **Print A4 Documents** | Document detail → "Print A4" | Customer/Provider |
+| 48 | **Print Thermal Receipts** | Document detail → "Print Thermal" | Customer/Provider |
+| 49 | **Invoice Auto-Generation** | Automatic on payment | System |
+| 50 | **Quote Auto-Generation** | Automatic on quote sent | System |
+| 51 | **Notifications** | On bookings, messages, payments | Everyone |
+| 52 | **Two-Way Ratings** | After completed bookings | Customer/Provider |
+| 53 | **Country-Aware Currency** | Every price display | Everyone |
 
 ### Database tables (at a glance)
 
@@ -1145,18 +1203,20 @@ Go to `/admin/branding` to customize the look:
 | PricingRule | Dynamic pricing rules |
 | Booking | Booking records and status |
 | Payment | Payment transactions |
+| CartItem | Items in a customer's shopping cart |
+| Agreement | Electronically signed booking agreements |
+| AvailabilitySlot | Provider calendar dates (with booking links) |
 | Message | In-app messages |
+| Conversation | Message thread grouping (incl. multi-provider) |
 | Review | Ratings and reviews |
 | Notification | User notifications |
 | Complaint | Admin-handled disputes |
-| AvailabilitySlot | Provider calendar dates |
-| Conversation | Message thread grouping |
 | Document | Quotes, invoices, receipts |
 | SubscriptionPlan | Pricing tiers |
 | ProviderSubscription | Provider subscription status |
 | LocalSyncConfig | Local system connection settings |
 | LocalSyncLog | Sync activity records |
-| SystemConfig | App settings (logo paths, app name) |
+| SystemConfig | App settings (logo paths, app name, M-Pesa config) |
 
 ---
 
@@ -1237,49 +1297,55 @@ You can do this through the admin UI at `/admin/subscription-plans`, no coding n
 ### Common issues and solutions
 
 **"Cannot find module" error when running `npm run dev`**
-- Run `npm install` to install dependencies
-- Run `npm run db:generate` to generate the Prisma client
+- Run `npm install` in the project root AND in `backend/`
+- Run `cd backend && npm run db:generate` to generate the Prisma client
 
-**"Database does not exist" error**
-- Run `npm run db:push` to create the database tables
+**"Database does not exist" / connection error**
+- Check that `DATABASE_URL` in `backend/.env` points to a valid PostgreSQL database
+- Run `npm run db:push` to create the tables
 
 **Port 3000 already in use**
 - Either close the other program using port 3000
 - Or change the port: `npm run dev -- -p 3001`
 
+**Port 3001 already in use (backend)**
+- Change the backend port via `PORT` in `backend/.env` and update `BACKEND_URL` in the frontend `.env`
+
 **Login doesn't work with demo accounts**
 - Make sure you ran `npm run db:seed` to add demo data
-- Check that `.env` has the correct `DATABASE_URL`
+- Check that `JWT_SECRET` in `backend/.env` matches the one in the frontend `.env`
 
 **Pages look unstyled / no CSS**
 - Make sure `npm install` was completed successfully
 - Clear your browser cache (Ctrl+Shift+Delete)
 
 **Google login shows error**
-- Make sure `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set in `.env`
-- Check that the redirect URI in Google Cloud Console matches `http://localhost:3000/api/auth/google/callback`
+- Make sure `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set in `backend/.env`
+- Check that the redirect URI in Google Cloud Console matches `GOOGLE_REDIRECT_URI`
 - Google login works on `localhost` but needs HTTPS for production
 
 **File upload not working**
-- The `public/uploads/logos/` directory must exist
-- Check folder permissions — the server needs write access
+- Make sure Cloudinary credentials are set in `backend/.env` (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`)
+
+**M-Pesa payment not working**
+- Configure credentials in **Admin → Payments** (or `MPESA_*` env vars)
+- Requires a Safaricom Daraja sandbox account to test (https://developer.safaricom.co.ke)
+- Make sure `MPESA_CALLBACK_URL` is publicly reachable over HTTPS
 
 **"Subscription limit reached" when adding services/equipment**
 - Upgrade your plan at `/provider/subscription`
 - Or ask admin to increase your plan limits at `/admin/subscription-plans`
 
-**Emails not sending (forgot password, notifications)**
-- Email sending is not yet implemented. This is a planned feature.
+**"This date is no longer available" when booking**
+- The provider's calendar is locked for that date (pending/confirmed/unavailable). Pick another date or ask the provider to free it.
 
 **How do I reset the database?**
-- Delete the `prisma/dev.db` file
-- Run `npm run db:push` to recreate it
-- Run `npm run db:seed` to add demo data again
+- In PostgreSQL, drop/recreate the schema (or use a fresh database), then run `npm run db:push` and `npm run db:seed`
 
 **How do I update to the latest version?**
 - Pull the latest code: `git pull`
-- Run `npm install` to update dependencies
-- Run `npm run db:push` to apply any database changes
+- Run `npm install` in both the root and `backend/`
+- Run `npm run db:migrate` to apply any database migrations
 
 ---
 
@@ -1299,6 +1365,9 @@ You can do this through the admin UI at `/admin/subscription-plans`, no coding n
 | See booking details | `/dashboard/bookings/[id]` |
 | Chat with providers | `/dashboard/messages` |
 | View invoices/quotes | `/dashboard/documents` |
+| Shopping cart | `/dashboard/cart` |
+| Pay for a booking | `/dashboard/checkout/[bookingId]` |
+| Sign an agreement | `/dashboard/agreements/[bookingId]` |
 | Build a package | `/dashboard/packages` |
 | Calculate budget | `/dashboard/budget` |
 | Plan timeline | `/dashboard/timeline` |
@@ -1319,9 +1388,11 @@ You can do this through the admin UI at `/admin/subscription-plans`, no coding n
 | Handle complaints | `/admin/complaints` |
 | Subscription plans | `/admin/subscription-plans` |
 | Upload logos | `/admin/branding` |
-| View database in GUI | Run: `npm run db:studio` |
-| View demo data seed | File: `prisma/seed.ts` |
-| View database schema | File: `prisma/schema.prisma` |
+| Configure M-Pesa | `/admin/payments` |
+| Manage locations | `/admin/locations` |
+| View database in GUI | `cd backend && npx prisma studio` |
+| View demo data seed | File: `backend/prisma/seed.ts` |
+| View database schema | File: `backend/prisma/schema.prisma` |
 
 ---
 

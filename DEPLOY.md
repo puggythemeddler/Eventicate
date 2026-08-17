@@ -10,15 +10,20 @@ The frontend proxies `/api/*` and `/uploads/*` to the backend via rewrites in `n
 
 ## 2. Render (backend)
 
-Deploy via the blueprint file `render.yaml` (root dir `backend`), which on start runs
-`npx prisma db push --skip-generate` then `npm start`. Uploads live on a persistent 1 GB disk.
+Deploy via the blueprint file `render.yaml` (root dir `backend`). The build command runs
+`npm ci --include=dev && node scripts/migrate-retry.mjs && npm run build` — migrations are
+applied with `prisma migrate deploy` (retried so transient Neon connection issues don't strand
+old code), then the app is compiled. Uploads live on a persistent 1 GB disk.
 
 1. Render dashboard → **New → Blueprint** → pick the repo → apply `render.yaml`.
-2. Set environment variables (Settings → Environment):
+2. Set environment variables (Settings → Environment). Secrets that are marked `sync: false`
+   in `render.yaml` (DB URL, `JWT_SECRET`, Cloudinary, M-Pesa, SMTP, Google) are managed here
+   and never committed:
 
 | Variable | Value |
 |---|---|
 | `DATABASE_URL` | Neon pooled connection string |
+| `DATABASE_URL_DIRECT` | Neon direct connection string |
 | `JWT_SECRET` | strong random secret (must match frontend) |
 | `APP_URL` | frontend URL, e.g. `https://eventicate.vercel.app` |
 | `NEXT_PUBLIC_APP_URL` | same frontend URL |
@@ -30,10 +35,11 @@ Deploy via the blueprint file `render.yaml` (root dir `backend`), which on start
 | `MPESA_CALLBACK_URL` | HTTPS callback, e.g. `https://eventicate-api.onrender.com/api/payments/mpesa-callback` |
 | `SMTP_HOST/PORT/SECURE/USER/PASS/FROM` | optional, for email |
 | `GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI` | optional, for Google OAuth |
+| `CLOUDINARY_CLOUD_NAME/API_KEY/API_SECRET` | for image uploads |
 
 Generate a secret: `openssl rand -base64 32`
 
-3. Deploy. After the first boot (tables are created by `db push`), seed once from the Render shell:
+3. Deploy. Migrations run automatically during the build. Seed once from the Render shell:
 
 ```bash
 npm run db:seed
@@ -67,3 +73,4 @@ npm run db:seed
 | Provider | pa@soundpro.com | password123 |
 | Provider | catering@delight.com | password123 |
 | Provider | venue@grandhall.com | password123 |
+| Provider | tents@canopy.com | password123 |

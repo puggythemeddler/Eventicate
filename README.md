@@ -8,7 +8,7 @@ Think of it like an "Uber for event services" — one website where you can:
 - Create an event with all your requirements
 - Find and compare service providers in your area
 - Get price quotes from multiple providers
-- Book and pay for services
+- Book and pay for services (including M-Pesa)
 - Communicate with providers
 - Manage everything from one dashboard
 
@@ -18,27 +18,34 @@ Think of it like an "Uber for event services" — one website where you can:
 
 1. [What is this project?](#what-is-this-project)
 2. [Who is it for?](#who-is-it-for)
-3. [What language/code is this?](#what-languagecode-is-this)
+3. [What languages and technologies are used?](#what-languages-and-technologies-are-used)
 4. [Features at a glance](#features-at-a-glance)
 5. [How to install and run](#how-to-install-and-run)
 6. [Demo accounts](#demo-accounts)
 7. [Project structure explained](#project-structure-explained)
 8. [How the database works](#how-the-database-works)
 9. [How the booking flow works](#how-the-booking-flow-works)
-10. [Subscription & trial system](#subscription--trial-system)
-11. [Invoices & quotes](#invoices--quotes)
-12. [Dark/Light theme](#darklight-theme)
-13. [Google login](#google-login)
-14. [API routes](#api-routes)
-15. [How to customize](#how-to-customize)
+10. [Payments (M-Pesa, cards, bank)](#payments-m-pesa-cards-bank)
+11. [Subscription & trial system](#subscription--trial-system)
+12. [Invoices & quotes](#invoices--quotes)
+13. [Currencies & locations](#currencies--locations)
+14. [Dark/Light theme](#darklight-theme)
+15. [Google login](#google-login)
+16. [API routes](#api-routes)
+17. [Deployment](#deployment)
+18. [How to customize](#how-to-customize)
+19. [Security notes](#security-notes)
 
 ---
 
 ## What is this project?
 
-Eventicate is a **full-stack web application** — meaning it has both a **frontend** (what users see and click on in their browser) and a **backend** (the server that stores data and handles logic).
+Eventicate is a **full-stack web application** with two parts:
 
-The goal is to create a single platform where:
+- **Frontend** — a Next.js app (in the project root) that users see and click in their browser.
+- **Backend** — a separate Express + Prisma API (in the `backend/` folder) that stores data and handles logic. The frontend proxies all `/api` and `/uploads` requests to it.
+
+The goal is a single platform where:
 - **Customers** can plan entire events from start to finish
 - **Service providers** (venues, DJs, caterers, etc.) can list their services and get booked
 - **Administrators** can manage users, approve providers, and handle complaints
@@ -71,43 +78,53 @@ The goal is to create a single platform where:
 
 ---
 
-## What language/code is this?
-
-Here is every technology used, explained simply:
+## What languages and technologies are used?
 
 ### Programming Languages
-- **TypeScript** — The main language. It's JavaScript but with extra rules to catch mistakes before the code runs. All the code is written in TypeScript (files end in `.ts` or `.tsx`).
-- **SQL** — The language used to talk to the database. You don't write SQL directly — the Prisma tool handles it.
+- **TypeScript** — The main language for both frontend and backend (files end in `.ts` or `.tsx`). It's JavaScript but with extra rules that catch mistakes before the code runs.
+- **JavaScript** — Used implicitly via TypeScript (which compiles to it) and in small config/script files (`.mjs`, `.js`).
+- **CSS** — Used for styling, primarily through Tailwind utility classes and custom styles in `globals.css`.
+- **SQL** — The language used to talk to the database. You usually don't write it directly — the Prisma tool handles it — but you'll find raw SQL in `backend/prisma/migrations/`.
+- **HTML/JSX** — The markup that makes up pages and components (JSX is TypeScript's HTML-like syntax used in React).
 
 ### Frameworks & Libraries
-- **Next.js 15** — A framework built on top of React. It handles both the frontend (what you see in the browser) AND the backend (the server that processes data). When you visit a page, Next.js decides whether to generate it on the server or in the browser. Files in `src/app/` become web pages automatically based on their folder structure.
-- **React 19** — A JavaScript library for building user interfaces. It lets you build reusable components (like buttons, cards, forms) and manages how they update when data changes.
-- **Tailwind CSS 4** — A CSS framework that lets you style things by adding class names directly in your HTML/JSX. For example, `bg-blue-500` makes something blue, `text-lg` makes text larger. It works by scanning your files and generating only the CSS you actually use.
-- **Prisma** — A tool that lets you work with databases using TypeScript instead of writing raw SQL. You define your database structure in `prisma/schema.prisma` and Prisma generates a TypeScript library to query it.
-- **Zod** — A validation library that checks if data (like form inputs) has the right format and gives clear error messages if not.
-- **Jose** — A library for creating and verifying JSON Web Tokens (JWTs), which are like digital ID cards that prove a user is logged in.
-- **Lucide React** — A collection of icons (like a calendar icon or a search icon) that you can use in your React components.
-- **Bcryptjs** — A library that scrambles (hashes) passwords so they can't be read even if the database is hacked.
+
+**Frontend (`src/`)**
+- **Next.js 15** — A framework built on top of React that handles routing, server rendering, and page generation. Every folder inside `src/app/` with a `page.tsx` becomes a web page.
+- **React 19** — A JavaScript library for building reusable UI components.
+- **Tailwind CSS 4** — A CSS framework that lets you style things by adding class names directly in your JSX (e.g. `bg-blue-500`).
+- **Zod** — Validation library used on both frontend and backend.
+- **Jose** — Creates and verifies JSON Web Tokens (JWTs) for authentication.
+- **Lucide React** — Icon set used across the UI.
+
+**Backend (`backend/`)**
+- **Express 5** — Web server framework that handles the REST API.
+- **Prisma** — Database toolkit. You define the schema in `backend/prisma/schema.prisma` and Prisma generates a typed query API.
+- **Zod** — Request-body validation with clear error messages.
+- **Jose** — JWT creation/verification for sessions.
+- **Bcryptjs** — Password hashing so passwords are never stored in plain text.
+- **Nodemailer** — Sends notification emails (quotes, invoices, welcome).
+- **Multer** — Handles file uploads (with Cloudinary for image storage).
+- **Cloudinary** — Cloud image storage for service/equipment/venue photos and logos.
+- **express-rate-limit** — Throttles requests to protect against abuse.
+- **Helmet** — Sets security HTTP headers.
+- **tsx** — Runs TypeScript directly in development.
 
 ### Database
-- **SQLite** (for development) — A file-based database. The entire database is a single file at `prisma/dev.db`. You can switch to PostgreSQL for production by changing the `DATABASE_URL` in your `.env` file.
+- **PostgreSQL** — Production and development database (hosted on Neon in the cloud). The connection is configured via `DATABASE_URL` in `backend/.env`.
 
 ### How they all fit together
 
 ```
-Browser (what user sees)
+Browser (what the user sees)
     ↓
-Next.js (serves the pages & handles navigation)
+Next.js frontend (serves pages, proxies /api + /uploads to the backend)
     ↓
-React Components (buttons, forms, cards — built with TypeScript)
+Express API backend  (handles auth, bookings, payments, documents, etc.)
     ↓
-Tailwind CSS (makes everything look nice)
+Prisma (typed database access)
     ↓
-API Routes (backend code that processes requests)
-    ↓
-Prisma (talks to the database)
-    ↓
-SQLite / PostgreSQL (where all data is stored)
+PostgreSQL (where all data is stored)
 ```
 
 ---
@@ -117,13 +134,16 @@ SQLite / PostgreSQL (where all data is stored)
 ### For Customers
 - **Create events** — Pick a name, type (wedding/funeral/birthday/etc.), date, location, number of guests, and budget
 - **Search providers** — Filter by category, location, budget
-- **View provider profiles** — See their services, prices, equipment, availability calendar, reviews
+- **View provider profiles** — Services, prices, equipment, availability calendar, reviews
 - **Package Builder** — Build a complete event package by selecting multiple providers at once
-- **Budget Calculator** — Get estimated costs based on real provider prices in the system
-- **Timeline Planner** — Create a schedule for your event (e.g., "10:00 — Guests arrive, 12:00 — Ceremony")
+- **Budget Calculator** — Get estimated costs based on real provider prices
+- **Timeline Planner** — Create a schedule for your event (e.g. "10:00 — Guests arrive, 12:00 — Ceremony")
+- **Shopping cart** — Add services and equipment from different providers, then generate quotes
 - **Request quotes** — Ask providers for price estimates
 - **Book services** — Accept quotes, pay deposits, track booking status
-- **Messaging** — Chat with providers, share files and documents
+- **Checkout & payments** — Pay by M-Pesa (STK push), PesaPal, card, or bank transfer
+- **Agreements** — Electronically sign booking agreements with a captured amount
+- **Messaging** — Chat with providers, including multi-provider group threads
 - **Reviews** — Rate providers after events are completed
 - **Documents** — View all your quotes, invoices, and receipts in one place
 
@@ -134,73 +154,96 @@ SQLite / PostgreSQL (where all data is stored)
 - **Menu packages** — For caterers, with per-guest pricing
 - **Venues** — For venue providers, with capacity and facilities
 - **Vehicles** — For transport providers
-- **Availability calendar** — Mark dates as available, pending, or booked (auto-blocks on booking)
-- **Dynamic pricing** — Set different prices for different event types, weekends, or peak seasons
-- **Quotations** — Send professional quotes to customers
+- **Availability calendar** — Mark dates as available, pending, or booked (auto-blocks on booking, race-free)
+- **Dynamic pricing** — Different prices for different event types, weekends, or peak seasons
+- **Quotations & invoices** — Generate professional documents for customers
 - **Booking management** — Accept/confirm/reject bookings
-- **Subscription** — 30-day free trial, then choose a paid plan
+- **Subscription** — Free trial, then choose a paid plan
 - **Local sync** — Connect your local business system for offline inventory management
-- **Documents** — Generate quotes and invoices for customers
+- **Reviews** — See what customers say and respond
 
 ### For Administrators
-- **Dashboard** — See platform stats (users, providers, events, bookings, revenue)
+- **Dashboard** — Platform stats (users, providers, events, bookings, revenue)
 - **User management** — View all users, activate/deactivate accounts
 - **Provider management** — Approve/reject provider registrations
 - **Complaint handling** — Track and resolve disputes
-- **Subscription plans** — Create and manage pricing tiers for providers
+- **Subscription plans** — Create and manage pricing tiers
+- **Branding** — Manage logos and app name
+- **Payment configuration** — Set M-Pesa credentials
+- **Location data** — Manage countries and subdivisions
 
 ---
 
 ## How to install and run
 
+The project has two apps: the **frontend** (project root) and the **backend** (`backend/`). You'll run both in development.
+
 ### Step 1: What you need installed
-- **Node.js** (version 18 or newer) — This runs JavaScript on your computer. Download from https://nodejs.org
-- **npm** (comes with Node.js) — This installs the libraries the project needs
+- **Node.js** (version 18 or newer) — Download from https://nodejs.org
+- **npm** (comes with Node.js)
+- A **PostgreSQL** database — for local dev you can use [Neon](https://neon.tech) (free cloud Postgres) or a local install. Prisma works with the connection string in `DATABASE_URL`.
 
 ### Step 2: Open your terminal/command prompt
-- On Windows: Search for "Command Prompt" or "PowerShell" and open it
-- On Mac: Open "Terminal" from Applications/Utilities
+- On Windows: Search for "PowerShell" and open it
+- On Mac: Open "Terminal"
 - On Linux: Open your terminal app
 
 ### Step 3: Navigate to the project folder
 ```bash
 cd C:\Users\User\Documents\Projects\Eventicate
 ```
-(If your terminal shows a different path, use the actual path where the project is saved)
+(Use the actual path where the project is saved.)
 
-### Step 4: Install dependencies
+### Step 4: Install dependencies (frontend + backend)
 ```bash
 npm install
+cd backend
+npm install
+cd ..
 ```
-This downloads all the libraries the project needs (React, Next.js, Prisma, etc.) and puts them in the `node_modules` folder. It might take 1-2 minutes.
+This downloads all libraries into each app's `node_modules` folder.
 
-### Step 5: Set up your environment variables
+### Step 5: Set up environment variables
+There are two env files to create (copy the `.env.example` in each folder):
+
+**Frontend** (`/.env`):
 ```bash
 cp .env.example .env
 ```
-(On Windows, just copy the `.env.example` file and rename it to `.env`)
-
-Open `.env` in a text editor. It should look like:
+Contains:
 ```
-DATABASE_URL="file:./dev.db"
-JWT_SECRET="eventicate-dev-secret-change-in-production"
+BACKEND_URL="http://localhost:3001"          # Where the backend runs
+JWT_SECRET="change-this-to-a-secure-random-string"  # MUST match the backend
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
-For development, the defaults work fine. In production, change the JWT_SECRET to a random string.
+
+**Backend** (`backend/.env`):
+```bash
+cp .env.example .env
+```
+The important ones:
+```
+DATABASE_URL="postgresql://user:password@host/eventicate?sslmode=require"
+JWT_SECRET="change-this-to-a-secure-random-string"   # MUST match the frontend
+APP_URL="http://localhost:3000"
+PORT=3001
+```
+The full template (email, Google OAuth, M-Pesa, Cloudinary) is documented in `backend/.env.example`.
 
 ### Step 6: Set up the database
 ```bash
-npm run db:push
+cd backend
+npm run db:push     # create/update tables from the schema
+npm run db:seed     # optional: add demo accounts and sample data
 ```
-This creates the database file (`prisma/dev.db`) with all the tables defined in the schema.
 
-### Step 7: Add demo data (optional but recommended)
+### Step 7: Start the backend
 ```bash
-npm run db:seed
+npm run dev
 ```
-This adds sample data so you can test the app immediately — demo user accounts, providers, services, equipment, and a sample event.
+The API listens on http://localhost:3001.
 
-### Step 8: Start the development server
+### Step 8: Start the frontend (new terminal)
 ```bash
 npm run dev
 ```
@@ -211,10 +254,10 @@ You'll see output like:
 ```
 
 ### Step 9: Open in your browser
-Go to **http://localhost:3000** in your web browser (Chrome, Firefox, Edge, etc.)
+Go to **http://localhost:3000**.
 
-### Step 10: Stop the server
-Press `Ctrl + C` in the terminal to stop the server when you're done.
+### Step 10: Stop the servers
+Press `Ctrl + C` in each terminal.
 
 ---
 
@@ -229,6 +272,7 @@ All demo accounts use the password: `password123`
 | **PA Provider** | pa@soundpro.com | Manage PA/audio services, equipment, bookings |
 | **Catering Provider** | catering@delight.com | Manage catering packages, menu items, bookings |
 | **Venue Provider** | venue@grandhall.com | Manage venue listings, pricing, bookings |
+| **Tents Provider** | tents@canopy.com | Manage tents/decoration services, bookings |
 
 To register a new account, click "Get Started" in the top-right corner.
 
@@ -239,128 +283,87 @@ To register a new account, click "Get Started" in the top-right corner.
 ```
 Eventicate/
 │
-├── .env                    # Secret settings (database URL, JWT secret, API keys)
-├── .env.example            # Template for .env (copy this)
-├── package.json            # Lists all libraries (dependencies) and commands (scripts)
-├── next.config.ts          # Next.js configuration
+├── .env                    # Frontend secrets (JWT secret, backend URL)
+├── .env.example            # Frontend env template
+├── package.json            # Frontend dependencies & scripts
+├── next.config.ts          # Next.js config (proxies /api & /uploads to backend)
 ├── tsconfig.json           # TypeScript settings
-├── postcss.config.mjs      # CSS processing configuration
 │
-├── prisma/
-│   ├── schema.prisma       # ★ THE DATABASE SCHEMA — defines all tables and relationships
-│   ├── seed.ts             # Script that fills the database with demo data
-│   └── dev.db              # The actual SQLite database file (created by db:push)
+├── backend/                # ★ THE API SERVER
+│   ├── .env                # Backend secrets (DB URL, JWT, API keys)
+│   ├── .env.example        # Backend env template (fully documented)
+│   ├── package.json        # Backend dependencies & scripts
+│   ├── prisma/
+│   │   ├── schema.prisma   # ★ THE DATABASE SCHEMA — all tables & relations
+│   │   ├── seed.ts         # Fills the DB with demo data
+│   │   └── migrations/     # Versioned SQL migrations (applied via `db:migrate`)
+│   ├── src/
+│   │   ├── server.ts       # ★ App entry point — middleware, routes, graceful shutdown
+│   │   ├── lib/            # Auth, email, payments, documents, pricing, rate limiting
+│   │   └── routes/         # One file (or folder) per API area:
+│   │       ├── auth/       # login, register, logout, session, google
+│   │       ├── bookings/   # booking creation + status updates
+│   │       ├── events/     # event CRUD
+│   │       ├── payments/   # initiate, status, split, mpesa-callback, methods
+│   │       ├── documents/  # quotes, invoices, agreements
+│   │       ├── messages/   # chat + multi-provider threads
+│   │       ├── admin/      # users, providers, complaints, plans, payments
+│   │       ├── provider/   # settings, subscription, dashboard
+│   │       ├── customer/   # dashboard
+│   │       ├── quotes/     # generate from cart
+│   │       └── ...         # cart, packages, availability, timeline, budget, reviews, etc.
+│   └── test/               # Backend unit tests
 │
-├── src/
-│   ├── app/
-│   │   ├── layout.tsx       # ★ THE ROOT LAYOUT — wraps every page (has <html>, <head>, <body>)
-│   │   ├── globals.css      # ★ GLOBAL STYLES — CSS that applies to everything
-│   │   ├── page.tsx         # The homepage (route: /)
-│   │   ├── how-it-works/    # Info page (route: /how-it-works)
-│   │   ├── search/          # Find services page (route: /search)
-│   │   ├── auth/            # Login and registration pages
-│   │   │   ├── login/       # Sign in page
-│   │   │   └── register/    # Sign up page
-│   │   ├── dashboard/       # ★ CUSTOMER PORTAL — all customer pages
-│   │   │   ├── page.tsx                 # Dashboard home
-│   │   │   ├── events/                  # Event management
-│   │   │   ├── bookings/                # Booking management
-│   │   │   ├── messages/                # Chat with providers
-│   │   │   ├── documents/               # Quotes & invoices
-│   │   │   ├── packages/                # Package Builder
-│   │   │   ├── budget/                  # Budget Calculator
-│   │   │   └── timeline/                # Event Timeline Planner
-│   │   ├── provider/         # ★ PROVIDER PORTAL — all provider pages
-│   │   │   ├── page.tsx                 # Provider dashboard
-│   │   │   ├── bookings/                # Manage bookings
-│   │   │   ├── services/                # Manage services
-│   │   │   ├── equipment/               # Manage equipment inventory
-│   │   │   ├── calendar/                # Availability calendar
-│   │   │   ├── messages/                # Chat with customers
-│   │   │   ├── reviews/                 # View/manage reviews
-│   │   │   ├── documents/               # Quotes & invoices
-│   │   │   ├── subscription/            # Plan management
-│   │   │   ├── settings/                # Profile settings
-│   │   │   └── local-sync/              # Local system integration
-│   │   ├── admin/            # ★ ADMIN PORTAL — all admin pages
-│   │   │   ├── page.tsx                 # Admin dashboard
-│   │   │   ├── users/                   # User management
-│   │   │   ├── providers/               # Provider management
-│   │   │   ├── complaints/              # Complaint handling
-│   │   │   └── subscription-plans/      # Pricing tier management
-│   │   ├── providers/        # ★ PUBLIC PROVIDER PROFILES
-│   │   │   └── [id]/         # Single provider profile (anyone can view)
-│   │   └── api/              # ★ BACKEND API — all server endpoints
-│   │       ├── auth/         # Login, register, session management
-│   │       ├── events/       # Event CRUD
-│   │       ├── bookings/     # Booking CRUD + status updates
-│   │       ├── providers/    # Provider search and profiles
-│   │       ├── payments/     # Payment processing
-│   │       ├── messages/     # Chat messaging
-│   │       ├── reviews/      # Rating system
-│   │       ├── documents/    # Quotes and invoices
-│   │       ├── admin/        # Admin operations
-│   │       └── ...           # And many more
-│   │
-│   ├── components/
-│   │   ├── ui/               # ★ REUSABLE UI COMPONENTS
-│   │   │   ├── Button.tsx    # Buttons (primary, secondary, outline, danger)
-│   │   │   ├── Card.tsx      # Cards (containers with border/shadow)
-│   │   │   ├── Input.tsx     # Text inputs, dropdown selects, textareas
-│   │   │   └── Badge.tsx     # Status labels, star ratings
-│   │   ├── layout/           # Navigation bars, sidebars
-│   │   ├── calendar/         # Interactive availability calendar
-│   │   ├── auth/             # Login/register forms
-│   │   └── theme/            # Dark/light mode toggle
-│   │
-│   └── lib/                  # ★ HELPER CODE
-│       ├── prisma.ts         # Database connection
-│       ├── auth.ts           # Password hashing, JWT tokens, session cookies
-│       ├── booking-engine.ts # Calculating prices, blocking dates
-│       ├── subscription.ts   # Plan limits, trial management
-│       ├── documents.ts      # Invoice/quote generation
-│       ├── constants.ts      # Event types, categories, labels
-│       ├── utils.ts          # Formatting dates, currency, JSON
-│       └── theme-config.ts   # Dark/light mode detection
-│
-└── node_modules/             # ★ ALL INSTALLED LIBRARIES (auto-generated, don't touch)
+└── src/                    # ★ THE FRONTEND
+    ├── app/
+    │   ├── layout.tsx      # Root layout (<html>, <head>, <body>)
+    │   ├── globals.css     # Global styles + color theme
+    │   ├── page.tsx        # Homepage (/)
+    │   ├── how-it-works/   # Info page
+    │   ├── search/         # Find services
+    │   ├── auth/           # Login & register
+    │   ├── dashboard/      # ★ CUSTOMER PORTAL (events, bookings, messages, documents, packages, budget, timeline, cart, checkout, agreements)
+    │   ├── provider/       # ★ PROVIDER PORTAL (bookings, services, equipment, calendar, messages, reviews, documents, subscription, settings, local-sync)
+    │   ├── admin/          # ★ ADMIN PORTAL (users, providers, complaints, subscription-plans, branding, payments, locations)
+    │   └── providers/[id]  # ★ PUBLIC provider profiles
+    ├── components/
+    │   ├── ui/             # Reusable UI (Button, Card, Input, Badge...)
+    │   ├── layout/         # Navigation, sidebars
+    │   ├── calendar/       # Availability calendar
+    │   ├── auth/           # Login/register forms
+    │   └── theme/          # Dark/light toggle
+    ├── hooks/              # React hooks (e.g. useCurrency)
+    └── lib/                # auth (JWT), utils, server-api (proxied fetch)
 ```
 
 ### How pages work (routing)
 
-In Next.js, every folder inside `src/app` with a `page.tsx` file becomes a web page. The folder path becomes the URL:
+In Next.js, every folder inside `src/app` with a `page.tsx` file becomes a web page:
 
 | Folder | URL |
 |--------|-----|
 | `src/app/page.tsx` | `/` (homepage) |
 | `src/app/dashboard/page.tsx` | `/dashboard` |
-| `src/app/dashboard/events/new/page.tsx` | `/dashboard/events/new` |
 | `src/app/dashboard/events/[id]/page.tsx` | `/dashboard/events/abc123` |
 | `src/app/providers/[id]/page.tsx` | `/providers/xyz789` |
 
-Folders in square brackets like `[id]` are **dynamic routes** — they match any value and pass it as a parameter. For example, visiting `/providers/abc123` makes `params.id = "abc123"` available in the page.
+Folders in square brackets like `[id]` are **dynamic routes** — they match any value and pass it as a parameter.
 
 ### How API routes work
 
-Similarly, every `route.ts` file inside `src/app/api/` becomes an API endpoint:
-
-| File | URL | Methods |
-|------|-----|---------|
-| `src/app/api/auth/login/route.ts` | `POST /api/auth/login` | POST only |
-| `src/app/api/events/route.ts` | `GET /api/events` and `POST /api/events` | GET, POST |
-| `src/app/api/events/[id]/route.ts` | `GET /api/events/abc123` | GET |
+The frontend has **no API routes of its own**. The `next.config.ts` rewrites proxy `/api/*` and `/uploads/*` to the Express backend (default `http://localhost:3001`). All endpoints live in `backend/src/routes/`.
 
 ### Server vs Client Components
 
-- **Server Components** (default) — Run on the server, send HTML to the browser. Used for pages that fetch data from the database. They're faster and more secure.
-- **Client Components** — Have `"use client"` at the top. Run in the browser. Used when you need interactivity (buttons that change things, forms, real-time updates).
-- Most pages use server components to fetch data, then have small client components embedded for interactive parts (like clicking a button to approve a booking).
+- **Server Components** (default) — Run on the server, send HTML to the browser. Used for pages that fetch data. Faster and more secure.
+- **Client Components** — Have `"use client"` at the top. Run in the browser. Used for interactivity (forms, buttons, real-time updates).
+- Most pages are server components that fetch data, with small client components embedded for interactive parts.
 
 ---
 
 ## How the database works
 
-The database is defined in `prisma/schema.prisma`. This file describes every table and how they relate to each other.
+The database is defined in `backend/prisma/schema.prisma`. This file describes every table and how they relate to each other. Changes are captured as versioned SQL files in `backend/prisma/migrations/`.
 
 ### Key concepts
 
@@ -380,13 +383,16 @@ User ─────────────────────────
   │                                                                  ├── Belongs to → Service
   │                                                                  ├── Has many → Payments
   │                                                                  ├── Has many → Messages
-  │                                                                  └── Has many → Reviews
+  │                                                                  ├── Has many → Reviews
+  │                                                                  ├── Has one → AvailabilitySlot
+  │                                                                  └── Has many → Documents/Agreements
   │
   └── Has one → ProviderProfile
                    │
                    ├── Has many → Services
                    ├── Has many → Equipment
                    ├── Has many → Vehicles
+                   ├── Has many → Venues
                    ├── Has many → MenuPackages
                    ├── Has many → Bookings
                    ├── Has many → PricingRules
@@ -399,24 +405,28 @@ User ─────────────────────────
 
 - **UserRole**: CUSTOMER, PROVIDER, ADMIN
 - **EventType**: WEDDING, FUNERAL, BIRTHDAY, CORPORATE, CONCERT, CHURCH, GRADUATION, OTHER
-- **ServiceCategory**: VENUE, PA_SYSTEM, CATERING, TRANSPORT, PHOTOGRAPHY, VIDEOGRAPHY, DECORATION, ENTERTAINMENT, OTHER
+- **ServiceCategory**: VENUE, PA_SYSTEM, CATERING, TENTS, TRANSPORT, PHOTOGRAPHY, VIDEOGRAPHY, DECORATION, ENTERTAINMENT, OTHER
 - **BookingStatus**: QUOTATION_REQUESTED → QUOTATION_SENT → PENDING_APPROVAL → CONFIRMED → DEPOSIT_PAID → COMPLETED (or CANCELLED/REJECTED)
-- **PaymentMethod**: CARD, BANK_TRANSFER, CASH, MOBILE_MONEY
+- **AvailabilityStatus**: AVAILABLE, PENDING, CONFIRMED, UNAVAILABLE
+- **PaymentStatus**: PENDING, DEPOSIT_PAID, FULLY_PAID, REFUNDED, FAILED
+- **PaymentMethod**: CARD, BANK_TRANSFER, CASH, MOBILE_MONEY, MPESA, PESAPAL
+- **DocumentStatus**: DRAFT, SENT, ACCEPTED, REJECTED, PAID, OVERDUE, CANCELLED
+- **DocumentType**: QUOTE, INVOICE, RECEIPT, PROFORMA_INVOICE, TAX_INVOICE, AGREEMENT
 - **SubscriptionStatus**: TRIAL, ACTIVE, EXPIRED, CANCELLED, PAST_DUE
 
 ### How to view the database
 
 ```bash
-npm run db:studio
+cd backend
+npx prisma studio
 ```
-
-This opens Prisma Studio — a web interface where you can browse and edit all the data in your database visually. It opens at http://localhost:5555.
+This opens Prisma Studio — a web interface where you can browse and edit all data visually. It opens at http://localhost:5555.
 
 ---
 
 ## How the booking flow works
 
-The booking process has 8 defined statuses. Here's the full flow:
+The booking process has 8 defined statuses:
 
 ```
 1. QUOTATION_REQUESTED  ← Customer requests a quote from a provider
@@ -434,11 +444,24 @@ The booking process has 8 defined statuses. Here's the full flow:
    CANCELLED / REJECTED ← Either party can cancel at any point
 ```
 
-At each step, the system:
-- **Blocks dates** on the provider's availability calendar (prevents double-booking)
-- **Sends notifications** to both parties
-- **Updates dashboards** in real-time
-- **Generates documents** — quotes when provider sends pricing, invoices/receipts when payments are made
+Only legal transitions are allowed and each party can only move a booking along valid paths (e.g. a customer can't mark a booking complete).
+
+At each step the system:
+- **Reserves the date** on the provider's availability calendar atomically (prevents double-booking even under concurrency)
+- **Sends notifications** and email to both parties
+- **Generates documents** — quotes, invoices, receipts
+
+---
+
+## Payments (M-Pesa, cards, bank)
+
+- **M-Pesa (Daraja STK Push)** — Customers enter a phone number and receive an STK push prompt on their phone. Sandbox and production environments are supported. Requires Daraja credentials in the admin Payment settings (or env vars).
+- **PesaPal / Card / Bank transfer / Cash** — Supported as methods with split-payment support (deposit + balance).
+- **Split payments** — A deposit (e.g. 30%) can be paid first; the remaining balance is tracked and can be paid later.
+- **Callback verification** — The M-Pesa callback is idempotent (duplicate callbacks don't double-charge) and each payment has a unique `transactionId`.
+- Payments are only counted as completed when they actually succeed — pending/failed payments never inflate "amount paid".
+
+To configure M-Pesa for the platform, an admin goes to **Admin → Payments** and saves the consumer key, secret, passkey, and shortcode.
 
 ---
 
@@ -446,36 +469,25 @@ At each step, the system:
 
 ### How it works for providers
 
-1. **30-day free trial**: When a new provider registers, they get a 30-day free trial (auto-started). They can use all features during the trial.
-
+1. **Free trial**: A new provider gets a free trial (auto-started) and can use all features during it.
 2. **Tiered plans**: After the trial, they need to choose a paid plan:
 
-   | Plan | Price | Services | Equipment | Bookings/mo |
-   |------|-------|----------|-----------|-------------|
-   | **Free** | $0 | 5 | 10 | 25 |
-   | **Basic** | $29 | 15 | 30 | 100 |
-   | **Pro** | $79 | 50 | 100 | 500 |
-   | **Enterprise** | $199 | Unlimited | Unlimited | Unlimited |
+   | Plan | Price | Services | Equipment | Bookings/mo | Venues | Vehicles |
+   |------|-------|----------|-----------|-------------|--------|----------|
+   | **Free** | $0 | 5 | 10 | 25 | 1 | 1 |
+   | **Basic** | $29 | 15 | 30 | 100 | 3 | 3 |
+   | **Pro** | $79 | 50 | 100 | 500 | 10 | 10 |
+   | **Enterprise** | $199 | Unlimited | Unlimited | Unlimited | Unlimited | Unlimited |
 
-3. **Restrictions**: If a provider tries to add more services/equipment than their plan allows, they'll get an error message telling them to upgrade.
+3. **Restrictions**: Only an **ACTIVE paid plan** unlocks full limits. If a provider tries to add more services/equipment than their plan allows, they'll get an error telling them to upgrade. Trials no longer "re-arm" forever — once used, the trial view returns to the paid-plan requirements.
 
 ### How to set up plans
 
 1. Login as admin (admin@eventicate.com)
 2. Go to `/admin/subscription-plans`
-3. You can create, edit, delete plans
-4. Change prices, limits, features anytime
+3. Create, edit, delete plans, and change prices/limits anytime
 
-### For administrators
-
-You have full control over:
-- How many plans exist
-- What each plan costs
-- What limits each plan has
-- How long the trial lasts
-- What features to include
-
-To disable the trial system temporarily, set trialDays to 0 on all plans.
+To disable the trial system temporarily, set `trialDays` to 0 on all plans.
 
 ---
 
@@ -484,114 +496,146 @@ To disable the trial system temporarily, set trialDays to 0 on all plans.
 ### Auto-generation
 
 The system automatically creates documents at key moments:
-
-1. **Quote**: When a provider sends a quotation (sets a price on a booking request)
-2. **Invoice**: When a customer accepts and payment is due
-3. **Receipt**: When a payment is actually made
+1. **Quote** — When a provider sends a quotation (sets a price on a booking request)
+2. **Invoice / Proforma / Tax invoice** — When a customer accepts and payment is due
+3. **Receipt** — When a payment is actually made
 
 ### Document numbers
 
-Each document gets a unique number:
-- `QTE-0001`, `QTE-0002`... for quotes
-- `INV-0001`, `INV-0002`... for invoices
-- `RCT-0001`, `RCT-0002`... for receipts
+Each document gets a unique number like `QTE-0001`, `INV-0001`, `RCT-0001`.
 
 ### Where to find them
 
-- **Customers**: Go to `/dashboard/documents` to see all quotes, invoices, and receipts
-- **Providers**: Go to `/provider/documents` to manage documents you've sent
+- **Customers**: `/dashboard/documents`
+- **Providers**: `/provider/documents`
 
 ### Actions you can take
 
 - **View** the document as a nicely formatted page
-- **Print** using your browser's Print function (Ctrl+P) — the page is styled to print cleanly
-- **Accept** a quote (customer)
-- **Mark as paid** (provider, for cash payments)
+- **Print** with your browser's Print function (Ctrl+P) — styled to print cleanly
+- **Accept/reject** a quote (customer)
+- **Mark as paid** — only the customer (or a confirmed payment) can mark a document paid; a provider can't self-certify
+- **Cart to quote** — customers can turn their shopping cart into grouped quotes per provider
+
+---
+
+## Currencies & locations
+
+- **Country-aware currency** — When a user logs in, their country determines the display currency:
+  - Kenya → **KES** (Kenyan Shilling)
+  - Uganda → **UGX** (Ugandan Shilling)
+  - Tanzania → **TZS** (Tanzanian Shilling)
+  - Everything else → **USD**
+- Currencies are formatted automatically across every price display (dashboard, checkout, documents, search).
+- **Location data** — Countries and subdivisions (regions/counties) are managed by admins under **Admin → Locations**, and providers select their location from these lists.
 
 ---
 
 ## Dark/Light theme
 
-### How it works
+- **First visit**: Automatically follows your computer/phone's theme setting
+- **Toggle**: Click the sun/moon/monitor icon to switch between 🌙 Dark, ☀️ Light, and 💻 System
+- **Remembers**: Your choice persists even if you close your browser
 
-- **First visit**: Automatically follows your computer/phone's theme setting (system preference)
-- **Toggle**: Click the sun/moon/monitor icon in the top navigation bar or bottom of sidebar to switch between:
-  - 🌙 Dark mode
-  - ☀️ Light mode
-  - 💻 System (follows your device)
-- **Remembers**: Your choice is saved and persists even if you close your browser
-
-### Technical details
-
-The theme is stored in your browser's `localStorage`. On every page load, a tiny script runs before anything else renders to prevent the "flash of wrong theme" — so the correct theme is applied instantly before you even see the page.
+The theme is stored in `localStorage` and applied before the page renders to avoid a flash of the wrong theme.
 
 ---
 
 ## Google login
 
 ### How to enable it
-
 1. Go to https://console.cloud.google.com/apis/credentials
-2. Create a new OAuth 2.0 Client ID (choose "Web application")
-3. Add `http://localhost:3000/api/auth/google/callback` as an authorized redirect URI
-4. Copy the Client ID and Client Secret
-5. Add them to your `.env` file:
-
-```
-GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET="your-client-secret"
-```
-
-6. Restart the dev server
+2. Create an OAuth 2.0 Client ID (choose "Web application")
+3. Add your frontend URL + `/api/auth/google/callback` as an authorized redirect URI
+4. Add the Client ID and Secret to `backend/.env` (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`)
+5. Restart the backend
 
 ### How it works
-
-- On the login page (`/auth/login`), a "Sign in with Google" button appears
-- Clicking it takes you to Google's consent screen
-- After you authorize, Google sends you back to the app
-- If you're a new user, an account is created automatically
-- If you already have an account with that email, you're logged in
-- Google users have no password — they can only sign in with Google
+- The login page shows a "Sign in with Google" button
+- Clicking it takes you to Google's consent screen (protected with a CSRF state token)
+- After authorization, Google redirects back — the app verifies the state token and that the email is Google-verified
+- New users get an account automatically; existing users are logged in
+- Google users have no password — they sign in with Google only
 
 ---
 
 ## API routes
 
-The full list of API endpoints. Each one handles data in the background:
+All endpoints live in the backend (`backend/src/routes/`) and are proxied from the frontend via `/api/*`.
 
 | Endpoint | Methods | What it does |
 |----------|---------|-------------|
 | `/api/auth/register` | POST | Create new account |
 | `/api/auth/login` | POST | Sign in |
+| `/api/auth/logout` | POST | Sign out |
 | `/api/auth/session` | GET | Check if logged in |
 | `/api/auth/google` | GET | Redirect to Google login |
 | `/api/auth/google/callback` | GET | Handle Google's response |
 | `/api/events` | GET, POST | List/create events |
-| `/api/events/[id]` | GET | Get one event |
+| `/api/events/[id]` | GET, PATCH, DELETE | View/update/delete event |
 | `/api/bookings` | GET, POST | List/create bookings |
-| `/api/bookings/[id]` | GET, PATCH | View/update booking |
+| `/api/bookings/[id]` | GET, PATCH | View/update booking (role-guarded status transitions) |
+| `/api/packages` | POST | Create multi-provider package (atomic, race-free) |
 | `/api/providers` | GET | Search providers |
 | `/api/providers/[id]` | GET | Get provider profile |
-| `/api/messages` | GET, POST | Send/receive messages |
-| `/api/reviews` | GET, POST | Submit/view reviews |
-| `/api/payments` | POST | Process payments |
 | `/api/services` | GET, POST, PATCH, DELETE | Manage services |
 | `/api/equipment` | GET, POST, PATCH, DELETE | Manage equipment |
-| `/api/availability` | GET, POST | Manage calendar |
+| `/api/availability` | GET, POST | Manage availability calendar |
+| `/api/cart` | GET, POST, DELETE | Shopping cart |
+| `/api/cart/[id]` | PATCH, DELETE | Update/remove cart item |
+| `/api/quotes/generate-from-cart` | POST | Turn cart into quotes |
+| `/api/reviews` | GET, POST | Submit/view reviews |
+| `/api/payments` | GET, POST | List/record payments (ownership-checked) |
+| `/api/payments/initiate` | POST | Start an M-Pesa/PesaPal/card payment |
+| `/api/payments/status` | GET | Poll a payment status (read-only) |
+| `/api/payments/split` | POST | Pay the remaining balance of a split payment |
+| `/api/payments/methods` | GET | Available payment methods |
+| `/api/payments/mpesa-callback` | POST | M-Pesa STK push callback (idempotent) |
 | `/api/documents` | GET, POST | List/create documents |
-| `/api/documents/[id]` | GET, PATCH, DELETE | View/update/cancel document |
+| `/api/documents/[id]` | GET, PATCH, DELETE | View/update/cancel document (state machine) |
 | `/api/documents/generate` | POST | Auto-generate from booking |
+| `/api/agreements` | POST | Customer signs a booking agreement (amount cross-checked) |
+| `/api/messages` | GET, POST | Send/receive messages |
+| `/api/messages/thread` | POST | Create a multi-provider group thread |
+| `/api/messages/thread/[masterQuoteId]` | GET, POST | Read/send in a group thread |
+| `/api/upload` | POST | Upload an image (Cloudinary; role-gated) |
 | `/api/admin` | GET, PATCH | Admin dashboard + approve providers |
-| `/api/admin/users` | GET, PATCH | User management |
+| `/api/admin/users` | GET, PATCH | User management (paginated) |
+| `/api/admin/providers` | GET, PATCH | Provider management |
 | `/api/admin/complaints` | GET, PATCH | Complaint management |
 | `/api/admin/subscription-plans` | GET, POST, PATCH, DELETE | Plan management |
+| `/api/admin/payments` | GET, PUT | Payment credentials/config |
+| `/api/admin/logos` | GET, PUT | Branding/logos |
 | `/api/provider/settings` | GET, PATCH | Provider profile settings |
 | `/api/provider/subscription` | GET, POST | Provider subscription |
 | `/api/provider/subscription/check` | GET | Check plan limits |
-| `/api/packages` | POST | Create multi-provider package |
+| `/api/provider/dashboard` | GET | Provider dashboard stats |
+| `/api/customer/dashboard` | GET | Customer dashboard stats |
 | `/api/budget` | GET | Get cost estimates |
 | `/api/timeline` | GET, POST | Save/load event timeline |
 | `/api/local-sync` | GET, POST, PUT | Local system integration |
+| `/api/locations/...` | GET, POST, PUT, DELETE | Countries & subdivisions |
+
+---
+
+## Deployment
+
+The app is deployed as two services:
+
+| Part | Host | Folder | Notes |
+|------|------|--------|-------|
+| Frontend | **Vercel** | project root | `vercel.json` sets build/install commands |
+| Backend | **Render** | `backend/` | `render.yaml` defines the service |
+
+### Backend (Render)
+- `render.yaml` at the repo root defines the `eventicate-api` service.
+- The build runs `npm ci && node scripts/migrate-retry.mjs && npm run build` (migrations are retried so transient Neon connection issues don't strand old code).
+- **Secrets are managed in the Render dashboard**, not committed — the DB URL, JWT secret, and Cloudinary credentials are marked `sync: false` in `render.yaml`. Set them in Dashboard → Environment before first deploy.
+
+### Frontend (Vercel)
+- `next.config.ts` proxies `/api` and `/uploads` to the backend via `BACKEND_URL`.
+- The frontend needs `JWT_SECRET` (must match the backend's, so server components can verify the session cookie) and `NEXT_PUBLIC_APP_URL`.
+- Any `eventicate-*.vercel.app` preview deployment is automatically allowed by the backend's CORS config.
 
 ---
 
@@ -608,27 +652,57 @@ Edit `src/app/globals.css` — the `@theme` section defines the color palette:
 ```
 
 ### Adding new features
-1. Add database tables in `prisma/schema.prisma`
-2. Run `npm run db:push` to update the database
-3. Create API routes in `src/app/api/`
+1. Add database tables in `backend/prisma/schema.prisma`
+2. Create a migration: `cd backend && npm run db:migrate` (or `npm run db:push` during development)
+3. Add API routes in `backend/src/routes/`
 4. Create pages in the appropriate `src/app/` folder
 5. Add navigation links in `src/components/layout/Navigation.tsx`
 
-### Setting up for production
-1. Change `DATABASE_URL` in `.env` to a PostgreSQL database URL
-2. Set a strong random `JWT_SECRET`
-3. Set `NEXT_PUBLIC_APP_URL` to your domain
-4. Run `npm run build` to create the production version
-5. Deploy the `.next` folder to a hosting service (Vercel, AWS, etc.)
+### Useful scripts
+Frontend (root):
+```bash
+npm run dev       # start dev server
+npm run build     # production build
+npm run start     # run production build
+npm run lint      # lint
+```
+
+Backend (`backend/`):
+```bash
+npm run dev        # start dev API (tsx watch)
+npm run typecheck  # type-check the whole backend
+npm run test       # run unit tests
+npm run build      # compile to dist/
+npm run db:push    # apply schema to DB (dev)
+npm run db:migrate # apply migration files (production)
+npm run db:seed    # insert demo data
+```
+
+---
+
+## Security notes
+
+The project applies common security best practices:
+- **Ownership checks** on every data access (you can only read/modify your own bookings, payments, documents, threads)
+- **Role guards** on every route (CUSTOMER vs PROVIDER vs ADMIN)
+- **Booking state machines** — only legal status transitions, per role
+- **Idempotent payment callbacks** + unique transaction IDs to prevent double-charging
+- **Atomic availability reservation** to prevent double-booking under concurrency
+- **JWT sessions** with httpOnly cookies; passwords hashed with bcrypt
+- **Rate limiting** on auth, uploads, payments, and globally
+- **Helmet** security headers, CORS allow-list (incl. preview deployments)
+- **Google OAuth CSRF state** and verified-email enforcement
+- **Input validation** with Zod everywhere
+- **Secrets are not committed** — they live in the hosting dashboards (Render/Vercel)
 
 ---
 
 ## Need help?
 
-- Check Prisma Studio: `npm run db:studio`
-- Check the console in your browser's DevTools (F12) for errors
-- The terminal running `npm run dev` shows server-side errors
-- Search the codebase for specific terms using your code editor's search
+- Check Prisma Studio: `cd backend && npx prisma studio`
+- Check the browser's DevTools console (F12) for errors
+- The backend terminal shows server-side errors
+- Search the codebase for specific terms using your editor's search
 
 ---
 
