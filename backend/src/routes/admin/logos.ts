@@ -20,11 +20,6 @@ const upload = multer({
 const router = Router();
 
 router.get("/", async (req, res) => {
-  const session = await getSession(req);
-  if (!session || session.role !== "ADMIN") {
-    return res.status(403).json({ error: "Unauthorized" });
-  }
-
   const config = await prisma.systemConfig.findUnique({ where: { id: "default" } });
   return res.status(200).json({
     logoLight: config?.logoLight || null,

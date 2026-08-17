@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import { cn } from "@/lib/utils";
 import { Search, X } from "lucide-react";
 
@@ -100,7 +100,8 @@ export function Autocomplete({
     inputRef.current?.focus();
   }
 
-  const inputId = label ? label.toLowerCase().replace(/\s/g, "-") : undefined;
+  const inputId = useId();
+  const listboxId = `${inputId}-listbox`;
 
   return (
     <div ref={wrapperRef} className="relative space-y-1">
@@ -115,6 +116,14 @@ export function Autocomplete({
           ref={inputRef}
           id={inputId}
           type="text"
+          role="combobox"
+          aria-expanded={open}
+          aria-controls={listboxId}
+          aria-autocomplete="list"
+          aria-activedescendant={
+            open && focusedIndex >= 0 ? `${inputId}-option-${filtered[focusedIndex]?.value}` : undefined
+          }
+          autoComplete="off"
           value={open || !selected ? input : selected.label}
           onChange={handleInputChange}
           onFocus={() => {
@@ -130,7 +139,9 @@ export function Autocomplete({
         />
         {clearable && value && (
           <button
+            type="button"
             onClick={handleClear}
+            aria-label={`Clear ${label ?? "selection"}`}
             className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
           >
             <X className="h-4 w-4" />
@@ -138,13 +149,22 @@ export function Autocomplete({
         )}
       </div>
       {open && (
-        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+        <div
+          id={listboxId}
+          role="listbox"
+          aria-label={label ?? "Options"}
+          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
+        >
           {filtered.length === 0 ? (
             <div className="px-3 py-2 text-sm text-gray-400">{emptyLabel}</div>
           ) : (
             filtered.map((opt, i) => (
               <button
                 key={opt.value}
+                type="button"
+                id={`${inputId}-option-${opt.value}`}
+                role="option"
+                aria-selected={opt.value === value}
                 onMouseDown={(e) => {
                   e.preventDefault();
                   selectOption(opt);

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { Toggle } from "@/components/ui/Toggle";
 import { formatCurrency, parseJsonArray } from "@/lib/utils";
 import { useCurrency } from "@/hooks/useCurrency";
 import { SERVICE_CATEGORIES } from "@/lib/constants";
@@ -24,23 +25,7 @@ interface ServiceActionsProps {
 }
 
 function ToggleSwitch({ enabled, onClick }: { enabled: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={enabled}
-      onClick={onClick}
-      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-        enabled ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
-      }`}
-    >
-      <span
-        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-          enabled ? "translate-x-6" : "translate-x-1"
-        }`}
-      />
-    </button>
-  );
+  return <Toggle enabled={enabled} onClick={onClick} />;
 }
 
 export function ServiceActions({ service }: ServiceActionsProps) {
@@ -91,7 +76,7 @@ export function ServiceActions({ service }: ServiceActionsProps) {
         {images.length > 0 && (
           <div className="mb-3 flex gap-1 overflow-x-auto">
             {images.map((url, i) => (
-              <Image key={i} src={url} alt="" width={80} height={60} className="h-15 w-20 rounded object-cover" />
+              <Image key={i} src={url} alt="" width={96} height={72} className="h-16 w-24 rounded object-cover" />
             ))}
           </div>
         )}

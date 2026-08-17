@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { cn } from "@/lib/utils";
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -6,7 +7,8 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export function Input({ label, error, className, id, ...props }: InputProps) {
-  const inputId = id || label?.toLowerCase().replace(/\s/g, "-");
+  const generatedId = useId();
+  const inputId = id || generatedId;
   return (
     <div className="space-y-1">
       {label && (
@@ -16,6 +18,8 @@ export function Input({ label, error, className, id, ...props }: InputProps) {
       )}
       <input
         id={inputId}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${inputId}-error` : undefined}
         className={cn(
           "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100",
           "focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500",
@@ -24,7 +28,11 @@ export function Input({ label, error, className, id, ...props }: InputProps) {
         )}
         {...props}
       />
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && (
+        <p id={`${inputId}-error`} className="text-xs text-red-500">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
@@ -35,7 +43,8 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 export function Select({ label, options, className, id, ...props }: SelectProps) {
-  const selectId = id || label?.toLowerCase().replace(/\s/g, "-");
+  const generatedId = useId();
+  const selectId = id || generatedId;
   return (
     <div className="space-y-1">
       {label && (
@@ -67,7 +76,8 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 }
 
 export function Textarea({ label, className, id, ...props }: TextareaProps) {
-  const textareaId = id || label?.toLowerCase().replace(/\s/g, "-");
+  const generatedId = useId();
+  const textareaId = id || generatedId;
   return (
     <div className="space-y-1">
       {label && (

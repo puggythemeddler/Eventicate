@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense, useRef } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { PublicHeader } from "@/components/layout/Navigation";
 import { Input, Select } from "@/components/ui/Input";
@@ -32,6 +32,8 @@ interface Provider {
 
 function SearchContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -44,6 +46,8 @@ function SearchContent() {
     travelOutside: searchParams.get("travelOutside") || "",
   });
   const { detected, dismissed, dismiss } = useDetectedLocation();
+  const urlSyncRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fetchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     fetchCountries().then(setDbCountries);
@@ -54,33 +58,53 @@ function SearchContent() {
     ? (countries.find((c) => c.name === filters.country)?.subdivisions ?? [])
     : [];
 
+  // Sync filter state to the URL (shareable / back-button friendly)
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (filters.search) params.set("search", filters.search);
-    if (filters.category) params.set("category", filters.category);
-    if (filters.city) params.set("city", filters.city);
-    if (filters.country) params.set("country", filters.country);
-    if (filters.travelOutside) params.set("travelOutside", filters.travelOutside);
-
-    let cancelled = false;
-    setLoading(true);
-    setError("");
-    fetch(`/api/providers?${params}`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`Request failed (${r.status})`);
-        return r.json();
-      })
-      .then((data) => {
-        if (!cancelled) setProviders(data.providers || []);
-      })
-      .catch((e: Error) => {
-        if (!cancelled) setError(e.message || "Failed to load providers");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    if (urlSyncRef.current) clearTimeout(urlSyncRef.current);
+    urlSyncRef.current = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (filters.search) params.set("search", filters.search);
+      if (filters.category) params.set("category", filters.category);
+      if (filters.city) params.set("city", filters.city);
+      if (filters.country) params.set("country", filters.country);
+      if (filters.travelOutside) params.set("travelOutside", filters.travelOutside);
+      const query = params.toString();
+      router.replace(`${pathname}${query ? `?${query}` : ""}`, { scroll: false });
+    }, 400);
     return () => {
-      cancelled = true;
+      if (urlSyncRef.current) clearTimeout(urlSyncRef.current);
+    };
+  }, [filters, pathname, router]);
+
+  useEffect(() => {
+    if (fetchRef.current) clearTimeout(fetchRef.current);
+    fetchRef.current = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (filters.search) params.set("search", filters.search);
+      if (filters.category) params.set("category", filters.category);
+      if (filters.city) params.set("city", filters.city);
+      if (filters.country) params.set("country", filters.country);
+      if (filters.travelOutside) params.set("travelOutside", filters.travelOutside);
+
+      setLoading(true);
+      setError("");
+      fetch(`/api/providers?${params}`)
+        .then((r) => {
+          if (!r.ok) throw new Error(`Request failed (${r.status})`);
+          return r.json();
+        })
+        .then((data) => {
+          setProviders(data.providers || []);
+        })
+        .catch((e: Error) => {
+          setError(e.message || "Failed to load providers");
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }, 300);
+    return () => {
+      if (fetchRef.current) clearTimeout(fetchRef.current);
     };
   }, [filters]);
 

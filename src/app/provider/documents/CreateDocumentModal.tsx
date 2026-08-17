@@ -52,14 +52,19 @@ export function CreateDocumentModal({ bookings }: CreateDocumentModalProps) {
       </Button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="create-document-title"
+        >
           <Card className="w-full max-w-md">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                New Document
+                <span id="create-document-title">New Document</span>
               </CardTitle>
-              <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600">
+              <button type="button" aria-label="Close document dialog" onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600">
                 <X className="h-5 w-5" />
               </button>
             </div>

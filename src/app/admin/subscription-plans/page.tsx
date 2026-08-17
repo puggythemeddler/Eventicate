@@ -246,7 +246,7 @@ export default function SubscriptionPlansPage() {
                         <td className="py-3">
                           <div className="flex gap-1">
                             <button onClick={() => handleUpdate(plan.id)} className="rounded p-1 text-green-600 hover:bg-green-50"><Check className="h-4 w-4" /></button>
-                            <button onClick={() => { setEditingId(null); setForm(emptyForm); }} className="rounded p-1 text-gray-600 hover:bg-gray-50"><X className="h-4 w-4" /></button>
+                            <button type="button" onClick={() => { setEditingId(null); setForm(emptyForm); }} aria-label="Cancel editing" className="rounded p-1 text-gray-600 hover:bg-gray-50"><X className="h-4 w-4" /></button>
                           </div>
                         </td>
                       </>
@@ -264,8 +264,8 @@ export default function SubscriptionPlansPage() {
                         </td>
                         <td className="py-3">
                           <div className="flex gap-1">
-                            <button onClick={() => startEdit(plan)} className="rounded p-1 text-blue-600 hover:bg-blue-50"><Pencil className="h-4 w-4" /></button>
-                            <button onClick={() => handleDelete(plan.id)} className="rounded p-1 text-red-600 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button>
+                            <button type="button" onClick={() => startEdit(plan)} aria-label={`Edit ${plan.name}`} className="rounded p-1 text-blue-600 hover:bg-blue-50"><Pencil className="h-4 w-4" /></button>
+                            <button type="button" onClick={() => handleDelete(plan.id)} aria-label={`Delete ${plan.name}`} className="rounded p-1 text-red-600 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button>
                           </div>
                         </td>
                       </>

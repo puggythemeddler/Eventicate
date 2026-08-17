@@ -226,14 +226,18 @@ export default function CartPage() {
                           </div>
                           <div className="flex items-center gap-2">
                             <button
+                              type="button"
                               onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              aria-label={`Decrease quantity of ${getItemName(item)}`}
                               className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
                             >
                               <Minus className="h-4 w-4" />
                             </button>
                             <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
                             <button
+                              type="button"
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              aria-label={`Increase quantity of ${getItemName(item)}`}
                               className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
                             >
                               <Plus className="h-4 w-4" />
@@ -243,7 +247,9 @@ export default function CartPage() {
                             <p className="font-medium">{formatCurrency(getSubtotal(item), currency)}</p>
                           </div>
                           <button
+                            type="button"
                             onClick={() => removeItem(item.id)}
+                            aria-label={`Remove ${getItemName(item)} from cart`}
                             className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500"
                           >
                             <Trash2 className="h-4 w-4" />

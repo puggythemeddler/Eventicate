@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
@@ -79,6 +79,22 @@ export default function ProviderSubscriptionPage() {
   const [paymentError, setPaymentError] = useState("");
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "waiting" | "success" | "failed">("idle");
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showPayment) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowPayment(false);
+    };
+    document.addEventListener("keydown", handleKey);
+    modalRef.current?.focus();
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [showPayment]);
 
   useEffect(() => {
     (async () => {
@@ -132,14 +148,14 @@ export default function ProviderSubscriptionPage() {
 
   function getEffectivePrice(plan: Plan): number {
     if (selectedBilling === "ANNUAL") {
-      return plan.annualPrice ?? plan.price * 12 * 0.85;
+      return plan.annualPrice ?? plan.price * 12;
     }
     return plan.price;
   }
 
-  function getSavingsPct(plan: Plan): number {
-    const annualPrice = plan.annualPrice ?? plan.price * 12 * 0.85;
-    return Math.round((1 - annualPrice / (plan.price * 12)) * 100);
+  function getSavingsPct(plan: Plan): number | null {
+    if (plan.annualPrice == null) return null;
+    return Math.round((1 - plan.annualPrice / (plan.price * 12)) * 100);
   }
 
   async function handleSubscribeClick(plan: Plan) {
@@ -415,7 +431,7 @@ export default function ProviderSubscriptionPage() {
               </button>
             </div>
             {selectedBilling === "ANNUAL" && (
-              <Badge variant="success">Save up to 15% with annual billing</Badge>
+              <Badge variant="success">Annual billing</Badge>
             )}
           </div>
 
@@ -480,7 +496,7 @@ export default function ProviderSubscriptionPage() {
                         <span className="text-sm font-normal text-gray-400">
                           {selectedBilling === "ANNUAL" ? "/yr" : "/mo"}
                         </span>
-                        {selectedBilling === "ANNUAL" && plan.price > 0 && (
+                        {selectedBilling === "ANNUAL" && plan.price > 0 && getSavingsPct(plan) != null && (
                           <Badge variant="success" className="ml-2">
                             Save {getSavingsPct(plan)}%
                           </Badge>
@@ -537,9 +553,18 @@ export default function ProviderSubscriptionPage() {
         </Card>
 
         {showPayment && selectedPlan && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-gray-900">
-              <h3 className="mb-4 text-lg font-bold">Complete Payment</h3>
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="payment-modal-title"
+          >
+            <div
+              ref={modalRef}
+              tabIndex={-1}
+              className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-xl outline-none dark:bg-gray-900"
+            >
+              <h3 id="payment-modal-title" className="mb-4 text-lg font-bold">Complete Payment</h3>
 
               <div className="mb-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
                 <p className="text-sm text-gray-500 dark:text-gray-400">{selectedPlan.name}</p>

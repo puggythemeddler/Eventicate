@@ -142,6 +142,15 @@ export function AuthForm({ mode, defaultRole = "customer", googleError }: AuthFo
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               required
             />
+            {isRegister && (
+              <Input
+                label="Phone Number"
+                type="tel"
+                placeholder="+254700000000"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              />
+            )}
             <Input
               label="Password"
               type="password"

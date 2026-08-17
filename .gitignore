@@ -2,6 +2,7 @@ node_modules/
 .next/
 *.db
 *.db-journal
+tsconfig.tsbuildinfo
 .env
 .env.local
 .env.production

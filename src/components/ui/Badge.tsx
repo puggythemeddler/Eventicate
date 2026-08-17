@@ -49,20 +49,25 @@ export function StatusBadge({ status }: { status: string }) {
 }
 
 export function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
+  const clamped = Math.max(0, Math.min(5, rating || 0));
   return (
-    <div className="flex items-center gap-0.5">
+    <div
+      className="flex items-center gap-0.5"
+      role="img"
+      aria-label={`${clamped.toFixed(1)} out of 5 stars`}
+    >
       {[1, 2, 3, 4, 5].map((star) => (
         <span
           key={star}
           className={cn(
             size === "sm" ? "text-sm" : "text-lg",
-            star <= Math.round(rating) ? "text-yellow-400" : "text-gray-300 dark:text-gray-600"
+            star <= Math.round(clamped) ? "text-yellow-400" : "text-gray-300 dark:text-gray-600"
           )}
         >
           ★
         </span>
       ))}
-      <span className="ml-1 text-sm text-gray-600 dark:text-gray-400">{rating.toFixed(1)}</span>
+      <span className="ml-1 text-sm text-gray-600 dark:text-gray-400">{clamped.toFixed(1)}</span>
     </div>
   );
 }

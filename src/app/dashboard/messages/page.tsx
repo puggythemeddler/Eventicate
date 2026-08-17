@@ -285,11 +285,18 @@ function MessagesContent() {
         </div>
 
         {showNewModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="new-message-title"
+          >
             <Card className="w-full max-w-md">
               <div className="mb-4 flex items-center justify-between">
-                <CardTitle>New Message</CardTitle>
+                <CardTitle><span id="new-message-title">New Message</span></CardTitle>
                 <button
+                  type="button"
+                  aria-label="Close new message dialog"
                   onClick={() => {
                     setShowNewModal(false);
                     setSelectedReceiver("");
