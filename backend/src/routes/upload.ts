@@ -5,8 +5,11 @@ import { getSession } from "../lib/auth";
 import { uploadBuffer, cloudinaryEnabled, sanitizeFolderName } from "../lib/cloudinary";
 import { uploadLimiter } from "../lib/rate-limit";
 
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif"];
+const ALLOWED_TYPES = [
+  "image/jpeg", "image/png", "image/webp", "image/gif",
+  "application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "pdf", "doc", "docx"];
 const ALLOWED_FOLDER_TYPES = [
   "services",
   "venues",
@@ -16,6 +19,7 @@ const ALLOWED_FOLDER_TYPES = [
   "photoPackages",
   "logos",
   "providers",
+  "messages",
 ];
 
 const upload = multer({
@@ -54,18 +58,19 @@ router.post("/", uploadLimiter, (req, res) => {
       return res.status(400).json({ error: "Invalid upload folder type" });
     }
 
-    // Role gate: only providers (own content) and admins (branding/global) may upload.
+    // Role gate: providers upload their own content, admins handle branding/global,
+    // and message attachments are allowed for any logged-in user.
     const PROVIDER_FOLDERS = new Set([
       "services", "venues", "equipment", "vehicles", "menuPackages", "photoPackages",
     ]);
     const ADMIN_FOLDERS = new Set(["logos", "providers"]);
-    if (session.role === "CUSTOMER") {
+    if (session.role === "CUSTOMER" && type !== "messages") {
       return res.status(403).json({ error: "Forbidden" });
     }
-    if (session.role === "PROVIDER" && !PROVIDER_FOLDERS.has(type)) {
+    if (session.role === "PROVIDER" && !PROVIDER_FOLDERS.has(type) && type !== "messages") {
       return res.status(403).json({ error: "Forbidden" });
     }
-    if (session.role === "ADMIN" && !ADMIN_FOLDERS.has(type)) {
+    if (session.role === "ADMIN" && !ADMIN_FOLDERS.has(type) && type !== "messages") {
       return res.status(403).json({ error: "Forbidden" });
     }
 
@@ -74,7 +79,7 @@ router.post("/", uploadLimiter, (req, res) => {
       select: { businessName: true },
     });
 
-    const folderName = (provider?.businessName || (session.role === "ADMIN" ? "admin" : "anonymous")).trim();
+    const folderName = (provider?.businessName || (session.role === "ADMIN" ? "admin" : session.role.toLowerCase())).trim();
     const safeFolder = sanitizeFolderName(folderName);
 
     try {

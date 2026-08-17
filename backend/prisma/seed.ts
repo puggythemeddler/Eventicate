@@ -87,13 +87,14 @@ async function main() {
   // Admin user
   const admin = await prisma.user.upsert({
     where: { email: "admin@eventicate.com" },
-    update: {},
+    update: { phone: "+254700000001" },
     create: {
       email: "admin@eventicate.com",
       passwordHash,
       firstName: "Admin",
       lastName: "User",
       role: "ADMIN",
+      phone: "+254700000001",
       isVerified: true,
     },
   });
@@ -101,13 +102,14 @@ async function main() {
   // Customer
   const customer = await prisma.user.upsert({
     where: { email: "customer@eventicate.com" },
-    update: {},
+    update: { phone: "+254700000002" },
     create: {
       email: "customer@eventicate.com",
       passwordHash,
       firstName: "Jane",
       lastName: "Organizer",
       role: "CUSTOMER",
+      phone: "+254700000002",
       isVerified: true,
       customerProfile: { create: { city: "New York", country: "USA" } },
     },
@@ -116,13 +118,14 @@ async function main() {
   // PA System Provider
   const paProvider = await prisma.user.upsert({
     where: { email: "pa@soundpro.com" },
-    update: {},
+    update: { phone: "+254700000003" },
     create: {
       email: "pa@soundpro.com",
       passwordHash,
       firstName: "Mike",
       lastName: "Sound",
       role: "PROVIDER",
+      phone: "+254700000003",
       isVerified: true,
       providerProfile: {
         create: {
@@ -143,13 +146,14 @@ async function main() {
   // Catering Provider
   const cateringProvider = await prisma.user.upsert({
     where: { email: "catering@delight.com" },
-    update: {},
+    update: { phone: "+254700000004" },
     create: {
       email: "catering@delight.com",
       passwordHash,
       firstName: "Maria",
       lastName: "Delight",
       role: "PROVIDER",
+      phone: "+254700000004",
       isVerified: true,
       providerProfile: {
         create: {
@@ -170,13 +174,14 @@ async function main() {
   // Venue Provider
   const venueProvider = await prisma.user.upsert({
     where: { email: "venue@grandhall.com" },
-    update: {},
+    update: { phone: "+254700000005" },
     create: {
       email: "venue@grandhall.com",
       passwordHash,
       firstName: "Robert",
       lastName: "Hall",
       role: "PROVIDER",
+      phone: "+254700000005",
       isVerified: true,
       providerProfile: {
         create: {
@@ -197,13 +202,14 @@ async function main() {
   // Tents Provider
   const tentsProvider = await prisma.user.upsert({
     where: { email: "tents@canopy.com" },
-    update: {},
+    update: { phone: "+254700000006" },
     create: {
       email: "tents@canopy.com",
       passwordHash,
       firstName: "Dennis",
       lastName: "Canopy",
       role: "PROVIDER",
+      phone: "+254700000006",
       isVerified: true,
       providerProfile: {
         create: {
@@ -226,6 +232,11 @@ async function main() {
   const venueProfile = venueProvider.providerProfile!;
   const tentsProfile = tentsProvider.providerProfile!;
 
+  // Sample event for customer (fetched early so it can be cleared idempotently)
+  const customerProfile = await prisma.customerProfile.findUnique({
+    where: { userId: customer.id },
+  });
+
   // Clear demo content (idempotent re-seed)
   await prisma.$transaction([
     prisma.equipment.deleteMany({ where: { providerId: { in: [paProfile.id, tentsProfile.id] } } }),
@@ -234,6 +245,7 @@ async function main() {
     prisma.pricingRule.deleteMany({ where: { providerId: { in: [paProfile.id, cateringProfile.id, venueProfile.id, tentsProfile.id] } } }),
     prisma.booking.deleteMany({ where: { providerId: { in: [paProfile.id, cateringProfile.id, venueProfile.id, tentsProfile.id] } } }),
     prisma.service.deleteMany({ where: { providerId: { in: [paProfile.id, cateringProfile.id, venueProfile.id, tentsProfile.id] } } }),
+    prisma.event.deleteMany({ where: { customerId: customerProfile?.id, title: "Sarah & John's Wedding" } }),
   ]);
 
   // PA Services & Equipment
@@ -352,10 +364,6 @@ async function main() {
   });
 
   // Sample event for customer
-  const customerProfile = await prisma.customerProfile.findUnique({
-    where: { userId: customer.id },
-  });
-
   if (customerProfile) {
     const event = await prisma.event.create({
       data: {
@@ -372,7 +380,7 @@ async function main() {
       },
     });
 
-    await prisma.booking.create({
+    const booking = await prisma.booking.create({
       data: {
         eventId: event.id,
         customerId: customerProfile.id,
@@ -382,6 +390,34 @@ async function main() {
         quotedPrice: 35000,
         customerNotes: "Need full PA setup for ceremony and reception",
       },
+    });
+
+    // Seed a starter conversation so the messaging UI has data out of the box.
+    const conversation = await prisma.conversation.create({
+      data: { bookingId: booking.id },
+    });
+    await prisma.message.createMany({
+      data: [
+        {
+          conversationId: conversation.id,
+          senderId: customer.id,
+          receiverId: paProvider.id,
+          bookingId: booking.id,
+          type: "TEXT",
+          content: "Hi Mike! We booked the full PA setup for our wedding on Sep 15. A few quick questions.",
+          createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000),
+        },
+        {
+          conversationId: conversation.id,
+          senderId: paProvider.id,
+          receiverId: customer.id,
+          bookingId: booking.id,
+          type: "TEXT",
+          content: "Hi Jane! Congrats! Happy to help — what do you need to know?",
+          createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+          isRead: true,
+        },
+      ],
     });
   }
 
