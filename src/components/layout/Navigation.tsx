@@ -160,7 +160,7 @@ export function Sidebar({ role }: { role: "CUSTOMER" | "PROVIDER" | "ADMIN" }) {
         </div>
       </div>
 
-      <aside className="hidden w-64 flex-col border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 md:flex">
+      <aside className="sticky top-0 hidden h-screen w-64 flex-col border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 md:flex">
         <div className="border-b border-gray-200 p-6 dark:border-gray-800">
           <Link href="/">
             <EventicateLogo className="h-8" />
