@@ -109,13 +109,6 @@ export function ProviderBookingActions({ bookingId, status }: { bookingId: strin
       {status === "CONFIRMED" && (
         <div className="flex flex-wrap gap-3">
           <Button
-            variant="primary"
-            disabled={submitting !== null}
-            onClick={() => updateStatus({ status: "DEPOSIT_PAID" })}
-          >
-            Mark Deposit Paid
-          </Button>
-          <Button
             variant="secondary"
             disabled={submitting !== null}
             onClick={() => updateStatus({ status: "COMPLETED" })}

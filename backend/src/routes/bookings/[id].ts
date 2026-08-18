@@ -18,12 +18,13 @@ const updateSchema = z.object({
   quotationDetails: z.string().optional(),
 });
 
-// Provider-allowed transitions (who can set which status, and from which states).
+// Provider-allowed transitions. Money states (DEPOSIT_PAID) can only ever be
+// reached through a verified payment in the payments flow — never via this PATCH.
 const PROVIDER_TRANSITIONS: Record<string, string[]> = {
   QUOTATION_REQUESTED: ["QUOTATION_SENT", "REJECTED", "CANCELLED"],
   QUOTATION_SENT: ["PENDING_APPROVAL", "REJECTED", "CANCELLED"],
   PENDING_APPROVAL: ["CONFIRMED", "REJECTED", "CANCELLED"],
-  CONFIRMED: ["DEPOSIT_PAID", "COMPLETED", "CANCELLED"],
+  CONFIRMED: ["COMPLETED", "CANCELLED"],
   DEPOSIT_PAID: ["COMPLETED", "CANCELLED"],
   COMPLETED: [],
   CANCELLED: [],
@@ -98,6 +99,16 @@ router.patch("/", async (req, res) => {
       if (transitionError) {
         return res.status(400).json({ error: transitionError });
       }
+      // Providers may never set a money state via this endpoint — a booking can
+      // only become DEPOSIT_PAID through a verified payment record.
+      if (session.role === "PROVIDER" && data.status === "DEPOSIT_PAID") {
+        return res.status(403).json({ error: "Deposit paid status can only be set once payment is verified" });
+      }
+      // COMPLETED requires a confirmed or deposit-paid booking.
+      if (session.role === "PROVIDER" && data.status === "COMPLETED" &&
+          booking.status !== "CONFIRMED" && booking.status !== "DEPOSIT_PAID") {
+        return res.status(400).json({ error: "Booking must be confirmed before it can be completed" });
+      }
     }
 
     // Price fields are provider-owned.
@@ -109,13 +120,10 @@ router.patch("/", async (req, res) => {
       where: { id },
       data: {
         ...data,
-        // depositPaid is only true once a real deposit payment is recorded (payments flow).
+        // depositPaid is only ever set true by the verified payments flow — this
+        // endpoint only clears it when a booking is cancelled or rejected.
         depositPaid:
-          data.status === "DEPOSIT_PAID"
-            ? true
-            : data.status === "CANCELLED" || data.status === "REJECTED"
-              ? false
-              : undefined,
+          data.status === "CANCELLED" || data.status === "REJECTED" ? false : undefined,
       },
       include: { event: true, provider: true, service: true },
     });

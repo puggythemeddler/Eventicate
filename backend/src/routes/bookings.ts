@@ -3,6 +3,7 @@ import { z } from "zod";
 import prisma from "../lib/prisma";
 import { getSession } from "../lib/auth";
 import { calculateDynamicPrice, createNotification } from "../lib/booking-engine";
+import { checkProviderCan } from "../lib/subscription";
 import { sendBookingConfirmation, sendNewBookingNotification } from "../lib/email";
 
 const bookingSchema = z.object({
@@ -19,7 +20,7 @@ router.get("/", async (req, res) => {
   const session = await getSession(req);
   if (!session) return res.status(401).json({ error: "Unauthorized" });
 
-  const role = (req.query.role as string | undefined) || session.role;
+  const role = session.role;
 
   if (role === "PROVIDER") {
     const provider = await prisma.providerProfile.findUnique({
@@ -80,11 +81,26 @@ router.post("/", async (req, res) => {
       include: { user: true },
     });
     if (!provider) return res.status(404).json({ error: "Provider not found" });
+    if (!provider.isApproved) {
+      return res.status(400).json({ error: "This provider is not yet approved to accept bookings" });
+    }
+
+    // Respect the provider's plan booking limit (maxBookings).
+    const planCheck = await checkProviderCan(provider.id, "createBooking");
+    if (!planCheck.allowed) {
+      return res.status(400).json({ error: "This provider has reached the maximum number of bookings allowed by their plan. Please try another provider." });
+    }
 
     let basePrice = 0;
     if (data.serviceId) {
       const service = await prisma.service.findUnique({ where: { id: data.serviceId } });
-      if (service) basePrice = service.basePrice;
+      if (service) {
+        // A booking must reference a service owned by the selected provider.
+        if (service.providerId !== provider.id) {
+          return res.status(400).json({ error: "The selected service does not belong to this provider" });
+        }
+        basePrice = service.basePrice;
+      }
     }
 
     const quotedPrice = basePrice > 0
