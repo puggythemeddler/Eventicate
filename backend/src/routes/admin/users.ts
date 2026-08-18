@@ -1,6 +1,7 @@
 import { Router } from "express";
+import { z } from "zod";
 import prisma from "../../lib/prisma";
-import { getSession } from "../../lib/auth";
+import { getSession, hashPassword } from "../../lib/auth";
 
 const router = Router();
 
@@ -40,6 +41,7 @@ router.get("/", async (req, res) => {
         firstName: true,
         lastName: true,
         email: true,
+        phone: true,
         role: true,
         isActive: true,
         isVerified: true,
@@ -55,6 +57,7 @@ router.get("/", async (req, res) => {
     firstName: u.firstName,
     lastName: u.lastName,
     email: u.email,
+    phone: u.phone,
     role: u.role,
     isActive: u.isActive,
     isVerified: u.isVerified,
@@ -71,23 +74,76 @@ router.get("/", async (req, res) => {
   });
 });
 
+const userUpdateSchema = z.object({
+  userId: z.string().min(1),
+  firstName: z.string().trim().min(1).max(100).optional(),
+  lastName: z.string().trim().min(1).max(100).optional(),
+  email: z.string().trim().email().optional(),
+  phone: z.string().trim().max(30).optional().nullable(),
+  role: z.enum(["CUSTOMER", "PROVIDER", "ADMIN"]).optional(),
+  isActive: z.boolean().optional(),
+  password: z.string().min(8).max(128).optional(),
+});
+
 router.patch("/", async (req, res) => {
   const session = await getSession(req);
   if (!session || session.role !== "ADMIN") {
     return res.status(403).json({ error: "Unauthorized" });
   }
 
-  const body = req.body;
-  const { userId, isActive } = body;
+  const parsed = userUpdateSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: parsed.error.errors });
+  }
+  const { userId, firstName, lastName, email, phone, role, isActive, password } = parsed.data;
 
-  if (!userId || typeof isActive !== "boolean") {
-    return res.status(400).json({ error: "Invalid request body" });
+  const target = await prisma.user.findUnique({ where: { id: userId } });
+  if (!target) return res.status(404).json({ error: "User not found" });
+
+  if (userId === session.id) {
+    if (role && role !== "ADMIN") {
+      return res.status(400).json({ error: "You cannot change your own role" });
+    }
+    if (isActive === false) {
+      return res.status(400).json({ error: "You cannot deactivate your own account" });
+    }
   }
 
-  const user = await prisma.user.update({
-    where: { id: userId },
-    data: { isActive },
-    select: { id: true, isActive: true, firstName: true, lastName: true, email: true, role: true },
+  if (email && email !== target.email) {
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing && existing.id !== userId) {
+      return res.status(409).json({ error: "Email is already in use" });
+    }
+  }
+
+  const data: Record<string, unknown> = {};
+  if (firstName !== undefined) data.firstName = firstName;
+  if (lastName !== undefined) data.lastName = lastName;
+  if (email !== undefined) data.email = email;
+  if (phone !== undefined) data.phone = phone;
+  if (role !== undefined) data.role = role;
+  if (isActive !== undefined) data.isActive = isActive;
+  if (password !== undefined) data.passwordHash = await hashPassword(password);
+
+  const user = await prisma.$transaction(async (tx) => {
+    if (role === "PROVIDER") {
+      await tx.providerProfile.upsert({
+        where: { userId },
+        create: { userId, businessName: `${target.firstName} ${target.lastName}`.trim(), category: "OTHER" },
+        update: {},
+      });
+    } else if (role === "CUSTOMER") {
+      await tx.customerProfile.upsert({
+        where: { userId },
+        create: { userId },
+        update: {},
+      });
+    }
+    return tx.user.update({
+      where: { id: userId },
+      data,
+      select: { id: true, isActive: true, firstName: true, lastName: true, email: true, phone: true, role: true },
+    });
   });
 
   return res.status(200).json({ user });

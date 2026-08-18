@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { serverApi } from "@/lib/server-api";
 import { formatDate } from "@/lib/utils";
-import { ToggleUserStatus } from "./ToggleUserStatus";
+import { UserActions } from "./UserActions";
 
 const ROLE_OPTIONS = [
   { value: "ALL", label: "All Roles" },
@@ -39,6 +39,7 @@ export default async function AdminUsersPage({
       firstName: string;
       lastName: string;
       email: string;
+      phone: string | null;
       role: string;
       isActive: boolean;
       isVerified: boolean;
@@ -109,7 +110,7 @@ export default async function AdminUsersPage({
                   <td className="px-6 py-4 text-gray-500 dark:text-gray-400">{formatDate(user.createdAt)}</td>
                   <td className="px-6 py-4 text-right text-gray-500 dark:text-gray-400">{user.bookingCount}</td>
                   <td className="px-6 py-4 text-right">
-                    <ToggleUserStatus userId={user.id} isActive={user.isActive} />
+                    <UserActions user={user} isSelf={user.id === session.id} />
                   </td>
                 </tr>
               ))}
