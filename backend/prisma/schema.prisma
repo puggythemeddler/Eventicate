@@ -180,6 +180,11 @@ model ProviderProfile {
   phone           String?
   website         String?
   isApproved      Boolean         @default(false)
+  verificationStatus String        @default("NONE") // NONE | PENDING | VERIFIED | REJECTED
+  verificationSubmittedAt DateTime?
+  verifiedAt      DateTime?
+  verificationDocuments String      @default("[]") // JSON array of uploaded doc URLs
+  verificationNote String?
   averageRating   Float           @default(0)
   totalReviews    Int             @default(0)
   services        Service[]

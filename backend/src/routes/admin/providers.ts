@@ -3,6 +3,7 @@ import { z } from "zod";
 import prisma from "../../lib/prisma";
 import { getSession, hashPassword } from "../../lib/auth";
 import { sendWelcomeEmail } from "../../lib/email";
+import { createNotification } from "../../lib/booking-engine";
 
 const router = Router();
 
@@ -238,6 +239,57 @@ router.patch("/:id/status", async (req, res) => {
     }
     console.error("Admin toggle provider status error:", error);
     return res.status(500).json({ error: "Failed to update provider status" });
+  }
+});
+
+// Approve or reject a provider verification request.
+router.patch("/:id/verification", async (req, res) => {
+  const session = await getSession(req);
+  if (!session || session.role !== "ADMIN") {
+    return res.status(403).json({ error: "Unauthorized" });
+  }
+
+  try {
+    const { id } = req.params;
+    const { status, note } = z
+      .object({
+        status: z.enum(["VERIFIED", "REJECTED"]),
+        note: z.string().max(1000).optional(),
+      })
+      .parse(req.body);
+
+    const provider = await prisma.providerProfile.findUnique({ where: { id } });
+    if (!provider) return res.status(404).json({ error: "Provider not found" });
+
+    const now = new Date();
+    const updated = await prisma.providerProfile.update({
+      where: { id },
+      data: {
+        verificationStatus: status,
+        verificationNote: note ?? undefined,
+        verifiedAt: status === "VERIFIED" ? now : null,
+        // A verified provider is by definition approved to take bookings.
+        isApproved: status === "VERIFIED" ? true : provider.isApproved,
+      },
+    });
+
+    await createNotification(
+      provider.userId,
+      "SYSTEM",
+      status === "VERIFIED" ? "Business Verified" : "Verification Update",
+      status === "VERIFIED"
+        ? "Congratulations! Your business is now verified on Eventicate."
+        : note || "Your verification request was not approved. Please review the note and re-submit.",
+      "/provider/settings"
+    );
+
+    return res.status(200).json({ verificationStatus: updated.verificationStatus });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors });
+    }
+    console.error("Admin verification error:", error);
+    return res.status(500).json({ error: "Failed to update verification" });
   }
 });
 

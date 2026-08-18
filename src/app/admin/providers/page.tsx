@@ -11,7 +11,7 @@ import { SERVICE_CATEGORIES } from "@/lib/constants";
 import { ApproveButton } from "./ApproveProvider";
 import { RejectButton } from "./RejectButton";
 import { AddProviderButton } from "./AddProvider";
-import { EditProviderButton, DeactivateButton, DeleteProviderButton } from "./ProviderActions";
+import { EditProviderButton, DeactivateButton, DeleteProviderButton, VerifyProviderButton } from "./ProviderActions";
 
 interface ProviderRow {
   id: string;
@@ -21,6 +21,9 @@ interface ProviderRow {
   country: string | null;
   description: string | null;
   isApproved: boolean;
+  verificationStatus: string;
+  verificationDocuments: string;
+  verificationNote: string | null;
   averageRating: number;
   hasPaid: boolean;
   isActive: boolean;
@@ -28,6 +31,13 @@ interface ProviderRow {
   subscription: { status: string; plan: { name: string } | null; currentPeriodEnd: string | null } | null;
   _count: { bookings: number; reviewsReceived: number };
 }
+
+const VERIFICATION_META: Record<string, { label: string; className: string }> = {
+  VERIFIED: { label: "Verified", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" },
+  PENDING: { label: "Verification Pending", className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300" },
+  REJECTED: { label: "Verification Rejected", className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300" },
+  NONE: { label: "Not Verified", className: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300" },
+};
 
 const APPROVAL_OPTIONS = [
   { value: "ALL", label: "All Status" },
@@ -139,7 +149,14 @@ export default async function AdminProvidersPage({
                     !p.isActive ? "opacity-50" : ""
                   }`}
                 >
-                  <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">{p.businessName}</td>
+                  <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">
+                    {p.businessName}
+                    {p.verificationStatus && p.verificationStatus !== "NONE" && (
+                      <span className={`ml-2 inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${VERIFICATION_META[p.verificationStatus]?.className || VERIFICATION_META.NONE.className}`}>
+                        {VERIFICATION_META[p.verificationStatus]?.label || "Not Verified"}
+                      </span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
                     {p.user.firstName} {p.user.lastName}
                     {!p.isActive && (
@@ -181,6 +198,7 @@ export default async function AdminProvidersPage({
                           <RejectButton providerId={p.id} />
                         </>
                       )}
+                      <VerifyProviderButton provider={p} />
                       <EditProviderButton provider={p} />
                       <DeactivateButton provider={p} />
                       <DeleteProviderButton provider={p} />

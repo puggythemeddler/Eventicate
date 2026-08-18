@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { Card, CardTitle } from "@/components/ui/Card";
-import { Loader2, Pencil, Trash2, X, CheckCircle, Ban, RotateCcw } from "lucide-react";
+import { Loader2, Pencil, Trash2, X, CheckCircle, Ban, RotateCcw, ShieldCheck, ShieldX } from "lucide-react";
 import { SERVICE_CATEGORIES } from "@/lib/constants";
 
 interface EditableProvider {
@@ -17,7 +17,130 @@ interface EditableProvider {
   country: string | null;
   isApproved: boolean;
   isActive: boolean;
+  verificationStatus: string;
+  verificationDocuments: string;
+  verificationNote: string | null;
   user: { firstName: string; lastName: string; email: string; phone: string | null };
+}
+
+export function VerifyProviderButton({ provider }: { provider: EditableProvider }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  async function decide(status: "VERIFIED" | "REJECTED") {
+    setSaving(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/admin/providers/${provider.id}/verification`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, note: note || undefined }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to update verification");
+      }
+      setOpen(false);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update verification");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const docs = (() => {
+    try {
+      return JSON.parse(provider.verificationDocuments || "[]") as string[];
+    } catch {
+      return [] as string[];
+    }
+  })();
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setOpen(true)}
+        disabled={provider.verificationStatus !== "PENDING" && provider.verificationStatus !== "REJECTED"}
+        aria-label={`Verify ${provider.businessName}`}
+      >
+        <ShieldCheck className="h-3.5 w-3.5" />
+      </Button>
+
+      {open && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="verify-provider-title"
+        >
+          <Card className="max-h-[90vh] w-full max-w-lg overflow-y-auto">
+            <div className="mb-4 flex items-center justify-between">
+              <CardTitle><span id="verify-provider-title">Review Verification — {provider.businessName}</span></CardTitle>
+              <button type="button" onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600" aria-label="Close">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              Submitted documents
+            </p>
+            {docs.length === 0 ? (
+              <p className="mb-4 text-sm text-gray-500">No documents submitted.</p>
+            ) : (
+              <ul className="mb-4 space-y-1.5">
+                {docs.map((url, i) => (
+                  <li key={i}>
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary-600 underline hover:text-primary-700"
+                    >
+                      {url.split("/").pop() || url}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {provider.verificationNote && (
+              <p className="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                Previous note: {provider.verificationNote}
+              </p>
+            )}
+
+            <Textarea
+              label="Note to provider"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={2}
+              placeholder="Reason for rejection or a note to the provider..."
+            />
+
+            {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+
+            <div className="mt-6 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button variant="danger" onClick={() => decide("REJECTED")} disabled={saving}>
+                <ShieldX className="mr-1 h-4 w-4" />
+                {saving ? "Saving..." : "Reject"}
+              </Button>
+              <Button onClick={() => decide("VERIFIED")} disabled={saving}>
+                <ShieldCheck className="mr-1 h-4 w-4" />
+                {saving ? "Saving..." : "Approve"}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+    </>
+  );
 }
 
 export function EditProviderButton({ provider }: { provider: EditableProvider }) {

@@ -19,6 +19,7 @@ const ALLOWED_FOLDER_TYPES = [
   "photoPackages",
   "logos",
   "providers",
+  "verification",
   "messages",
 ];
 
@@ -61,9 +62,9 @@ router.post("/", uploadLimiter, (req, res) => {
     // Role gate: providers upload their own content, admins handle branding/global,
     // and message attachments are allowed for any logged-in user.
     const PROVIDER_FOLDERS = new Set([
-      "services", "venues", "equipment", "vehicles", "menuPackages", "photoPackages",
+      "services", "venues", "equipment", "vehicles", "menuPackages", "photoPackages", "verification",
     ]);
-    const ADMIN_FOLDERS = new Set(["logos", "providers"]);
+    const ADMIN_FOLDERS = new Set(["logos", "providers", "verification"]);
     if (session.role === "CUSTOMER" && type !== "messages") {
       return res.status(403).json({ error: "Forbidden" });
     }

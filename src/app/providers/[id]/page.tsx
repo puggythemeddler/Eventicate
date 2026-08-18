@@ -7,7 +7,7 @@ import { Badge, StarRating } from "@/components/ui/Badge";
 import { PublicAvailabilityCalendar } from "./PublicAvailabilityCalendar";
 import { serverApi } from "@/lib/server-api";
 import { formatCurrency, parseJsonArray, getCurrencyForCountry } from "@/lib/utils";
-import { MapPin } from "lucide-react";
+import { MapPin, ShieldCheck } from "lucide-react";
 import { SERVICE_CATEGORIES, EVENT_TYPES } from "@/lib/constants";
 import { CategoryIcon } from "@/components/layout/Navigation";
 import { AddToCartButton } from "./AddToCartButton";
@@ -33,6 +33,7 @@ interface ProviderData {
   travelOutsideArea: boolean;
   travelRadius: number | null;
   description: string | null;
+  verificationStatus: string;
   services: Array<{
     id: string;
     name: string;
@@ -127,7 +128,15 @@ export default async function ProviderProfilePage({
                 <CategoryIcon category={provider.category} />
               </div>
               <div>
-                <h1 className="text-3xl font-bold">{provider.businessName}</h1>
+                <h1 className="flex items-center gap-2 text-3xl font-bold">
+                  {provider.businessName}
+                  {provider.verificationStatus === "VERIFIED" && (
+                    <Badge variant="success" className="flex items-center gap-1">
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      Verified
+                    </Badge>
+                  )}
+                </h1>
                 <p className="text-primary-100">{categoryLabel}{provider.city && ` · ${provider.city}`}{provider.country && `, ${provider.country}`}</p>
                 <div className="flex items-center gap-2">
                   <StarRating rating={provider.averageRating} size="md" />

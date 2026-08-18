@@ -5,6 +5,7 @@ import { PageContent } from "@/components/layout/PageContent";
 import { serverApi } from "@/lib/server-api";
 import { COUNTRIES } from "@/lib/locations";
 import { SettingsForm } from "./SettingsForm";
+import { VerificationSection } from "./VerificationSection";
 
 interface CountryData {
   name: string;
@@ -39,6 +40,9 @@ interface SettingsData {
     travelRadius: number | null;
     defaultDiscount: number;
     applyDiscountToAll: boolean;
+    isApproved: boolean;
+    verificationStatus: string;
+    verificationNote: string | null;
   };
   pricingRules: PricingRuleRow[];
   activeServices: { basePrice: number; discountPercent: number }[];
@@ -94,6 +98,14 @@ export default async function ProviderSettingsPage() {
           pricingRules={pricingRules}
           currentServices={currentServices}
         />
+
+        <div className="mt-8">
+          <VerificationSection
+            verificationStatus={provider.verificationStatus}
+            verificationNote={provider.verificationNote}
+            isApproved={provider.isApproved}
+          />
+        </div>
       </PageContent>
     </div>
   );
