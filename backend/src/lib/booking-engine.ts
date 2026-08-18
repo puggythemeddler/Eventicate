@@ -121,6 +121,69 @@ export async function getProviderAvailability(
   });
 }
 
+// Booking statuses that still hold inventory hostage.
+const ACTIVE_BOOKING_STATUSES = [
+  "QUOTATION_REQUESTED",
+  "QUOTATION_SENT",
+  "PENDING_APPROVAL",
+  "CONFIRMED",
+  "DEPOSIT_PAID",
+] as const;
+
+export interface EquipmentAvailability {
+  totalUnits: number;
+  reservedUnits: number;
+  availableUnits: number;
+}
+
+export async function getEquipmentAvailability(
+  providerId: string,
+  equipmentId: string
+): Promise<EquipmentAvailability> {
+  const equipment = await prisma.equipment.findUnique({ where: { id: equipmentId } });
+  if (!equipment || equipment.providerId !== providerId) {
+    return { totalUnits: 0, reservedUnits: 0, availableUnits: 0 };
+  }
+
+  const items = await prisma.bookingItem.findMany({
+    where: {
+      equipmentId,
+      booking: {
+        providerId,
+        status: { in: [...ACTIVE_BOOKING_STATUSES] as never },
+      },
+    },
+    select: { quantity: true },
+  });
+
+  const reservedUnits = items.reduce((sum, i) => sum + i.quantity, 0);
+  const availableUnits = Math.max(0, equipment.quantity - reservedUnits);
+
+  return { totalUnits: equipment.quantity, reservedUnits, availableUnits };
+}
+
+// Throws an Error with a customer-friendly message if a new equipment order
+// would exceed the provider's available stock.
+export async function assertEquipmentQuantityAvailable(
+  providerId: string,
+  equipmentId: string,
+  requestedQty: number
+) {
+  const { totalUnits, reservedUnits, availableUnits } = await getEquipmentAvailability(
+    providerId,
+    equipmentId
+  );
+  if (requestedQty > availableUnits) {
+    const message =
+      availableUnits <= 0
+        ? "This item is fully booked and not currently available. Please try a different provider or item."
+        : `Only ${availableUnits} of ${totalUnits} unit(s) currently available for this item.`;
+    const err = new Error(message);
+    (err as Error & { status?: number }).status = 409;
+    throw err;
+  }
+}
+
 export async function createNotification(
   userId: string,
   type: "BOOKING" | "MESSAGE" | "PAYMENT" | "REVIEW" | "SYSTEM",

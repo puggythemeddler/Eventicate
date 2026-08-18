@@ -2,6 +2,7 @@ import { Router } from "express";
 import prisma from "../../lib/prisma";
 import { getSession } from "../../lib/auth";
 import { generateQuoteFromBooking } from "../../lib/documents";
+import { assertEquipmentQuantityAvailable } from "../../lib/booking-engine";
 
 const router = Router();
 
@@ -42,6 +43,13 @@ router.post("/", async (req, res) => {
     const documents: Awaited<ReturnType<typeof generateQuoteFromBooking>>[] = [];
 
     for (const [providerId, items] of providerGroups) {
+      // Guard against over-committing rental stock before creating anything.
+      for (const item of items) {
+        if (item.equipment) {
+          await assertEquipmentQuantityAvailable(providerId, item.equipment.id, item.quantity);
+        }
+      }
+
       // Price from the source of truth, honoring discounts and per-item charges.
       const totalPrice = items.reduce((sum, item) => {
         if (item.service) {
@@ -84,6 +92,36 @@ router.post("/", async (req, res) => {
           quotedPrice: totalPrice,
           status: "QUOTATION_SENT",
           customerNotes: `Cart order: ${items.length} item(s)`,
+          items: {
+            create: items.map((item) => {
+              if (item.equipment) {
+                const eq = item.equipment;
+                const discounted = eq.discountPercent > 0
+                  ? (eq.rentalPrice * (100 - eq.discountPercent)) / 100
+                  : eq.rentalPrice;
+                return {
+                  equipmentId: eq.id,
+                  quantity: item.quantity,
+                  unitPrice: Math.round(discounted * 100) / 100,
+                  setupCharge: eq.setupCharge || 0,
+                  transportCharge: eq.transportCharge || 0,
+                  operatorCharge: eq.operatorCharge || 0,
+                };
+              }
+              if (item.service) {
+                const svc = item.service;
+                const discounted = svc.discountPercent > 0
+                  ? (svc.basePrice * (100 - svc.discountPercent)) / 100
+                  : svc.basePrice;
+                return {
+                  serviceId: svc.id,
+                  quantity: item.quantity,
+                  unitPrice: Math.round(discounted * 100) / 100,
+                };
+              }
+              throw new Error("Cart item references no service or equipment");
+            }),
+          },
         },
       });
 

@@ -247,6 +247,7 @@ model Service {
   bookings      Booking[]
   cartItems     CartItem[]
   pricingRules  PricingRule[]
+  bookingItems  BookingItem[]
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 }
@@ -289,6 +290,7 @@ model Equipment {
   transportCharge Float           @default(0)
   operatorCharge  Float           @default(0)
   cartItems       CartItem[]
+  bookingItems    BookingItem[]
   isActive        Boolean         @default(true)
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -450,6 +452,7 @@ model Booking {
   reviews         Review[]
   documents       Document[]
   agreements      Agreement[]
+  items           BookingItem[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -457,6 +460,27 @@ model Booking {
   @@index([providerId, status])
   @@index([customerId, status])
   @@index([eventId])
+}
+
+// Line items on a booking. Used for rentals (equipment quantities) so the
+// provider's inventory can be reserved and released per event date.
+model BookingItem {
+  id              String    @id @default(cuid())
+  bookingId       String
+  booking         Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  equipmentId     String?
+  equipment       Equipment? @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
+  serviceId       String?
+  service         Service?  @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  quantity        Int       @default(1)
+  unitPrice       Float
+  setupCharge     Float     @default(0)
+  transportCharge Float     @default(0)
+  operatorCharge  Float     @default(0)
+  createdAt       DateTime  @default(now())
+
+  @@index([bookingId])
+  @@index([equipmentId])
 }
 
 // ─── Payments ────────────────────────────────────────────────────────────────

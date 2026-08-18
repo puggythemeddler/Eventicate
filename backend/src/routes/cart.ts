@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import prisma from "../lib/prisma";
 import { getSession } from "../lib/auth";
+import { getEquipmentAvailability } from "../lib/booking-engine";
 
 const addItemSchema = z.object({
   serviceId: z.string().optional(),
@@ -85,6 +86,15 @@ router.post("/", async (req, res) => {
       if (data.quantity > equipment.quantity) {
         return res.status(400).json({ error: `Only ${equipment.quantity} unit(s) available` });
       }
+      // Respect what is already reserved by active bookings on this provider.
+      const { availableUnits } = await getEquipmentAvailability(equipment.providerId, equipment.id);
+      if (data.quantity > availableUnits) {
+        return res.status(409).json({
+          error: availableUnits <= 0
+            ? "This item is fully booked and not currently available. Please try a different provider or item."
+            : `Only ${availableUnits} of ${equipment.quantity} unit(s) currently available for this item.`,
+        });
+      }
     }
 
     // Dedupe: adding the same item increments quantity instead of creating a duplicate row.
@@ -97,6 +107,23 @@ router.post("/", async (req, res) => {
     });
 
     if (existing) {
+      if (existing.equipmentId) {
+        const equipment = await prisma.equipment.findUnique({
+          where: { id: existing.equipmentId },
+          include: { provider: true },
+        });
+        if (equipment) {
+          const { availableUnits } = await getEquipmentAvailability(equipment.providerId, equipment.id);
+          const newTotal = existing.quantity + data.quantity;
+          if (newTotal > availableUnits) {
+            return res.status(409).json({
+              error: availableUnits <= 0
+                ? "This item is fully booked and not currently available. Please try a different provider or item."
+                : `Only ${availableUnits} of ${equipment.quantity} unit(s) currently available for this item.`,
+            });
+          }
+        }
+      }
       const item = await prisma.cartItem.update({
         where: { id: existing.id },
         data: { quantity: existing.quantity + data.quantity },

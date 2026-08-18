@@ -183,6 +183,9 @@ router.get("/", async (req, res) => {
     where: { id },
     include: {
       event: true,
+      items: {
+        include: { equipment: true, service: true },
+      },
       provider: {
         include: {
           user: { select: { firstName: true, lastName: true, email: true, phone: true } },
