@@ -9,6 +9,7 @@ import { Badge, StatusBadge } from "@/components/ui/Badge";
 import { serverApi } from "@/lib/server-api";
 import { formatDate, formatCurrency, parseJsonArray, getCurrencyForCountry } from "@/lib/utils";
 import { EVENT_TYPES, SERVICE_CATEGORIES } from "@/lib/constants";
+import { EventActions } from "./EventActions";
 import { Calendar, MapPin, Users, DollarSign, ArrowLeft, Search, Plus, Package, BarChart3, Clock } from "lucide-react";
 
 interface EventData {
@@ -85,7 +86,7 @@ export default async function EventDetailPage({
               {EVENT_TYPES.find((t) => t.value === event.eventType)?.label || event.eventType}
             </p>
           </div>
-          <div className="flex gap-3">
+<div className="flex gap-3">
             <Link href={`/search?eventId=${event.id}`}>
               <Button variant="outline" size="sm">
                 <Search className="mr-2 h-4 w-4" />
@@ -116,6 +117,7 @@ export default async function EventDetailPage({
                 Timeline
               </Button>
             </Link>
+            <EventActions eventId={event.id} status={event.status} />
           </div>
         </div>
 

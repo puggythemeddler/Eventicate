@@ -3,6 +3,8 @@ import { z } from "zod";
 import prisma from "../lib/prisma";
 import { getSession } from "../lib/auth";
 
+const EVENT_STATUSES = ["PLANNING", "CONFIRMED", "COMPLETED", "CANCELLED"] as const;
+
 const eventSchema = z.object({
   title: z.string().min(1),
   eventType: z.enum([
@@ -17,6 +19,7 @@ const eventSchema = z.object({
   budgetMax: z.number().optional(),
   description: z.string().optional(),
   requiredServices: z.array(z.string()).optional(),
+  status: z.enum(EVENT_STATUSES).optional(),
 });
 
 const router = Router();
@@ -78,6 +81,7 @@ router.post("/", async (req, res) => {
         budgetMax: data.budgetMax,
         description: data.description,
         requiredServices: JSON.stringify(data.requiredServices || []),
+        status: data.status || "PLANNING",
       },
     });
 

@@ -39,10 +39,15 @@ export function StatusBadge({ status }: { status: string }) {
     AVAILABLE: "success",
     PENDING: "warning",
     UNAVAILABLE: "danger",
+    PLANNING: "info",
+    ACTIVE: "success",
+    TRIAL: "warning",
+    EXPIRED: "danger",
+    PAST_DUE: "danger",
   };
 
   return (
-    <Badge variant={variantMap[status] || "default"}>
+    <Badge variant={variantMap[status] || variantMap[status.toLowerCase()] || "default"}>
       {status.replace(/_/g, " ")}
     </Badge>
   );
