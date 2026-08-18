@@ -13,18 +13,19 @@ export function formatDocumentNumber(num: number): string {
 
 export async function generateDocumentNumber(type: "QUOTE" | "INVOICE" | "RECEIPT" | "PROFORMA_INVOICE" | "TAX_INVOICE"): Promise<string> {
   const prefix = type === "QUOTE" ? "QTE" : type === "INVOICE" ? "INV" : type === "PROFORMA_INVOICE" ? "PFI" : type === "TAX_INVOICE" ? "TIN" : "RCT";
-  const lastDoc = await prisma.document.findFirst({
-    where: { type },
-    orderBy: { createdAt: "desc" },
-    select: { documentNumber: true },
+
+  // Atomically claim the next number (single UPDATE ... RETURNING under the
+  // hood) so concurrent generations can never produce a duplicate.
+  const counter = await prisma.$transaction(async (tx) => {
+    const row = await tx.documentCounter.update({
+      where: { type },
+      data: { nextNumber: { increment: 1 } },
+      select: { nextNumber: true },
+    });
+    return row.nextNumber;
   });
-  let nextNum = 1;
-  if (lastDoc) {
-    const parts = lastDoc.documentNumber.split("-");
-    const lastNum = parseInt(parts[1], 10);
-    if (!isNaN(lastNum)) nextNum = lastNum + 1;
-  }
-  return `${prefix}-${formatDocumentNumber(nextNum)}`;
+
+  return `${prefix}-${formatDocumentNumber(counter - 1)}`;
 }
 
 export function calculateDocumentTotals(

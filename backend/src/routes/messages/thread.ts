@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import prisma from "../../lib/prisma";
 import { getSession } from "../../lib/auth";
+import { createNotification } from "../../lib/booking-engine";
 
 const createThreadSchema = z.object({
   masterQuoteId: z.string(),
@@ -76,6 +77,18 @@ router.post("/", async (req, res) => {
 
     for (const msgData of messages) {
       await prisma.message.create({ data: msgData });
+    }
+
+    // Notify every provider that they have been added to the planning thread.
+    for (const participantId of participantIds) {
+      if (participantId === session.id) continue;
+      await createNotification(
+        participantId,
+        "MESSAGE",
+        "Planning Thread Started",
+        `You've been added to a multi-provider planning thread for an event`,
+        participantId === customerId ? "/dashboard/messages" : "/provider/messages"
+      );
     }
 
     return res.status(201).json({ conversation, participantCount: participantIds.size });

@@ -2,6 +2,8 @@ import { Router } from "express";
 import { z } from "zod";
 import prisma from "../../../lib/prisma";
 import { getSession } from "../../../lib/auth";
+import { createNotification } from "../../../lib/booking-engine";
+import { sendMessageNotification } from "../../../lib/email";
 
 const router = Router({ mergeParams: true });
 
@@ -118,6 +120,7 @@ router.post("/", async (req, res) => {
     });
 
     const messages = [];
+    const receiversWithEmail = new Map<string, { email: string; firstName: string; role: string }>();
     for (const receiverId of participantIds) {
       const msg = await prisma.message.create({
         data: {
@@ -133,6 +136,29 @@ router.post("/", async (req, res) => {
         },
       });
       messages.push(msg);
+
+      const receiverUser = await prisma.user.findUnique({
+        where: { id: receiverId },
+        select: { email: true, firstName: true, role: true },
+      });
+      if (receiverUser) receiversWithEmail.set(receiverId, receiverUser);
+
+      await createNotification(
+        receiverId,
+        "MESSAGE",
+        "New Message",
+        `${session.firstName} sent a message in the planning thread`,
+        receiverUser?.role === "PROVIDER" ? "/provider/messages" : "/dashboard/messages"
+      );
+    }
+
+    // Group email notification to every participant except the sender.
+    for (const user of receiversWithEmail.values()) {
+      sendMessageNotification(user.email, user.firstName, {
+        senderName: `${session.firstName} ${session.lastName || ""}`,
+        preview: data.content.length > 100 ? data.content.slice(0, 100) + "..." : data.content,
+        conversationUrl: `${process.env.NEXT_PUBLIC_APP_URL || ""}/${user.role === "PROVIDER" ? "provider" : "dashboard"}/messages`,
+      }).catch((e) => console.error("Thread notification email failed:", e));
     }
 
     return res.status(201).json({ messages });

@@ -552,6 +552,14 @@ model Document {
   @@index([masterQuoteId])
 }
 
+// Per-type sequential counters used to allocate document numbers atomically so
+// concurrent quote/invoice generation can never duplicate a number.
+model DocumentCounter {
+  type      String   @id
+  nextNumber Int     @default(1)
+  updatedAt DateTime @updatedAt
+}
+
 // ─── Messaging ───────────────────────────────────────────────────────────────
 
 model Conversation {

@@ -11,9 +11,36 @@ const messageSchema = z.object({
   content: z.string().min(1),
   bookingId: z.string().optional(),
   type: z.enum(["TEXT", "FILE", "QUOTATION", "EVENT_DETAILS", "BOOKING_UPDATE"]).default("TEXT"),
-  fileUrl: z.string().optional(),
+  fileUrl: z.string().url().optional(),
   conversationId: z.string().optional(),
-});
+}).refine((d) => {
+  // A FILE message must carry a real attachment URL.
+  if (d.type === "FILE" && !d.fileUrl) return false;
+  // If an attachment is included, it must be from our own upload host.
+  if (d.fileUrl && !isAllowedFileUrl(d.fileUrl)) return false;
+  return true;
+}, { message: "Invalid fileUrl" });
+
+// Only accept file URLs produced by our own upload pipeline (Cloudinary) or a
+// local/dev host, never arbitrary external links that could point to phishing
+// or tracking content.
+function isAllowedFileUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false;
+    const host = parsed.hostname;
+    if (host === "localhost" || host.endsWith(".local")) return true;
+    if (host === "res.cloudinary.com" || host.endsWith(".cloudinary.com")) return true;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BACKEND_URL;
+    if (appUrl) {
+      const appHost = new URL(appUrl).hostname;
+      if (host === appHost || host.endsWith("." + appHost)) return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+};
 
 const router = Router();
 
