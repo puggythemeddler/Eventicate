@@ -108,7 +108,7 @@ export async function getOrCreateFreePlan(): Promise<{ id: string; name: string;
 }
 
 export async function getProviderLimits(providerId: string): Promise<ProviderLimits> {
-  const [subscription, counts] = await Promise.all([
+  const [subscription, counts, bookingCount] = await Promise.all([
     prisma.providerSubscription.findUnique({
       where: { providerId },
       include: { plan: true },
@@ -116,7 +116,15 @@ export async function getProviderLimits(providerId: string): Promise<ProviderLim
     prisma.providerProfile.findUnique({
       where: { id: providerId },
       include: {
-        _count: { select: { services: true, equipment: true, bookings: true, venues: true, vehicles: true } },
+        _count: { select: { services: true, equipment: true, venues: true, vehicles: true } },
+      },
+    }),
+    // Cancelled/rejected bookings never recoverable slot, so they shouldn't count
+    // against the plan's booking limit.
+    prisma.booking.count({
+      where: {
+        providerId,
+        status: { notIn: ["CANCELLED", "REJECTED"] },
       },
     }),
   ]);
@@ -168,7 +176,10 @@ export async function getProviderLimits(providerId: string): Promise<ProviderLim
     maxVehicles = subscription!.plan.maxVehicles;
   }
 
-  const used = counts?._count || { services: 0, equipment: 0, bookings: 0, venues: 0, vehicles: 0 };
+  const used = {
+    ...(counts?._count || { services: 0, equipment: 0, venues: 0, vehicles: 0 }),
+    bookings: bookingCount,
+  };
 
   const servicesRemaining = resolveLimit(maxServices) !== null
     ? Math.max(0, maxServices - used.services)
