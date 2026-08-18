@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { Textarea, Select } from "@/components/ui/Input";
+import { Textarea, Select, Input } from "@/components/ui/Input";
 import { formatDateTime } from "@/lib/utils";
 
 const STATUS_OPTIONS = [
@@ -14,6 +14,12 @@ const STATUS_OPTIONS = [
   { value: "dismissed", label: "Dismissed" },
 ];
 
+const RESOLUTION_OPTIONS = [
+  { value: "", label: "No refund" },
+  { value: "REFUNDED", label: "Full refund" },
+  { value: "PARTIAL_REFUND", label: "Partial refund" },
+];
+
 const STATUS_VARIANTS: Record<string, "warning" | "info" | "success" | "danger"> = {
   open: "warning",
   investigating: "info",
@@ -21,16 +27,42 @@ const STATUS_VARIANTS: Record<string, "warning" | "info" | "success" | "danger">
   dismissed: "danger",
 };
 
+const PRIORITY_VARIANTS: Record<string, "default" | "warning" | "danger"> = {
+  normal: "default",
+  high: "warning",
+  urgent: "danger",
+};
+
+const COMPLAINT_TYPE_LABELS: Record<string, string> = {
+  service_quality: "Service Quality",
+  no_show: "No-Show",
+  damaged_items: "Damaged Items",
+  payment_refund: "Payment / Refund",
+  other: "Other",
+};
+
 interface Complaint {
   id: string;
   subject: string;
   description: string;
+  complaintType: string;
+  priority: string;
   status: string;
+  resolution: string | null;
+  refundAmount: number | null;
+  evidenceUrls: string;
   adminNotes: string | null;
   createdAt: string;
   reporterId: string;
   bookingId: string | null;
   reporter: { firstName: string; lastName: string; email: string } | null;
+  booking: {
+    id: string;
+    status: string;
+    finalPrice: number | null;
+    provider: { businessName: string } | null;
+    customer: { user: { firstName: string; lastName: string } } | null;
+  } | null;
 }
 
 export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
@@ -38,6 +70,8 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
   const [expanded, setExpanded] = useState(false);
   const [complaint, setComplaint] = useState(initial);
   const [status, setStatus] = useState(initial.status);
+  const [resolution, setResolution] = useState(initial.resolution || "");
+  const [refundAmount, setRefundAmount] = useState(initial.refundAmount?.toString() || "");
   const [notes, setNotes] = useState(initial.adminNotes || "");
   const [saving, setSaving] = useState(false);
 
@@ -47,11 +81,16 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
       const res = await fetch("/api/admin/complaints", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ complaintId: complaint.id, status }),
+        body: JSON.stringify({
+          complaintId: complaint.id,
+          status,
+          resolution: status === "resolved" && resolution ? resolution : undefined,
+          refundAmount: resolution && refundAmount ? parseFloat(refundAmount) : undefined,
+        }),
       });
       if (!res.ok) throw new Error("Failed to update");
       const data = await res.json();
-      setComplaint((prev) => ({ ...prev, status: data.complaint.status }));
+      setComplaint((prev) => ({ ...prev, status: data.complaint.status, resolution: data.complaint.resolution, refundAmount: data.complaint.refundAmount }));
       router.refresh();
     } catch {
       alert("Failed to update status");
@@ -79,6 +118,14 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
     }
   };
 
+  const evidenceUrls = (() => {
+    try {
+      return JSON.parse(complaint.evidenceUrls || "[]") as string[];
+    } catch {
+      return [] as string[];
+    }
+  })();
+
   return (
     <div className="border-b border-gray-100 last:border-0">
       <button
@@ -86,9 +133,15 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
         className="flex w-full items-center justify-between px-6 py-4 text-left hover:bg-gray-50"
       >
         <div className="flex-1">
-          <p className="font-medium text-gray-900">{complaint.subject}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-medium text-gray-900">{complaint.subject}</p>
+            <Badge variant={PRIORITY_VARIANTS[complaint.priority] || "default"}>{complaint.priority}</Badge>
+          </div>
           <p className="text-sm text-gray-500">
             {complaint.reporter ? `${complaint.reporter.firstName} ${complaint.reporter.lastName}` : "Unknown"}
+            {" · "}
+            {COMPLAINT_TYPE_LABELS[complaint.complaintType] || complaint.complaintType}
+            {complaint.booking && ` · booking: ${complaint.booking.id}`}
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -106,14 +159,31 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
             <p className="text-sm text-gray-700">{complaint.description}</p>
           </div>
 
-          {complaint.bookingId && (
+          {complaint.booking && (
             <div className="mb-4">
-              <p className="text-xs font-medium text-gray-500">Booking Reference</p>
-              <p className="text-sm text-gray-700">{complaint.bookingId}</p>
+              <p className="text-xs font-medium text-gray-500">Booking</p>
+              <p className="text-sm text-gray-700">
+                {complaint.booking.id} · {complaint.booking.status}
+                {complaint.booking.finalPrice != null && ` · ${complaint.booking.finalPrice}`}
+                {complaint.booking.provider && ` · ${complaint.booking.provider.businessName}`}
+              </p>
             </div>
           )}
 
-          <div className="mb-4 grid gap-4 md:grid-cols-2">
+          {evidenceUrls.length > 0 && (
+            <div className="mb-4">
+              <p className="mb-1 text-xs font-medium text-gray-500">Evidence</p>
+              <div className="flex flex-wrap gap-2">
+                {evidenceUrls.map((url, i) => (
+                  <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 underline">
+                    Evidence {i + 1}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="mb-4 grid gap-4 md:grid-cols-3">
             <div>
               <p className="mb-1 text-xs font-medium text-gray-500">Status</p>
               <div className="flex gap-2">
@@ -128,6 +198,25 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
                   {saving ? "..." : "Update"}
                 </Button>
               </div>
+            </div>
+            <div>
+              <p className="mb-1 text-xs font-medium text-gray-500">Resolution</p>
+              <Select
+                options={RESOLUTION_OPTIONS}
+                value={resolution}
+                onChange={(e) => setResolution(e.target.value)}
+                disabled={status !== "resolved"}
+              />
+            </div>
+            <div>
+              <p className="mb-1 text-xs font-medium text-gray-500">Refund Amount</p>
+              <Input
+                type="number"
+                value={refundAmount}
+                onChange={(e) => setRefundAmount(e.target.value)}
+                disabled={!resolution}
+                placeholder="0.00"
+              />
             </div>
           </div>
 

@@ -21,16 +21,38 @@ router.get("/", async (req, res) => {
     include: {
       reporter: { select: { id: true, firstName: true, lastName: true, email: true, role: true } },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ priority: "desc" }, { createdAt: "desc" }],
   });
 
-  return res.status(200).json({ complaints });
+  const bookingIds = [...new Set(complaints.map((c) => c.bookingId).filter(Boolean))] as string[];
+  const bookings = bookingIds.length
+    ? await prisma.booking.findMany({
+        where: { id: { in: bookingIds } },
+        select: {
+          id: true,
+          status: true,
+          finalPrice: true,
+          provider: { select: { businessName: true } },
+          customer: { select: { user: { select: { firstName: true, lastName: true } } } },
+        },
+      })
+    : [];
+  const bookingMap = new Map(bookings.map((b) => [b.id, b]));
+
+  const enriched = complaints.map((c) => ({
+    ...c,
+    booking: c.bookingId ? bookingMap.get(c.bookingId) ?? null : null,
+  }));
+
+  return res.status(200).json({ complaints: enriched });
 });
 
 const patchSchema = z.object({
   complaintId: z.string(),
   status: z.enum(["open", "investigating", "resolved", "dismissed"]).optional(),
   adminNotes: z.string().optional(),
+  resolution: z.enum(["REFUNDED", "PARTIAL_REFUND", "NO_REFUND"]).optional(),
+  refundAmount: z.number().min(0).optional(),
 });
 
 router.patch("/", async (req, res) => {
@@ -46,11 +68,40 @@ router.patch("/", async (req, res) => {
     const updateData: Record<string, unknown> = {};
     if (data.status) updateData.status = data.status;
     if (data.adminNotes !== undefined) updateData.adminNotes = data.adminNotes;
+    if (data.resolution !== undefined) updateData.resolution = data.resolution;
+    if (data.refundAmount !== undefined) updateData.refundAmount = data.refundAmount;
+    if (data.status === "resolved") updateData.resolvedAt = new Date();
+    if (data.status && data.status !== "resolved") {
+      updateData.resolvedAt = null;
+      if (data.status === "open") {
+        updateData.resolution = null;
+        updateData.refundAmount = null;
+      }
+    }
 
     const complaint = await prisma.complaint.update({
       where: { id: data.complaintId },
       data: updateData,
     });
+
+    // Notify the reporter about the outcome.
+    if (data.status === "resolved" || data.status === "dismissed") {
+      const message =
+        data.status === "resolved"
+          ? data.resolution && data.resolution !== "NO_REFUND"
+            ? `Your complaint was resolved${data.refundAmount ? ` and a refund of ${data.refundAmount} was issued` : ""}.`
+            : "Your complaint was resolved."
+          : "Your complaint was reviewed and dismissed.";
+      await prisma.notification.create({
+        data: {
+          userId: complaint.reporterId,
+          type: "SYSTEM",
+          title: "Complaint Update",
+          message,
+          link: "/dashboard/complaints",
+        },
+      });
+    }
 
     return res.status(200).json({ complaint });
   } catch (error) {

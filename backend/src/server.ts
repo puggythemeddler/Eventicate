@@ -22,6 +22,7 @@ import adminComplaintsRouter from "./routes/admin/complaints";
 import adminLogosRouter from "./routes/admin/logos";
 import adminPaymentsRouter from "./routes/admin/payments";
 import adminWhatsAppRouter from "./routes/admin/whatsapp";
+import complaintsRouter from "./routes/complaints";
 
 // bookings / events / services / equipment / packages / availability / timeline / budget
 import bookingsRouter from "./routes/bookings";
@@ -209,6 +210,7 @@ app.use("/api/provider/reviews", providerReviewsRouter);
 app.use("/api/provider/dashboard", providerDashboardRouter);
 app.use("/api/provider/verification", providerVerificationRouter);
 app.use("/api/customer/dashboard", customerDashboardRouter);
+app.use("/api/complaints", complaintsRouter);
 app.use("/api/logos", logosRouter);
 app.use("/api/local-sync", localSyncRouter);
 

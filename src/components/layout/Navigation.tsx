@@ -12,7 +12,7 @@ import {
   LayoutDashboard, Package, Settings, Truck, Music,
   Camera, UtensilsCrossed, Building2, RefreshCw, BarChart3,
   CreditCard, FileText, MapPin, ShoppingCart, Menu, X, Palette,
-  MessageCircle, Layers,
+  MessageCircle, Layers, MessageSquareWarning,
 } from "lucide-react";
 
 interface NavItem {
@@ -33,11 +33,12 @@ const cartItem: NavItem = { href: "/dashboard/cart", label: "Cart", icon: <Shopp
 const bookingsItem: NavItem = { href: "/dashboard/bookings", label: "Bookings", icon: <Package className="h-4 w-4" /> };
 const documentsItem: NavItem = { href: "/dashboard/documents", label: "Documents", icon: <FileText className="h-4 w-4" /> };
 const messagesItem: NavItem = { href: "/dashboard/messages", label: "Messages", icon: <MessageSquare className="h-4 w-4" /> };
+const complaintsItem: NavItem = { href: "/dashboard/complaints", label: "Complaints", icon: <MessageSquareWarning className="h-4 w-4" /> };
 
 const customerGroups: NavGroup[] = [
   { label: "Overview", items: [dashboardItem] },
   { label: "Planning", items: [eventsItem, searchItem, cartItem] },
-  { label: "Activity", items: [bookingsItem, documentsItem, messagesItem] },
+  { label: "Activity", items: [bookingsItem, documentsItem, messagesItem, complaintsItem] },
 ];
 
 const providerDashboardItem: NavItem = { href: "/provider", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> };
@@ -57,7 +58,7 @@ const providerGroups: NavGroup[] = [
   { label: "Overview", items: [providerDashboardItem] },
   { label: "Bookings & Chat", items: [providerBookingsItem, providerCalendarItem, providerMessagesItem] },
   { label: "Inventory", items: [providerServicesItem, providerEquipmentItem, providerListingsItem] },
-  { label: "Business", items: [providerDocumentsItem, providerReviewsItem, providerSyncItem, providerSubscriptionItem, providerSettingsItem] },
+  { label: "Business", items: [providerDocumentsItem, providerReviewsItem, providerSyncItem, providerSubscriptionItem, complaintsItem, providerSettingsItem] },
 ];
 
 const adminOverviewItem: NavItem = { href: "/admin", label: "Overview", icon: <BarChart3 className="h-4 w-4" /> };

@@ -33,12 +33,24 @@ export default async function AdminComplaintsPage({
         id: string;
         subject: string;
         description: string;
+        complaintType: string;
+        priority: string;
+        resolution: string | null;
+        refundAmount: number | null;
+        evidenceUrls: string;
         status: string;
         adminNotes: string | null;
         createdAt: string;
         reporterId: string;
         bookingId: string | null;
         reporter: { firstName: string; lastName: string; email: string } | null;
+        booking: {
+          id: string;
+          status: string;
+          finalPrice: number | null;
+          provider: { businessName: string } | null;
+          customer: { user: { firstName: string; lastName: string } } | null;
+        } | null;
       }>;
     }>(`/api/admin/complaints${status && status !== "ALL" ? `?status=${status}` : ""}`)
   ).complaints;

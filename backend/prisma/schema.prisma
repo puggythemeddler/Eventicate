@@ -659,17 +659,23 @@ model Notification {
 // ─── Admin & Complaints ────────────────────────────────────────────────────────
 
 model Complaint {
-  id          String   @id @default(cuid())
-  reporterId  String
-  reporter    User     @relation(fields: [reporterId], references: [id])
-  reportedId  String?
-  bookingId   String?
-  subject     String
-  description String
-  status      String   @default("open") // open, investigating, resolved, dismissed
-  adminNotes  String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String    @id @default(cuid())
+  reporterId    String
+  reporter      User      @relation(fields: [reporterId], references: [id])
+  reportedId    String?
+  bookingId     String?
+  subject       String
+  description   String
+  complaintType String    @default("other") // service_quality, no_show, damaged_items, payment_refund, other
+  priority      String    @default("normal") // normal, high, urgent
+  evidenceUrls  String    @default("[]") // JSON array of evidence doc/image URLs
+  status        String    @default("open") // open, investigating, resolved, dismissed
+  resolution    String? // REFUNDED, PARTIAL_REFUND, NO_REFUND
+  refundAmount  Float?
+  adminNotes    String?
+  resolvedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 // ─── Subscriptions ────────────────────────────────────────────────────────────
