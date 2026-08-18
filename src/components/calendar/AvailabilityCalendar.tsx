@@ -17,6 +17,7 @@ interface AvailabilityCalendarProps {
   onMonthChange?: (month: number, year: number) => void;
   onDateSelect?: (date: Date) => void;
   selectable?: boolean;
+  readOnly?: boolean;
 }
 
 const STATUS_COLORS = {
@@ -39,6 +40,7 @@ export function AvailabilityCalendar({
   onMonthChange = () => {},
   onDateSelect,
   selectable = false,
+  readOnly = false,
 }: AvailabilityCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [toggling, setToggling] = useState<number | null>(null);
@@ -61,6 +63,7 @@ export function AvailabilityCalendar({
   };
 
   const handleDateClick = async (day: number) => {
+    if (readOnly) return;
     const date = new Date(year, month, day);
     const currentStatus = slotMap.get(day) || "AVAILABLE";
     if (currentStatus === "CONFIRMED") return;
@@ -102,7 +105,7 @@ export function AvailabilityCalendar({
       <button
         key={day}
         type="button"
-        disabled={isPast || status === "CONFIRMED" || toggling === day}
+        disabled={isPast || status === "CONFIRMED" || toggling === day || readOnly}
         onClick={() => handleDateClick(day)}
         className={cn(
           "aspect-square rounded-lg text-sm font-medium transition-colors",

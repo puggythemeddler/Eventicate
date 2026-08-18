@@ -10,8 +10,12 @@ router.get("/", async (req, res) => {
   const city = req.query.city as string | undefined;
   const country = req.query.country as string | undefined;
   const travelOutside = req.query.travelOutside as string | undefined;
-  const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 50, 1), 100);
-  const skip = Math.max(parseInt(req.query.skip as string) || 0, 0);
+  const minPrice = parseFloat(req.query.minPrice as string);
+  const maxPrice = parseFloat(req.query.maxPrice as string);
+  const minRating = parseFloat(req.query.minRating as string);
+  const page = Math.max(parseInt(req.query.page as string) || 1, 1);
+  const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 12, 1), 100);
+  const skip = (page - 1) * limit;
 
   const where = {
     isApproved: true,
@@ -19,6 +23,20 @@ router.get("/", async (req, res) => {
     ...(city ? { city: { contains: city } } : {}),
     ...(country ? { country: { contains: country } } : {}),
     ...(travelOutside === "true" ? { travelOutsideArea: true } : {}),
+    ...(Number.isFinite(minRating) ? { averageRating: { gte: minRating } } : {}),
+    // A provider matches the price filter when any of their active services is
+    // within the requested range.
+    ...(Number.isFinite(minPrice) || Number.isFinite(maxPrice)
+      ? {
+          services: {
+            some: {
+              isActive: true,
+              ...(Number.isFinite(minPrice) ? { basePrice: { gte: minPrice } } : {}),
+              ...(Number.isFinite(maxPrice) ? { basePrice: { lte: maxPrice } } : {}),
+            },
+          },
+        }
+      : {}),
     ...(search
       ? {
           OR: [
@@ -50,6 +68,9 @@ router.get("/", async (req, res) => {
       images: parseJsonArray(p.coverImageUrl ? `[${JSON.stringify(p.coverImageUrl)}]` : "[]"),
     })),
     total,
+    page,
+    pageSize: limit,
+    totalPages: Math.ceil(total / limit) || 1,
   });
 });
 

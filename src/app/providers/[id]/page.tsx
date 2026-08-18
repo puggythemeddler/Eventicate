@@ -4,7 +4,7 @@ import { getSession } from "@/lib/auth";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge, StarRating } from "@/components/ui/Badge";
-import { AvailabilityCalendar } from "@/components/calendar/AvailabilityCalendar";
+import { PublicAvailabilityCalendar } from "./PublicAvailabilityCalendar";
 import { serverApi } from "@/lib/server-api";
 import { formatCurrency, parseJsonArray, getCurrencyForCountry } from "@/lib/utils";
 import { MapPin } from "lucide-react";
@@ -379,13 +379,12 @@ export default async function ProviderProfilePage({
           </div>
 
           <div className="space-y-6">
-            <AvailabilityCalendar
-              slots={availability.map((a) => ({
+            <PublicAvailabilityCalendar
+              providerId={id}
+              initialSlots={availability.map((a) => ({
                 date: new Date(a.date).toISOString(),
                 status: a.status as "AVAILABLE" | "PENDING" | "CONFIRMED" | "UNAVAILABLE",
               }))}
-              month={now.getMonth()}
-              year={now.getFullYear()}
             />
 
             {session ? (

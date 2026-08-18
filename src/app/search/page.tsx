@@ -7,6 +7,7 @@ import { PublicHeader } from "@/components/layout/Navigation";
 import { Input, Select } from "@/components/ui/Input";
 import { Autocomplete } from "@/components/ui/Autocomplete";
 import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { StarRating } from "@/components/ui/Badge";
 import { CategoryIcon } from "@/components/layout/Navigation";
 import { SERVICE_CATEGORIES } from "@/lib/constants";
@@ -30,6 +31,8 @@ interface Provider {
   services: { name: string; basePrice: number }[];
 }
 
+const PAGE_SIZE = 12;
+
 function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -37,6 +40,8 @@ function SearchContent() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(() => Math.max(parseInt(searchParams.get("page") || "1", 10), 1));
   const [dbCountries, setDbCountries] = useState<CountryData[]>([]);
   const [filters, setFilters] = useState({
     search: searchParams.get("search") || "",
@@ -44,6 +49,9 @@ function SearchContent() {
     city: searchParams.get("city") || "",
     country: searchParams.get("country") || "",
     travelOutside: searchParams.get("travelOutside") || "",
+    minPrice: searchParams.get("minPrice") || "",
+    maxPrice: searchParams.get("maxPrice") || "",
+    minRating: searchParams.get("minRating") || "",
   });
   const { detected, dismissed, dismiss } = useDetectedLocation();
   const urlSyncRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -68,13 +76,17 @@ function SearchContent() {
       if (filters.city) params.set("city", filters.city);
       if (filters.country) params.set("country", filters.country);
       if (filters.travelOutside) params.set("travelOutside", filters.travelOutside);
+      if (filters.minPrice) params.set("minPrice", filters.minPrice);
+      if (filters.maxPrice) params.set("maxPrice", filters.maxPrice);
+      if (filters.minRating) params.set("minRating", filters.minRating);
+      if (page > 1) params.set("page", String(page));
       const query = params.toString();
       router.replace(`${pathname}${query ? `?${query}` : ""}`, { scroll: false });
     }, 400);
     return () => {
       if (urlSyncRef.current) clearTimeout(urlSyncRef.current);
     };
-  }, [filters, pathname, router]);
+  }, [filters, page, pathname, router]);
 
   useEffect(() => {
     if (fetchRef.current) clearTimeout(fetchRef.current);
@@ -85,6 +97,11 @@ function SearchContent() {
       if (filters.city) params.set("city", filters.city);
       if (filters.country) params.set("country", filters.country);
       if (filters.travelOutside) params.set("travelOutside", filters.travelOutside);
+      if (filters.minPrice) params.set("minPrice", filters.minPrice);
+      if (filters.maxPrice) params.set("maxPrice", filters.maxPrice);
+      if (filters.minRating) params.set("minRating", filters.minRating);
+      params.set("page", String(page));
+      params.set("limit", String(PAGE_SIZE));
 
       setLoading(true);
       setError("");
@@ -95,6 +112,8 @@ function SearchContent() {
         })
         .then((data) => {
           setProviders(data.providers || []);
+          setTotalPages(data.totalPages || 1);
+          if (page > (data.totalPages || 1)) setPage(1);
         })
         .catch((e: Error) => {
           setError(e.message || "Failed to load providers");
@@ -106,7 +125,7 @@ function SearchContent() {
     return () => {
       if (fetchRef.current) clearTimeout(fetchRef.current);
     };
-  }, [filters]);
+  }, [filters, page]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -155,20 +174,70 @@ function SearchContent() {
             emptyLabel={subdivisions.length === 0 ? "Select a country first" : "No matches found"}
           />
         </div>
-        <div className="mb-8 flex items-center gap-2">
+        <div className="mb-8 flex flex-wrap items-center gap-4">
           <label className="flex cursor-pointer items-center gap-2">
             <input
               type="checkbox"
               className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               checked={filters.travelOutside === "true"}
-              onChange={(e) =>
-                setFilters({ ...filters, travelOutside: e.target.checked ? "true" : "" })
-              }
+              onChange={(e) => {
+                setPage(1);
+                setFilters({ ...filters, travelOutside: e.target.checked ? "true" : "" });
+              }}
             />
             <span className="text-sm text-gray-600 dark:text-gray-300">
               Only show providers willing to travel outside their area
             </span>
           </label>
+          <div className="h-5 w-px bg-gray-300 dark:bg-gray-700" />
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600 dark:text-gray-300">Price</label>
+            <Input
+              aria-label="Minimum price"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Min"
+              value={filters.minPrice}
+              onChange={(e) => {
+                setPage(1);
+                setFilters({ ...filters, minPrice: e.target.value });
+              }}
+              className="w-24"
+            />
+            <span className="text-gray-400">–</span>
+            <Input
+              aria-label="Maximum price"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Max"
+              value={filters.maxPrice}
+              onChange={(e) => {
+                setPage(1);
+                setFilters({ ...filters, maxPrice: e.target.value });
+              }}
+              className="w-24"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600 dark:text-gray-300">Min rating</label>
+            <Select
+              aria-label="Minimum rating"
+              value={filters.minRating}
+              onChange={(e) => {
+                setPage(1);
+                setFilters({ ...filters, minRating: e.target.value });
+              }}
+              options={[
+                { value: "", label: "Any" },
+                { value: "4.5", label: "4.5+" },
+                { value: "4", label: "4.0+" },
+                { value: "3", label: "3.0+" },
+              ]}
+              className="w-28"
+            />
+          </div>
         </div>
 
         {loading ? (
@@ -235,6 +304,28 @@ function SearchContent() {
               </StaggerItem>
             ))}
           </StaggerGroup>
+        )}
+
+        {totalPages > 1 && (
+          <div className="mt-10 flex items-center justify-center gap-4">
+            <Button
+              variant="outline"
+              disabled={page <= 1 || loading}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              ← Previous
+            </Button>
+            <span className="text-sm text-gray-600 dark:text-gray-300">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              disabled={page >= totalPages || loading}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Next →
+            </Button>
+          </div>
         )}
       </div>
     </div>
