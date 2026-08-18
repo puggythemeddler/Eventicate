@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { EventicateLogo } from "@/components/ui/EventicateLogo";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import {
@@ -145,6 +146,7 @@ export function Sidebar({ role }: { role: "CUSTOMER" | "PROVIDER" | "ADMIN" }) {
           <EventicateLogo className="h-7" />
         </Link>
         <div className="flex items-center gap-2">
+          <NotificationBell />
           <ThemeToggle />
           <button
             type="button"
@@ -162,7 +164,10 @@ export function Sidebar({ role }: { role: "CUSTOMER" | "PROVIDER" | "ADMIN" }) {
           <Link href="/">
             <EventicateLogo className="h-8" />
           </Link>
-          <p className="text-xs text-gray-500 capitalize dark:text-gray-400">{role.toLowerCase()} Portal</p>
+          <div className="mt-2 flex items-center justify-between">
+            <p className="text-xs text-gray-500 capitalize dark:text-gray-400">{role.toLowerCase()} Portal</p>
+            <NotificationBell />
+          </div>
         </div>
         {navBody}
         <div className="border-t border-gray-200 p-4 dark:border-gray-800">
