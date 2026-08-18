@@ -80,13 +80,22 @@ The goal is a single platform where:
 ---
 
 ## What languages and technologies are used?
-
 ### Programming Languages
-- **TypeScript** — The main language for both frontend and backend (files end in `.ts` or `.tsx`). It's JavaScript but with extra rules that catch mistakes before the code runs.
-- **JavaScript** — Used implicitly via TypeScript (which compiles to it) and in small config/script files (`.mjs`, `.js`).
+
+- **TypeScript** — The main language for both frontend and backend (files end in `.ts` or `.tsx`). It's JavaScript but with extra rules that catch mistakes before the code runs. Over 99% of the codebase is TypeScript.
+- **JavaScript** — Used implicitly via TypeScript (which compiles to it) and in small config/script files: `eslint.config.mjs`, `postcss.config.mjs`, and `backend/scripts/migrate-retry.mjs` (the Render migration helper).
 - **CSS** — Used for styling, primarily through Tailwind utility classes and custom styles in `globals.css`.
-- **SQL** — The language used to talk to the database. You usually don't write it directly — the Prisma tool handles it — but you'll find raw SQL in `backend/prisma/migrations/`.
+- **SQL** — The language used to talk to the database. You usually don't write it directly — the Prisma tool handles it — but you'll find 11 hand-written raw SQL files in `backend/prisma/migrations/` (applied automatically on deploy).
 - **HTML/JSX** — The markup that makes up pages and components (JSX is TypeScript's HTML-like syntax used in React).
+
+### Markup & configuration languages
+
+- **Prisma Schema** (`.prisma`) — A DSL that defines every database table and relation in `backend/prisma/schema.prisma`; Prisma generates the typed client and SQL migrations from it.
+- **JSON** (`.json`) — Package metadata and tool config (`package.json`, `package-lock.json`, `tsconfig.json`).
+- **Markdown** (`.md`) — Documentation (`README.md`, `DOCUMENTATION.md`, `DEPLOY.md`).
+- **YAML** (`.yaml`/`.yml`) — Infrastructure & CI config: `render.yaml` (Render backend blueprint) and `.github/workflows/ci.yml` (GitHub Actions).
+- **TOML** (`.toml`) — Prisma's migration lockfile (`backend/prisma/migrations/migration_lock.toml`).
+- **SVG** (`.svg`) — Vector icon assets (`src/app/icon.svg`).
 
 ### Frameworks & Libraries
 
@@ -147,6 +156,9 @@ PostgreSQL (where all data is stored)
 - **Messaging** — Chat with providers, including multi-provider group threads, unread badges, read receipts, file attachments, and a button to continue the chat on WhatsApp
 - **Reviews** — Rate providers after events are completed
 - **Documents** — View all your quotes, invoices, and receipts in one place
+- **Complaints** — Raise a dispute (type, priority, evidence files) and track the admin's resolution
+- **Notifications** — A bell in the sidebar with unread badges; open the `/notifications` inbox to review everything
+- **Password reset** — "Forgot password?" on the login page sends a secure, single-use email link that expires in 1 hour
 
 ### For Service Providers
 - **Business profile** — Name, description, photos, location, contact info
@@ -163,12 +175,16 @@ PostgreSQL (where all data is stored)
 - **Subscription** — Free trial, then choose a paid plan
 - **Local sync** — Connect your local business system for offline inventory management
 - **Reviews** — See what customers say and respond
+- **Verification** — Submit your business registration / ID documents in **Provider → Settings**; a **Verified** badge appears on your public profile once admin approves
+- **Analytics** — Track monthly revenue, bookings by status, and your top services at `/provider/analytics`
+- **Complaints** — Manage disputes customers raise against your business
+- **Notifications** — Bell in the sidebar with unread badges, plus a full inbox at `/notifications`
 
 ### For Administrators
 - **Dashboard** — Platform stats (users, providers, events, bookings, revenue)
 - **User management** — View all users, activate/deactivate accounts
-- **Provider management** — Add providers manually, approve/reject registrations, edit profiles, deactivate/reactivate, delete, and filter by who has paid
-- **Complaint handling** — Track and resolve disputes
+- **Provider management** — Add providers manually, approve/reject registrations, review verification documents, edit profiles, deactivate/reactivate, delete, and filter by who has paid
+- **Complaint handling** — Full dispute resolution: complaint type, priority, evidence, admin notes, and optional refund amount
 - **Subscription plans** — Create and manage pricing tiers
 - **Branding** — Manage logos and app name
 - **Payment configuration** — Set M-Pesa credentials
@@ -304,15 +320,17 @@ Eventicate/
 │   │   ├── server.ts       # ★ App entry point — middleware, routes, graceful shutdown
 │   │   ├── lib/            # Auth, email, payments, documents, pricing, rate limiting
 │   │   └── routes/         # One file (or folder) per API area:
-│   │       ├── auth/       # login, register, logout, session, google
+│   │       ├── auth/       # login, register, logout, session, google, forgot/reset password
 │   │       ├── bookings/   # booking creation + status updates
 │   │       ├── events/     # event CRUD
 │   │       ├── payments/   # initiate, status, split, mpesa-callback, methods
 │   │       ├── documents/  # quotes, invoices, agreements
 │   │       ├── messages/   # chat, conversations, read receipts, WhatsApp mirror
+│   │       ├── complaints.ts # customer/provider dispute submission + tracking
+│   │       ├── notifications.ts # notification inbox, unread counts, mark read
 │   │       ├── whatsapp.ts # WhatsApp Cloud API webhook (inbound)
-│   │       ├── admin/      # users, providers, complaints, plans, payments, whatsapp
-│   │       ├── provider/   # settings, subscription, dashboard
+│   │       ├── admin/      # users, providers (+ verification), complaints, plans, payments, whatsapp
+│   │       ├── provider/   # settings, subscription, dashboard, verification, analytics
 │   │       ├── customer/   # dashboard
 │   │       ├── quotes/     # generate from cart
 │   │       └── ...         # cart, packages, availability, timeline, budget, reviews, etc.
@@ -325,16 +343,18 @@ Eventicate/
     │   ├── page.tsx        # Homepage (/)
     │   ├── how-it-works/   # Info page
     │   ├── search/         # Find services
-    │   ├── auth/           # Login & register
-    │   ├── dashboard/      # ★ CUSTOMER PORTAL (events, bookings, messages, documents, packages, budget, timeline, cart, checkout, agreements)
-    │   ├── provider/       # ★ PROVIDER PORTAL (bookings, services, equipment, calendar, messages, reviews, documents, subscription, settings, local-sync)
-    │   ├── admin/          # ★ ADMIN PORTAL (users, providers, complaints, subscription-plans, branding, payments, whatsapp, locations)
+    │   ├── auth/           # Login, register, forgot-password, reset-password
+    │   ├── dashboard/      # ★ CUSTOMER PORTAL (events, bookings, messages, documents, packages, budget, timeline, cart, checkout, agreements, complaints)
+    │   ├── provider/       # ★ PROVIDER PORTAL (bookings, services, equipment, calendar, messages, reviews, documents, subscription, analytics, verification settings, local-sync)
+    │   ├── admin/          # ★ ADMIN PORTAL (users, providers + verification, complaints, subscription-plans, branding, payments, whatsapp, locations)
+    │   ├── notifications/  # ★ Notification inbox (bell in the sidebar for everyone)
     │   └── providers/[id]  # ★ PUBLIC provider profiles
     ├── components/
     │   ├── ui/             # Reusable UI (Button, Card, Input, Badge...)
     │   ├── layout/         # Navigation, sidebars
     │   ├── calendar/       # Availability calendar
-    │   ├── auth/           # Login/register forms
+    │   ├── auth/           # Login/register/reset forms
+    │   ├── notifications/  # Bell + notifications list
     │   └── theme/          # Dark/light toggle
     ├── hooks/              # React hooks (e.g. useCurrency)
     └── lib/                # auth (JWT), utils, server-api (proxied fetch)
@@ -367,7 +387,11 @@ The frontend has **no API routes of its own**. The `next.config.ts` rewrites pro
 
 ## How the database works
 
-The database is defined in `backend/prisma/schema.prisma`. This file describes every table and how they relate to each other. Changes are captured as versioned SQL files in `backend/prisma/migrations/`.
+The database is defined in `backend/prisma/schema.prisma`. This file describes every table and how they relate to each other. Changes are captured as versioned SQL files in `backend/prisma/migrations/` (currently `0001`–`0011`; they apply automatically on every Render deploy).
+
+### Money storage
+
+All monetary columns (prices, amounts, budgets, charges, refunds) are stored as **exact decimal numbers** (`NUMERIC(12,2)`), not floats — so sums and tax/discount math never drift. A small middleware (`backend/src/lib/serialize.ts`) converts decimals back to plain numbers in every API response, so the frontend always receives normal numbers.
 
 ### Key concepts
 
@@ -597,6 +621,8 @@ All endpoints live in the backend (`backend/src/routes/`) and are proxied from t
 | `/api/auth/session` | GET | Check if logged in |
 | `/api/auth/google` | GET | Redirect to Google login |
 | `/api/auth/google/callback` | GET | Handle Google's response |
+| `/api/auth/forgot-password` | POST | Email a single-use password reset link (enumeration-safe) |
+| `/api/auth/reset-password` | POST | Set a new password with a valid, unexpired reset token |
 | `/api/events` | GET, POST | List/create events |
 | `/api/events/[id]` | GET, PATCH, DELETE | View/update/delete event |
 | `/api/bookings` | GET, POST | List/create bookings |
@@ -627,12 +653,18 @@ All endpoints live in the backend (`backend/src/routes/`) and are proxied from t
 | `/api/messages/[conversationId]` | GET | Read a conversation (auto-marks as read) |
 | `/api/messages/thread` | POST | Create a multi-provider group thread |
 | `/api/messages/thread/[masterQuoteId]` | GET, POST | Read/send in a group thread |
-| `/api/upload` | POST | Upload an image (Cloudinary; role-gated) |
+| `/api/complaints` | GET, POST | Customer/provider complaints (list mine / submit with evidence) |
+| `/api/notifications` | GET | List my notifications with unread count |
+| `/api/notifications/unread-count` | GET | Unread notification count (for the bell) |
+| `/api/notifications/:id` | PATCH | Mark one notification as read |
+| `/api/notifications/read-all` | POST | Mark all my notifications as read |
+| `/api/upload` | POST | Upload an image/document (Cloudinary; role-gated, `verification` + `complaints` folders) |
 | `/api/whatsapp/webhook` | GET, POST | Meta verification handshake + inbound WhatsApp messages |
 | `/api/admin` | GET, PATCH | Admin dashboard + approve providers |
 | `/api/admin/users` | GET, PATCH | User management (paginated) |
 | `/api/admin/providers` | GET, POST, PUT, PATCH, DELETE | List (with paid/active status + payment filter), create, edit, deactivate/reactivate, delete (blocked if bookings/services exist) |
-| `/api/admin/complaints` | GET, PATCH | Complaint management |
+| `/api/admin/providers/:id/verification` | PATCH | Admin review of provider verification documents (sets verified badge) |
+| `/api/admin/complaints` | GET, PATCH | Complaint management (type/priority/evidence, resolution + optional refund) |
 | `/api/admin/subscription-plans` | GET, POST, PATCH, DELETE | Plan management |
 | `/api/admin/payments` | GET, PUT | Payment credentials/config |
 | `/api/admin/whatsapp` | GET, PUT | Read/update WhatsApp Cloud API credentials (masked) |
@@ -641,6 +673,8 @@ All endpoints live in the backend (`backend/src/routes/`) and are proxied from t
 | `/api/provider/subscription` | GET, POST | Provider subscription |
 | `/api/provider/subscription/check` | GET | Check plan limits |
 | `/api/provider/dashboard` | GET | Provider dashboard stats |
+| `/api/provider/verification` | POST | Submit provider verification documents (ID / business registration) |
+| `/api/provider/analytics` | GET | Revenue over time, bookings by status, top services |
 | `/api/customer/dashboard` | GET | Customer dashboard stats |
 | `/api/budget` | GET | Get cost estimates |
 | `/api/timeline` | GET, POST | Save/load event timeline |
@@ -724,9 +758,11 @@ The project applies common security best practices:
 - **Rate limiting** on auth, uploads, payments, and globally
 - **Helmet** security headers, CORS allow-list (incl. preview deployments)
 - **Google OAuth CSRF state** and verified-email enforcement
+- **Password reset** — reset tokens are hashed in the DB (never stored raw), single-use, expire after 1 hour, and the "forgot password" endpoint doesn't reveal whether an email exists
 - **WhatsApp webhook** verify-token handshake (requests with a wrong token are rejected)
 - **Input validation** with Zod everywhere
 - **Secrets are not committed** — they live in the hosting dashboards (Render/Vercel)
+- **Notification ownership** — you can only read/mark your own notifications
 
 ---
 

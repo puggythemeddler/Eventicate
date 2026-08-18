@@ -15,6 +15,12 @@ Deploy via the blueprint file `render.yaml` (root dir `backend`). The build comm
 applied with `prisma migrate deploy` (retried so transient Neon connection issues don't strand
 old code), then the app is compiled. Uploads live on a persistent 1 GB disk.
 
+Migrations are checked in as hand-written SQL folders (`backend/prisma/migrations/0001`–`0011`)
+and apply automatically in order on every deploy. `0010` converts all money columns to exact
+`NUMERIC(12,2)` decimals; `0011` adds the `PasswordResetToken` table. There is no need to run
+migrations manually — but after the first deploy you can seed demo data once from the Render shell:
+`npm run db:seed`.
+
 1. Render dashboard → **New → Blueprint** → pick the repo → apply `render.yaml`.
 2. Set environment variables (Settings → Environment). Secrets that are marked `sync: false`
    in `render.yaml` (DB URL, `JWT_SECRET`, Cloudinary, M-Pesa, SMTP, Google) are managed here

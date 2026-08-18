@@ -54,11 +54,22 @@ This section explains every technology used to build Eventicate, from the progra
 
 | Language | What it's used for | File extensions |
 |----------|-------------------|-----------------|
-| **TypeScript** | The main language for ALL code — both frontend and backend | `.ts`, `.tsx` |
-| **JavaScript** | Used via TypeScript (which compiles to it) and in small config/script files | `.js`, `.mjs`, `.cjs` |
+| **TypeScript** | The main language for ALL code — both frontend and backend (over 99% of the codebase) | `.ts`, `.tsx` |
+| **JavaScript** | Used via TypeScript (which compiles to it) and in a few config/script files | `.mjs` (e.g. `eslint.config.mjs`, `postcss.config.mjs`, `backend/scripts/migrate-retry.mjs`) |
 | **CSS** | Styling and layout of web pages | `.css` (in globals.css and Tailwind classes) |
-| **SQL** | Database queries (handled automatically by Prisma — you don't write SQL directly) | `.prisma` (schema), SQL in migrations |
+| **SQL** | Database queries — handled automatically by Prisma, but migrations are checked in as SQL | `.prisma` (schema), 11 raw SQL files in `backend/prisma/migrations/` |
 | **HTML/JSX** | The markup that makes up pages and components (JSX is TypeScript's HTML-like syntax in React) | `.tsx` |
+
+#### Markup & configuration languages
+
+| Language | What it's used for | File extensions |
+|----------|-------------------|-----------------|
+| **Prisma Schema** | A DSL defining every database table, field, and relation; Prisma generates the typed client and SQL migrations from it | `.prisma` |
+| **JSON** | Package metadata and tool configuration | `.json` |
+| **Markdown** | Documentation | `.md` |
+| **YAML** | Infrastructure & CI config (Render blueprint, GitHub Actions workflow) | `.yaml`, `.yml` |
+| **TOML** | Prisma migration lockfile | `.toml` |
+| **SVG** | Vector icon assets | `.svg` |
 
 ### Frontend (What users see in their browser)
 
@@ -166,7 +177,11 @@ src/app/
 │   └── page.tsx                →  /search               (Find services)
 ├── auth/
 │   ├── login/page.tsx          →  /auth/login           (Sign in)
-│   └── register/page.tsx       →  /auth/register        (Sign up)
+│   ├── register/page.tsx       →  /auth/register        (Sign up)
+│   ├── forgot-password/page.tsx → /auth/forgot-password (Request reset link)
+│   └── reset-password/page.tsx →  /auth/reset-password  (Set new password)
+├── notifications/
+│   └── page.tsx                →  /notifications        (Notification inbox)
 ├── dashboard/
 │   ├── page.tsx                →  /dashboard            (Customer home)
 │   ├── events/
@@ -186,6 +201,7 @@ src/app/
 │   │   └── [id]/page.tsx       →  /dashboard/documents/abc
 │   ├── packages/page.tsx       →  /dashboard/packages   (Package builder)
 │   ├── budget/page.tsx         →  /dashboard/budget     (Budget calculator)
+│   ├── complaints/page.tsx     →  /dashboard/complaints (Raise & track disputes)
 │   └── timeline/page.tsx       →  /dashboard/timeline   (Timeline planner)
 │   ├── provider/
 │   │   ├── page.tsx                →  /provider             (Provider home)
@@ -199,7 +215,8 @@ src/app/
 │   │   ├── documents/
 │   │   │   └── ...                 →  /provider/documents/...
 │   │   ├── subscription/page.tsx   →  /provider/subscription
-│   │   ├── settings/page.tsx       →  /provider/settings
+│   │   ├── analytics/page.tsx      →  /provider/analytics (Revenue & performance)
+│   │   ├── settings/page.tsx       →  /provider/settings  (Profile + verification documents)
 │   │   └── local-sync/page.tsx     →  /provider/local-sync
 │   ├── admin/
 │   │   ├── page.tsx                →  /admin                (Admin home)
@@ -580,14 +597,16 @@ backend/src/
 │   ├── rate-limit.ts           #   express-rate-limit instances
 │   └── utils.ts                #   Formatting / parsing helpers
 └── routes/                     # ★ One file (or folder) per API area
-    ├── auth/                   #   login, register, logout, session, google
+    ├── auth/                   #   login, register, logout, session, google, forgot/reset password
     ├── bookings/               #   booking creation + status updates
     ├── events/                 #   event CRUD
     ├── payments/               #   initiate, status, split, mpesa-callback, methods
     ├── documents/              #   quotes, invoices, generate
     ├── messages/               #   chat + multi-provider threads
-    ├── admin/                  #   users, providers, complaints, plans, payments, logos
-    ├── provider/               #   settings, subscription, dashboard
+    ├── complaints.ts           #   customer/provider dispute submission + tracking
+    ├── notifications.ts        #   notification inbox, unread counts, mark read
+    ├── admin/                  #   users, providers (+ verification), complaints, plans, payments, logos
+    ├── provider/               #   settings, subscription, dashboard, verification, analytics
     ├── customer/               #   dashboard
     ├── quotes/                 #   generate-from-cart
     └── ...                     #   cart, packages, availability, timeline, budget, reviews, upload, locations, local-sync
@@ -659,6 +678,8 @@ backend/prisma/
 5. You'll be taken to your dashboard
 
 **Or sign in with Google** — Click "Sign in with Google" on the login page (must be configured in `.env` first).
+
+**Forgot your password?** Click **"Forgot password?"** on the login page, enter your email, and a **single-use reset link** (valid for 1 hour) is emailed to you if an account exists. The page always shows the same message so nobody can discover which emails are registered. After resetting, sign in with your new password.
 
 ### 8.2 Your Dashboard
 
@@ -843,6 +864,25 @@ Go to `/dashboard/timeline` to schedule your event:
    - Assigned provider (optional)
 3. Reorder entries as needed
 4. Save the timeline
+
+### 8.17 Notifications
+
+- A **bell icon** appears in the sidebar (desktop) and top bar (mobile) with an unread badge.
+- The bell dropdown shows your latest notifications; clicking one opens the related page and marks it read.
+- **"View all"** takes you to `/notifications` — the full inbox, with per-item read marking and a "Mark all read" button.
+- Notifications are created automatically for bookings, messages, payments, reviews, complaints, and system events.
+
+### 8.18 Raising a Complaint / Dispute
+
+Go to `/dashboard/complaints` to raise a dispute (for example about a service that wasn't delivered):
+
+1. Click **"New Complaint"**
+2. Pick the **booking** the complaint is about
+3. Choose a **complaint type** and **priority**
+4. Write a description and **attach evidence** (screenshots, documents, receipts)
+5. Submit — the admin is notified
+
+You can track the status (Open → Investigating → Resolved/Dismissed), and once resolved you'll see the admin's resolution notes and any refund amount.
 
 ---
 
@@ -1032,6 +1072,34 @@ If you have an existing local business system (desktop inventory software), you 
    - **Sync Inventory from Local** — Import equipment from your local system
    - **Push Booking to Local** — Send a specific booking to your local system
 
+### 9.14 Verification (Verified Badge)
+
+Go to `/provider/settings` and scroll to the **Verification** section:
+
+1. Upload a scan/photo of your **national ID or business registration** document
+2. Submit — the admin is notified
+3. Once approved, a green **"Verified"** badge appears on your public profile and in the admin list
+4. While pending you'll see the status in Settings, and you can re-submit if rejected
+
+Verification builds customer trust — verified providers are more likely to get booked.
+
+### 9.15 Analytics
+
+Go to `/provider/analytics` to see how your business is performing:
+
+- **Summary cards** — total revenue, bookings, completed, cancelled, average rating
+- **Revenue chart** — monthly revenue for the last 6 months, plus average booking value
+- **Bookings by status** — how many bookings are in each state
+- **Top services** — your most-booked services with revenue
+
+### 9.16 Complaints Against Your Business
+
+Go to `/dashboard/complaints` (the same page customers use):
+
+- View complaints customers raise against your bookings
+- See the complaint type, priority, description, and evidence files
+- The admin resolves the dispute — you'll see the outcome and any notes
+
 ---
 
 ## 10. Admin Manual
@@ -1068,6 +1136,7 @@ Go to `/admin/providers`:
 - **Filter by approval status** (Pending, Approved, All) and **by category**
 - **Add Provider** — create a provider account manually (name, email, password, phone, business, category, location). The provider receives a welcome email and can log in immediately
 - **Approve/Reject** new providers — let them start receiving bookings or reject them
+- **Verify** — providers who submitted documents (in Provider → Settings) show a **Verify** button; clicking it sets a green **"Verified"** badge on their public profile
 - **Edit** — update contact info, business name, category, description, location, and approval status
 - **Deactivate/Reactivate** — deactivated providers **cannot log in** (their account is blocked); reactivating restores access
 - **Delete** — permanently removes the account, but only if they have no bookings or services. If they do, the system tells you to **deactivate instead** so you don't lose historical data
@@ -1104,15 +1173,16 @@ Each plan has:
 - `maxVehicles` — Max vehicle listings
 - `features` — List of feature descriptions shown to providers
 
-### 10.5 Handling Complaints
+### 10.5 Handling Complaints / Disputes
 
 Go to `/admin/complaints`:
 
-- View all complaints from users
-- **Filter by status** (Open, Investigating, Resolved, Dismissed)
-- Click a complaint to expand and see details
+- View all complaints from users, showing **complaint type**, **priority**, and **evidence files** (screenshots, documents, receipts uploaded by the reporter)
+- **Filter by status** (Open, Investigating, Resolved, Dismissed) and by priority
+- Click a complaint to expand and see details, including the linked booking (customer, provider, event)
 - **Update status** — Mark as investigating, resolved, or dismissed
-- **Add admin notes** — Internal notes about the resolution
+- **Resolve with refund** — when resolving, optionally set a **refund amount** (recorded and shown to the reporter) and add **admin notes** about the resolution
+- The reporter is notified when their complaint is resolved or dismissed
 
 ### 10.6 Branding (Logo Upload)
 
@@ -1183,7 +1253,8 @@ Go to `/admin/whatsapp` to connect the platform's WhatsApp Business account for 
 | 16 | **Cart → Quotes** | Cart page → "Generate Quotes" | Customer |
 | 17 | **Customer Messages** | `/dashboard/messages` (unread badges, read receipts, attachments, WhatsApp) | Customer |
 | 18 | **Multi-provider Threads** | Messages (grouped by master quote) | Customer/Provider |
-| 19 | **Customer Documents** | `/dashboard/documents` | Customer || 20 | **Package Builder** | `/dashboard/packages` | Customer |
+| 19 | **Customer Documents** | `/dashboard/documents` | Customer |
+| 20 | **Package Builder** | `/dashboard/packages` | Customer |
 | 21 | **Budget Calculator** | `/dashboard/budget` | Customer |
 | 22 | **Timeline Planner** | `/dashboard/timeline` | Customer |
 | 23 | **Rate Provider** | Booking detail (after completed) | Customer |
@@ -1215,10 +1286,14 @@ Go to `/admin/whatsapp` to connect the platform's WhatsApp Business account for 
 | 49 | **Print Thermal Receipts** | Document detail → "Print Thermal" | Customer/Provider |
 | 50 | **Invoice Auto-Generation** | Automatic on payment | System |
 | 51 | **Quote Auto-Generation** | Automatic on quote sent | System |
-| 52 | **Notifications** | On bookings, messages, payments | Everyone |
+| 52 | **Notifications** | Bell + `/notifications` inbox, unread badges, mark read / mark all | Everyone |
 | 53 | **Two-Way Ratings** | After completed bookings | Customer/Provider |
 | 54 | **Country-Aware Currency** | Every price display | Everyone |
 | 55 | **Two-Way WhatsApp Chat** | Automatic (when connected) | Customer/Provider |
+| 56 | **Password Reset** | `/auth/forgot-password` + `/auth/reset-password` (single-use, 1-hour link) | Everyone |
+| 57 | **Provider Verification** | `/provider/settings` → Verification; admin reviews in `/admin/providers` | Provider/Admin |
+| 58 | **Provider Analytics** | `/provider/analytics` (monthly revenue, status breakdown, top services) | Provider |
+| 59 | **Complaints / Disputes** | `/dashboard/complaints` (type, priority, evidence) + admin resolution with refunds | Customer/Provider/Admin |
 
 ### Database tables (at a glance)
 
@@ -1244,7 +1319,8 @@ Go to `/admin/whatsapp` to connect the platform's WhatsApp Business account for 
 | Conversation | Message thread grouping (incl. multi-provider) |
 | Review | Ratings and reviews |
 | Notification | User notifications |
-| Complaint | Admin-handled disputes |
+| Complaint | Admin-handled disputes (type, priority, evidence, resolution, refund amount) |
+| PasswordResetToken | Single-use, hashed password-reset tokens (1-hour expiry) |
 | Document | Quotes, invoices, receipts |
 | SubscriptionPlan | Pricing tiers |
 | ProviderSubscription | Provider subscription status |
@@ -1390,6 +1466,9 @@ You can do this through the admin UI at `/admin/subscription-plans`, no coding n
 | Create an account | `/auth/register` |
 | Sign in | `/auth/login` |
 | Sign in with Google | Login page → Google button |
+| Reset a forgotten password | `/auth/forgot-password` |
+| View my notifications | `/notifications` (bell in the sidebar) |
+| Raise a complaint / dispute | `/dashboard/complaints` |
 | Find event services | `/search` |
 | View a provider's profile | `/providers/[id]` |
 | Understand how it works | `/how-it-works` |
@@ -1414,6 +1493,8 @@ You can do this through the admin UI at `/admin/subscription-plans`, no coding n
 | Provider reviews | `/provider/reviews` |
 | Provider documents | `/provider/documents` |
 | Subscription info | `/provider/subscription` |
+| Provider analytics | `/provider/analytics` |
+| Provider verification | `/provider/settings` → Verification |
 | Provider settings | `/provider/settings` |
 | Local sync | `/provider/local-sync` |
 | Admin dashboard | `/admin` |
