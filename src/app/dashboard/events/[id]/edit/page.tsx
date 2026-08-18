@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
@@ -31,8 +31,10 @@ const STATUS_OPTIONS = [
   { value: "CANCELLED", label: "Cancelled" },
 ];
 
-export default function EditEventPage({ eventId }: { eventId: string }) {
+export default function EditEventPage() {
   const router = useRouter();
+  const params = useParams<{ id: string }>();
+  const eventId = params.id;
   const [loading, setLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [form, setForm] = useState<EventForm | null>(null);
