@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import path from "path";
 import fs from "fs";
+import { stripDecimals } from "./lib/serialize";
 import sessionRouter from "./routes/auth/session";
 import registerRouter from "./routes/auth/register";
 import loginRouter from "./routes/auth/login";
@@ -125,6 +126,14 @@ app.use(
 );
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+
+// Prisma returns Decimal instances for money columns; serialize them back to
+// plain numbers so the API contract (and every client) stays unchanged.
+app.use((_req, res, next) => {
+  const originalJson = res.json.bind(res);
+  res.json = (body: unknown) => originalJson(stripDecimals(body));
+  next();
+});
 
 const uploadsDir = path.join(process.cwd(), "uploads");
 fs.mkdirSync(uploadsDir, { recursive: true });

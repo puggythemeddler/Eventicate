@@ -38,7 +38,7 @@ router.post("/", async (req, res) => {
 
       // Validate the callback amount matches the recorded payment amount.
       const recorded = await prisma.payment.findFirst({ where: { transactionId: checkoutRequestId } });
-      if (recorded && cb.amount && Math.round(recorded.amount) !== Math.round(cb.amount)) {
+      if (recorded && cb.amount && Math.round(recorded.amount.toNumber()) !== Math.round(cb.amount)) {
         return res.status(400).json({ ResultCode: 1, ResultDesc: "Amount mismatch" });
       }
 
@@ -68,10 +68,12 @@ router.post("/", async (req, res) => {
 
         if (claimed.count > 0) {
           const alreadyPaid = completedPaymentSum(
-            booking.payments.filter((p) => p.id !== payment.id)
+            booking.payments
+              .filter((p) => p.id !== payment.id)
+              .map((p) => ({ amount: p.amount.toNumber(), status: p.status }))
           );
-          const totalDue = booking.finalPrice || booking.quotedPrice || 0;
-          const newTotalPaid = alreadyPaid + payment.amount;
+          const totalDue = booking.finalPrice?.toNumber() ?? booking.quotedPrice?.toNumber() ?? 0;
+          const newTotalPaid = alreadyPaid + payment.amount.toNumber();
           const newStatus = newTotalPaid >= totalDue ? "FULLY_PAID" : "DEPOSIT_PAID";
 
           await prisma.$transaction([
@@ -94,7 +96,7 @@ router.post("/", async (req, res) => {
               booking.customer.user.email,
               booking.customer.user.firstName,
               {
-                amount: payment.amount,
+                amount: payment.amount.toNumber(),
                 method: "MPESA",
                 ref: cb.receipt || checkoutRequestId,
                 eventName: booking.event?.title || "Booking",
@@ -123,8 +125,8 @@ router.post("/", async (req, res) => {
           });
           const expected =
             subscription.billingPeriod === "ANNUAL"
-              ? (plan?.annualPrice ?? (plan ? Math.round(plan.price * 12 * 0.85) : undefined))
-              : plan?.price;
+              ? (plan?.annualPrice?.toNumber() ?? (plan ? Math.round(plan.price.toNumber() * 12 * 0.85) : undefined))
+              : plan?.price?.toNumber();
           if (cb.amount && expected != null && Math.round(cb.amount) !== Math.round(expected)) {
             return res.status(400).json({ ResultCode: 1, ResultDesc: "Amount mismatch" });
           }

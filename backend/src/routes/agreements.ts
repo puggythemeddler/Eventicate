@@ -41,7 +41,7 @@ router.post("/", async (req, res) => {
     }
 
     // Cross-check the amount the customer signed against the booking's real price.
-    const expectedTotal = booking.finalPrice || booking.quotedPrice || null;
+    const expectedTotal = booking.finalPrice?.toNumber() ?? booking.quotedPrice?.toNumber() ?? null;
     if (expectedTotal === null) {
       return res.status(400).json({ error: "Booking has no price yet" });
     }

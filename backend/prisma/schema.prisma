@@ -226,8 +226,8 @@ model Event {
   latitude        Float?
   longitude       Float?
   guestCount      Int
-  budgetMin       Float?
-  budgetMax       Float?
+  budgetMin       Decimal?
+  budgetMax       Decimal?
   description     String?
   requiredServices String   @default("[]") // JSON array of ServiceCategory values
   timelineData    String   @default("[]") // JSON array of timeline entries
@@ -249,7 +249,7 @@ model Service {
   name        String
   description   String?
   category      ServiceCategory
-  basePrice     Float
+  basePrice     Decimal
   discountPercent Float          @default(0)
   images        String          // JSON array of image URLs
   isActive      Boolean         @default(true)
@@ -274,7 +274,7 @@ model Venue {
   facilities   String          // JSON array
   images       String          // JSON array
   videos       String          // JSON array
-  basePrice    Float
+  basePrice    Decimal
   packages     String          // JSON: pricing packages
   eventPricing String          // JSON: event-type specific pricing
   isActive     Boolean         @default(true)
@@ -293,11 +293,11 @@ model Equipment {
   condition       String          @default("good")
   description     String?
   images          String          // JSON array
-  rentalPrice     Float
+  rentalPrice     Decimal
   discountPercent Float           @default(0)
-  setupCharge     Float           @default(0)
-  transportCharge Float           @default(0)
-  operatorCharge  Float           @default(0)
+  setupCharge     Decimal         @default(0)
+  transportCharge Decimal         @default(0)
+  operatorCharge  Decimal         @default(0)
   cartItems       CartItem[]
   bookingItems    BookingItem[]
   isActive        Boolean         @default(true)
@@ -316,8 +316,8 @@ model Vehicle {
   images       String          // JSON array
   driverName   String?
   driverPhone  String?
-  pricePerKm   Float           @default(0)
-  basePrice    Float
+  pricePerKm   Decimal         @default(0)
+  basePrice    Decimal
   isActive     Boolean         @default(true)
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
@@ -336,8 +336,8 @@ model MenuPackage {
   includesDessert Boolean         @default(false)
   menuItems       String          // JSON array of menu items
   dietaryOptions  String          // JSON array
-  basePrice       Float
-  pricePerGuest   Float           @default(0)
+  basePrice       Decimal
+  pricePerGuest   Decimal         @default(0)
   images          String          // JSON array
   isActive        Boolean         @default(true)
   createdAt       DateTime        @default(now())
@@ -355,7 +355,7 @@ model PhotoPackage {
   includesEditing Boolean         @default(false)
   includesAlbum   Boolean         @default(false)
   includesDrone   Boolean         @default(false)
-  basePrice       Float
+  basePrice       Decimal
   images          String          // JSON array
   isActive        Boolean         @default(true)
   createdAt       DateTime        @default(now())
@@ -394,8 +394,8 @@ model Agreement {
   signedAt        DateTime @default(now())
   ipAddress       String?
   terms           String   // snapshot of terms agreed to
-  totalAmount     Float
-  depositAmount   Float?
+  totalAmount     Decimal
+  depositAmount   Decimal?
   createdAt       DateTime @default(now())
 }
 
@@ -448,9 +448,9 @@ model Booking {
   serviceId       String?
   service         Service?      @relation(fields: [serviceId], references: [id])
   status          BookingStatus @default(QUOTATION_REQUESTED)
-  quotedPrice     Float?
-  finalPrice      Float?
-  depositAmount   Float?
+  quotedPrice     Decimal?
+  finalPrice      Decimal?
+  depositAmount   Decimal?
   depositPaid     Boolean       @default(false)
   customerNotes   String?
   providerNotes   String?
@@ -482,10 +482,10 @@ model BookingItem {
   serviceId       String?
   service         Service?  @relation(fields: [serviceId], references: [id], onDelete: SetNull)
   quantity        Int       @default(1)
-  unitPrice       Float
-  setupCharge     Float     @default(0)
-  transportCharge Float     @default(0)
-  operatorCharge  Float     @default(0)
+  unitPrice       Decimal
+  setupCharge     Decimal     @default(0)
+  transportCharge Decimal     @default(0)
+  operatorCharge  Decimal     @default(0)
   createdAt       DateTime  @default(now())
 
   @@index([bookingId])
@@ -497,7 +497,7 @@ model Payment {
   id            String        @id @default(cuid())
   bookingId     String
   booking       Booking       @relation(fields: [bookingId], references: [id], onDelete: Restrict)
-  amount        Float
+  amount        Decimal
   method        PaymentMethod @default(CARD)
   status        PaymentStatus @default(PENDING)
   transactionId String?       @unique
@@ -534,13 +534,13 @@ model Document {
 
   lineItems       String         @default("[]")
 
-  subtotal        Float
+  subtotal        Decimal
   taxRate         Float          @default(0)
-  taxAmount       Float          @default(0)
+  taxAmount       Decimal        @default(0)
   discountRate    Float          @default(0)
-  discountAmount  Float          @default(0)
-  total           Float
-  depositRequired Float?
+  discountAmount  Decimal        @default(0)
+  total           Decimal
+  depositRequired Decimal?
   depositPaid     Boolean        @default(false)
 
   notes           String?
@@ -680,7 +680,7 @@ model Complaint {
   evidenceUrls  String    @default("[]") // JSON array of evidence doc/image URLs
   status        String    @default("open") // open, investigating, resolved, dismissed
   resolution    String? // REFUNDED, PARTIAL_REFUND, NO_REFUND
-  refundAmount  Float?
+  refundAmount  Decimal?
   adminNotes    String?
   resolvedAt    DateTime?
   createdAt     DateTime  @default(now())
@@ -704,8 +704,8 @@ model SubscriptionPlan {
   id             String   @id @default(cuid())
   name           String
   description    String?
-  price          Float
-  annualPrice    Float?
+  price          Decimal
+  annualPrice    Decimal?
   trialDays      Int      @default(0)
   maxServices    Int      @default(5)
   maxEquipment   Int      @default(10)

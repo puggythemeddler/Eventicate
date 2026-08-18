@@ -81,7 +81,7 @@ export async function getFreePlan(): Promise<{ id: string; name: string; price: 
     orderBy: { sortOrder: "asc" },
   });
   if (!plan) return null;
-  return { ...plan, features: JSON.parse(plan.features) };
+  return { ...plan, price: plan.price.toNumber(), annualPrice: plan.annualPrice?.toNumber() ?? null, features: JSON.parse(plan.features) };
 }
 
 export async function getOrCreateFreePlan(): Promise<{ id: string; name: string; price: number; annualPrice: number | null; maxServices: number; maxEquipment: number; maxBookings: number; maxVenues: number; maxVehicles: number; features: string[]; trialDays: number }> {
@@ -104,7 +104,7 @@ export async function getOrCreateFreePlan(): Promise<{ id: string; name: string;
       isActive: true,
     },
   });
-  return { ...plan, features: JSON.parse(plan.features) };
+  return { ...plan, price: plan.price.toNumber(), annualPrice: plan.annualPrice?.toNumber() ?? null, features: JSON.parse(plan.features) };
 }
 
 export async function getProviderLimits(providerId: string): Promise<ProviderLimits> {
@@ -135,7 +135,7 @@ export async function getProviderLimits(providerId: string): Promise<ProviderLim
   const now = new Date();
   const isPaidPlanActive =
     subscription?.status === "ACTIVE" &&
-    subscription.plan.price > 0 &&
+    subscription.plan.price.toNumber() > 0 &&
     (!subscription.currentPeriodEnd || subscription.currentPeriodEnd > now);
 
   const activeStatuses: string[] = ["TRIAL", "ACTIVE"];
@@ -278,8 +278,8 @@ export async function getSubscriptionStatus(providerId: string): Promise<Subscri
     plan: {
       id: subscription.plan.id,
       name: subscription.plan.name,
-      price: subscription.plan.price,
-      annualPrice: subscription.plan.annualPrice,
+      price: subscription.plan.price.toNumber(),
+      annualPrice: subscription.plan.annualPrice?.toNumber() ?? null,
       maxServices: subscription.plan.maxServices,
       maxEquipment: subscription.plan.maxEquipment,
       maxBookings: subscription.plan.maxBookings,
@@ -322,8 +322,8 @@ export async function startTrial(providerId: string): Promise<SubscriptionWithPl
         plan: {
           id: plan.id,
           name: plan.name,
-          price: plan.price,
-          annualPrice: plan.annualPrice,
+          price: plan.price.toNumber(),
+          annualPrice: plan.annualPrice?.toNumber() ?? null,
           maxServices: plan.maxServices,
           maxEquipment: plan.maxEquipment,
           maxBookings: plan.maxBookings,
@@ -355,8 +355,8 @@ export async function startTrial(providerId: string): Promise<SubscriptionWithPl
         plan: {
           id: plan.id,
           name: plan.name,
-          price: plan.price,
-          annualPrice: plan.annualPrice,
+          price: plan.price.toNumber(),
+          annualPrice: plan.annualPrice?.toNumber() ?? null,
           maxServices: plan.maxServices,
           maxEquipment: plan.maxEquipment,
           maxBookings: plan.maxBookings,
@@ -412,8 +412,8 @@ export async function startTrial(providerId: string): Promise<SubscriptionWithPl
     plan: {
       id: subscription.plan.id,
       name: subscription.plan.name,
-      price: subscription.plan.price,
-      annualPrice: subscription.plan.annualPrice,
+      price: subscription.plan.price.toNumber(),
+      annualPrice: subscription.plan.annualPrice?.toNumber() ?? null,
       maxServices: subscription.plan.maxServices,
       maxEquipment: subscription.plan.maxEquipment,
       maxBookings: subscription.plan.maxBookings,
@@ -489,8 +489,8 @@ export async function subscribeToPlan(
     plan: {
       id: subscription.plan.id,
       name: subscription.plan.name,
-      price: subscription.plan.price,
-      annualPrice: subscription.plan.annualPrice,
+      price: subscription.plan.price.toNumber(),
+      annualPrice: subscription.plan.annualPrice?.toNumber() ?? null,
       maxServices: subscription.plan.maxServices,
       maxEquipment: subscription.plan.maxEquipment,
       maxBookings: subscription.plan.maxBookings,

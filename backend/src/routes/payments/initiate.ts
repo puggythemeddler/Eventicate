@@ -42,15 +42,15 @@ router.post("/", paymentLimiter, async (req, res) => {
       const plan = await prisma.subscriptionPlan.findUnique({ where: { id: planId } });
       if (!plan) return res.status(404).json({ error: "Plan not found" });
       if (!plan.isActive) return res.status(400).json({ error: "Plan is not active" });
-      if (plan.price <= 0) {
+      if (plan.price.toNumber() <= 0) {
         return res.status(400).json({ error: "Free plans do not require payment" });
       }
 
       // Ignore the client-supplied amount; derive it from the plan server-side.
       const amount =
         data.billingPeriod === "ANNUAL"
-          ? (plan.annualPrice ?? Math.round(plan.price * 12 * 0.85))
-          : plan.price;
+          ? (plan.annualPrice?.toNumber() ?? Math.round(plan.price.toNumber() * 12 * 0.85))
+          : plan.price.toNumber();
 
       const result = await initiatePayment(data.gateway as PaymentGateway, {
         amount,
@@ -106,15 +106,15 @@ router.post("/", paymentLimiter, async (req, res) => {
       return res.status(403).json({ error: "Forbidden" });
     }
 
-    const totalDue = booking.finalPrice || booking.quotedPrice || 0;
+    const totalDue = booking.finalPrice?.toNumber() ?? booking.quotedPrice?.toNumber() ?? 0;
     const totalPaid = booking.payments
       .filter((p) => p.status === "DEPOSIT_PAID" || p.status === "FULLY_PAID")
-      .reduce((sum, p) => sum + p.amount, 0);
+      .reduce((sum, p) => sum + p.amount.toNumber(), 0);
     const remaining = Math.max(0, totalDue - totalPaid);
 
     if (data.isDeposit) {
       // Never trust the client amount: derive the deposit server-side.
-      const depositAmount = booking.depositAmount ?? Math.round(totalDue * 0.3 * 100) / 100;
+      const depositAmount = booking.depositAmount?.toNumber() ?? Math.round(totalDue * 0.3 * 100) / 100;
       if (depositAmount <= 0) {
         return res.status(400).json({ error: "No deposit is due for this booking" });
       }

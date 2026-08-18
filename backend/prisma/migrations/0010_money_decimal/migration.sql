@@ -1,0 +1,33 @@
+-- Money columns: DOUBLE PRECISION -> NUMERIC(12,2) for exact decimal storage.
+
+ALTER TABLE "Event"          ALTER COLUMN "budgetMin" TYPE NUMERIC(12, 2);
+ALTER TABLE "Event"          ALTER COLUMN "budgetMax" TYPE NUMERIC(12, 2);
+ALTER TABLE "Service"        ALTER COLUMN "basePrice" TYPE NUMERIC(12, 2);
+ALTER TABLE "Venue"          ALTER COLUMN "basePrice" TYPE NUMERIC(12, 2);
+ALTER TABLE "Equipment"      ALTER COLUMN "rentalPrice" TYPE NUMERIC(12, 2);
+ALTER TABLE "Equipment"      ALTER COLUMN "setupCharge" TYPE NUMERIC(12, 2);
+ALTER TABLE "Equipment"      ALTER COLUMN "transportCharge" TYPE NUMERIC(12, 2);
+ALTER TABLE "Equipment"      ALTER COLUMN "operatorCharge" TYPE NUMERIC(12, 2);
+ALTER TABLE "Vehicle"        ALTER COLUMN "pricePerKm" TYPE NUMERIC(12, 2);
+ALTER TABLE "Vehicle"        ALTER COLUMN "basePrice" TYPE NUMERIC(12, 2);
+ALTER TABLE "MenuPackage"    ALTER COLUMN "basePrice" TYPE NUMERIC(12, 2);
+ALTER TABLE "MenuPackage"    ALTER COLUMN "pricePerGuest" TYPE NUMERIC(12, 2);
+ALTER TABLE "PhotoPackage"   ALTER COLUMN "basePrice" TYPE NUMERIC(12, 2);
+ALTER TABLE "Agreement"      ALTER COLUMN "totalAmount" TYPE NUMERIC(12, 2);
+ALTER TABLE "Agreement"      ALTER COLUMN "depositAmount" TYPE NUMERIC(12, 2);
+ALTER TABLE "Booking"        ALTER COLUMN "quotedPrice" TYPE NUMERIC(12, 2);
+ALTER TABLE "Booking"        ALTER COLUMN "finalPrice" TYPE NUMERIC(12, 2);
+ALTER TABLE "Booking"        ALTER COLUMN "depositAmount" TYPE NUMERIC(12, 2);
+ALTER TABLE "BookingItem"    ALTER COLUMN "unitPrice" TYPE NUMERIC(12, 2);
+ALTER TABLE "BookingItem"    ALTER COLUMN "setupCharge" TYPE NUMERIC(12, 2);
+ALTER TABLE "BookingItem"    ALTER COLUMN "transportCharge" TYPE NUMERIC(12, 2);
+ALTER TABLE "BookingItem"    ALTER COLUMN "operatorCharge" TYPE NUMERIC(12, 2);
+ALTER TABLE "Payment"        ALTER COLUMN "amount" TYPE NUMERIC(12, 2);
+ALTER TABLE "Document"       ALTER COLUMN "subtotal" TYPE NUMERIC(12, 2);
+ALTER TABLE "Document"       ALTER COLUMN "taxAmount" TYPE NUMERIC(12, 2);
+ALTER TABLE "Document"       ALTER COLUMN "discountAmount" TYPE NUMERIC(12, 2);
+ALTER TABLE "Document"       ALTER COLUMN "total" TYPE NUMERIC(12, 2);
+ALTER TABLE "Document"       ALTER COLUMN "depositRequired" TYPE NUMERIC(12, 2);
+ALTER TABLE "Complaint"      ALTER COLUMN "refundAmount" TYPE NUMERIC(12, 2);
+ALTER TABLE "SubscriptionPlan" ALTER COLUMN "price" TYPE NUMERIC(12, 2);
+ALTER TABLE "SubscriptionPlan" ALTER COLUMN "annualPrice" TYPE NUMERIC(12, 2);

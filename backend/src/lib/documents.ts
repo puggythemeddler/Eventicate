@@ -62,11 +62,11 @@ export async function generateQuoteFromBooking(bookingId: string) {
     {
       description: booking.service?.name || "Event Service",
       quantity: 1,
-      unitPrice: booking.quotedPrice,
-      total: booking.quotedPrice,
+      unitPrice: booking.quotedPrice.toNumber(),
+      total: booking.quotedPrice.toNumber(),
     },
   ];
-  const depositRequired = booking.depositAmount || booking.quotedPrice * 0.3;
+  const depositRequired = booking.depositAmount?.toNumber() || booking.quotedPrice.toNumber() * 0.3;
   const totals = calculateDocumentTotals(lineItems, 0, 0);
 
   const docNumber = await generateDocumentNumber("QUOTE");
@@ -110,15 +110,15 @@ export async function generateInvoiceFromBooking(bookingId: string) {
   });
   if (!booking) throw new Error("Booking not found");
 
-  const totalPaid = booking.payments.reduce((sum, p) => sum + p.amount, 0);
-  const remaining = (booking.finalPrice || booking.quotedPrice || 0) - totalPaid;
+  const totalPaid = booking.payments.reduce((sum, p) => sum + p.amount.toNumber(), 0);
+  const remaining = (booking.finalPrice?.toNumber() ?? booking.quotedPrice?.toNumber() ?? 0) - totalPaid;
 
   const lineItems: LineItem[] = [
     {
       description: booking.service?.name || "Event Service",
       quantity: 1,
-      unitPrice: remaining > 0 ? (booking.finalPrice || booking.quotedPrice || 0) : totalPaid,
-      total: remaining > 0 ? (booking.finalPrice || booking.quotedPrice || 0) : totalPaid,
+      unitPrice: remaining > 0 ? (booking.finalPrice?.toNumber() ?? booking.quotedPrice?.toNumber() ?? 0) : totalPaid,
+      total: remaining > 0 ? (booking.finalPrice?.toNumber() ?? booking.quotedPrice?.toNumber() ?? 0) : totalPaid,
     },
   ];
   const totals = calculateDocumentTotals(lineItems, 0, 0);
@@ -164,8 +164,8 @@ export async function generateProformaInvoice(bookingId: string) {
   });
   if (!booking) throw new Error("Booking not found");
 
-  const totalPaid = booking.payments.reduce((sum, p) => sum + p.amount, 0);
-  const totalDue = booking.finalPrice || booking.quotedPrice || 0;
+  const totalPaid = booking.payments.reduce((sum, p) => sum + p.amount.toNumber(), 0);
+  const totalDue = booking.finalPrice?.toNumber() ?? booking.quotedPrice?.toNumber() ?? 0;
   const remaining = totalDue - totalPaid;
 
   const lineItems: LineItem[] = [
@@ -221,8 +221,8 @@ export async function generateTaxInvoice(bookingId: string, taxRate = 16) {
   });
   if (!booking) throw new Error("Booking not found");
 
-  const totalPaid = booking.payments.reduce((sum, p) => sum + p.amount, 0);
-  const totalDue = booking.finalPrice || booking.quotedPrice || 0;
+  const totalPaid = booking.payments.reduce((sum, p) => sum + p.amount.toNumber(), 0);
+  const totalDue = booking.finalPrice?.toNumber() ?? booking.quotedPrice?.toNumber() ?? 0;
 
   const lineItems: LineItem[] = [
     {

@@ -99,7 +99,7 @@ router.post("/", async (req, res) => {
         if (service.providerId !== provider.id) {
           return res.status(400).json({ error: "The selected service does not belong to this provider" });
         }
-        basePrice = service.basePrice;
+        basePrice = service.basePrice.toNumber();
       }
     }
 
@@ -160,7 +160,7 @@ router.post("/", async (req, res) => {
       eventName: event.title,
       eventDate: event.eventDate.toISOString(),
       providerName: provider.businessName,
-      totalCost: booking.quotedPrice || 0,
+      totalCost: booking.quotedPrice?.toNumber() || 0,
       status: booking.status,
     }).catch((e) => console.error("Booking confirmation email failed:", e));
 
@@ -169,7 +169,7 @@ router.post("/", async (req, res) => {
       eventName: event.title,
       eventDate: event.eventDate.toISOString(),
       customerName: `${booking.customer.user.firstName} ${booking.customer.user.lastName}`,
-      totalCost: booking.quotedPrice || 0,
+      totalCost: booking.quotedPrice?.toNumber() || 0,
     }).catch((e) => console.error("New booking notification email failed:", e));
 
     await createNotification(

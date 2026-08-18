@@ -55,16 +55,16 @@ router.post("/", async (req, res) => {
         if (item.service) {
           const svc = item.service;
           const discounted = svc.discountPercent > 0
-            ? (svc.basePrice * (100 - svc.discountPercent)) / 100
-            : svc.basePrice;
+            ? (svc.basePrice.toNumber() * (100 - svc.discountPercent)) / 100
+            : svc.basePrice.toNumber();
           return sum + Math.round(discounted * item.quantity * 100) / 100;
         }
         if (item.equipment) {
           const eq = item.equipment;
           const discounted = eq.discountPercent > 0
-            ? (eq.rentalPrice * (100 - eq.discountPercent)) / 100
-            : eq.rentalPrice;
-          const perItem = discounted + (eq.setupCharge || 0) + (eq.transportCharge || 0) + (eq.operatorCharge || 0);
+            ? (eq.rentalPrice.toNumber() * (100 - eq.discountPercent)) / 100
+            : eq.rentalPrice.toNumber();
+          const perItem = discounted + eq.setupCharge.toNumber() + eq.transportCharge.toNumber() + eq.operatorCharge.toNumber();
           return sum + Math.round(perItem * item.quantity * 100) / 100;
         }
         return sum;
@@ -97,22 +97,22 @@ router.post("/", async (req, res) => {
               if (item.equipment) {
                 const eq = item.equipment;
                 const discounted = eq.discountPercent > 0
-                  ? (eq.rentalPrice * (100 - eq.discountPercent)) / 100
-                  : eq.rentalPrice;
+                  ? (eq.rentalPrice.toNumber() * (100 - eq.discountPercent)) / 100
+                  : eq.rentalPrice.toNumber();
                 return {
                   equipmentId: eq.id,
                   quantity: item.quantity,
                   unitPrice: Math.round(discounted * 100) / 100,
-                  setupCharge: eq.setupCharge || 0,
-                  transportCharge: eq.transportCharge || 0,
-                  operatorCharge: eq.operatorCharge || 0,
+                  setupCharge: eq.setupCharge.toNumber(),
+                  transportCharge: eq.transportCharge.toNumber(),
+                  operatorCharge: eq.operatorCharge.toNumber(),
                 };
               }
               if (item.service) {
                 const svc = item.service;
                 const discounted = svc.discountPercent > 0
-                  ? (svc.basePrice * (100 - svc.discountPercent)) / 100
-                  : svc.basePrice;
+                  ? (svc.basePrice.toNumber() * (100 - svc.discountPercent)) / 100
+                  : svc.basePrice.toNumber();
                 return {
                   serviceId: svc.id,
                   quantity: item.quantity,

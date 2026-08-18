@@ -48,12 +48,12 @@ router.post("/", async (req, res) => {
     // Only count completed payments toward the balance.
     const totalPaid = booking.payments
       .filter((p) => p.status === "DEPOSIT_PAID" || p.status === "FULLY_PAID")
-      .reduce((sum, p) => sum + p.amount, 0);
-    const totalDue = booking.finalPrice || booking.quotedPrice || 0;
+      .reduce((sum, p) => sum + p.amount.toNumber(), 0);
+    const totalDue = booking.finalPrice?.toNumber() ?? booking.quotedPrice?.toNumber() ?? 0;
 
     if (data.isDeposit) {
       if (booking.depositPaid) return res.status(400).json({ error: "Deposit already paid" });
-      const deposit = booking.depositAmount ?? totalDue * 0.3;
+      const deposit = booking.depositAmount?.toNumber() ?? totalDue * 0.3;
       if (data.amount < deposit) return res.status(400).json({ error: "Amount is less than the deposit due" });
     } else if (data.amount > Math.max(0, totalDue - totalPaid)) {
       return res.status(400).json({ error: "Amount exceeds remaining balance" });
@@ -89,7 +89,14 @@ router.post("/", async (req, res) => {
     );
 
     await generateReceiptFromPayment(
-      booking,
+      {
+        id: booking.id,
+        provider: { userId: booking.provider.userId, businessName: booking.provider.businessName },
+        customer: { userId: booking.customer.userId, user: booking.customer.user },
+        depositPaid: booking.depositPaid,
+        depositAmount: booking.depositAmount?.toNumber() ?? null,
+        event: booking.event,
+      },
       { amount: data.amount, method: data.method, isDeposit: data.isDeposit, paidAt: new Date() },
       booking.event?.title
     );

@@ -54,8 +54,8 @@ router.post("/", async (req, res) => {
 
       const totalPaid = booking.payments
         .filter((p) => p.status === "DEPOSIT_PAID" || p.status === "FULLY_PAID")
-        .reduce((sum, p) => sum + p.amount, 0);
-      const totalDue = booking.finalPrice || booking.quotedPrice || 0;
+        .reduce((sum, p) => sum + p.amount.toNumber(), 0);
+      const totalDue = booking.finalPrice?.toNumber() ?? booking.quotedPrice?.toNumber() ?? 0;
       const remaining = Math.max(0, totalDue - totalPaid);
 
       if (remaining <= 0) {

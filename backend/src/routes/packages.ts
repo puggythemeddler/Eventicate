@@ -66,7 +66,7 @@ router.post("/", async (req, res) => {
           }
 
           const quotedPrice = await calculateDynamicPrice({
-            basePrice: service.basePrice,
+            basePrice: service.basePrice.toNumber(),
             eventType: event.eventType,
             eventDate: event.eventDate,
             providerId: provider.id,

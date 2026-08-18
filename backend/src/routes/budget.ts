@@ -32,16 +32,16 @@ router.get("/", async (req, res) => {
         },
         select: { basePrice: true },
       });
-      results = venues.map((v) => ({ price: v.basePrice }));
+      results = venues.map((v) => ({ price: v.basePrice.toNumber() }));
     } else if (config.model === "menuPackage") {
       const pkgs = await prisma.menuPackage.findMany({
         where: { isActive: true },
         select: { basePrice: true, pricePerGuest: true, guestCount: true },
       });
       results = pkgs.map((p) => {
-        let total = p.basePrice;
+        let total = p.basePrice.toNumber();
         if (guestCount > p.guestCount) {
-          total += (guestCount - p.guestCount) * p.pricePerGuest;
+          total += (guestCount - p.guestCount) * p.pricePerGuest.toNumber();
         }
         return { price: total };
       });
@@ -50,25 +50,25 @@ router.get("/", async (req, res) => {
         where: { isActive: true },
         select: { rentalPrice: true },
       });
-      results = equip.map((e) => ({ price: e.rentalPrice }));
+      results = equip.map((e) => ({ price: e.rentalPrice.toNumber() }));
     } else if (config.model === "photoPackage") {
       const pkgs = await prisma.photoPackage.findMany({
         where: { isActive: true },
         select: { basePrice: true },
       });
-      results = pkgs.map((p) => ({ price: p.basePrice }));
+      results = pkgs.map((p) => ({ price: p.basePrice.toNumber() }));
     } else if (config.model === "vehicle") {
       const vehicles = await prisma.vehicle.findMany({
         where: { isActive: true },
         select: { basePrice: true },
       });
-      results = vehicles.map((v) => ({ price: v.basePrice }));
+      results = vehicles.map((v) => ({ price: v.basePrice.toNumber() }));
     } else if (config.model === "service") {
       const services = await prisma.service.findMany({
         where: { isActive: true, category: "DECORATION" },
         select: { basePrice: true },
       });
-      results = services.map((s) => ({ price: s.basePrice }));
+      results = services.map((s) => ({ price: s.basePrice.toNumber() }));
     }
 
     if (results.length > 0) {
