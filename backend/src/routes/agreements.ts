@@ -59,6 +59,19 @@ router.post("/", async (req, res) => {
       return res.status(409).json({ error: "Agreement already exists for this booking" });
     }
 
+    // The linked document (if any) must belong to this booking and to this customer,
+    // otherwise a customer could force-accept another provider's (or booking's) document.
+    if (data.documentId) {
+      const doc = await prisma.document.findUnique({ where: { id: data.documentId } });
+      if (!doc) return res.status(404).json({ error: "Document not found" });
+      if (doc.bookingId !== data.bookingId) {
+        return res.status(400).json({ error: "Document does not belong to this booking" });
+      }
+      if (doc.recipientId !== session.id) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+    }
+
     let ipAddress: string | null = null;
     const forwarded = req.headers["x-forwarded-for"];
     if (forwarded) {

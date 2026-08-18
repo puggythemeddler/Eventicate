@@ -54,8 +54,14 @@ export async function isWhatsAppConfigured(): Promise<boolean> {
   return Boolean(cfg.accessToken && cfg.phoneId);
 }
 
-export function getWhatsAppVerifyToken(): string {
-  return process.env.WHATSAPP_VERIFY_TOKEN || "";
+/**
+ * The verify token used in the Meta webhook handshake. The admin-panel value
+ * (stored in SystemConfig) takes precedence, falling back to the env var, so a
+ * token configured under Admin → WhatsApp matches what Meta sends back.
+ */
+export async function getWhatsAppVerifyToken(): Promise<string> {
+  const cfg = await loadWhatsAppConfig();
+  return cfg.verifyToken;
 }
 
 const GRAPH_BASE = "https://graph.facebook.com/v21.0";

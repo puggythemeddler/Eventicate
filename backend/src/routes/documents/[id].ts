@@ -149,6 +149,12 @@ router.delete("/", async (req, res) => {
   if (session.role === "PROVIDER" && existing.senderId !== session.id) {
     return res.status(403).json({ error: "Forbidden" });
   }
+  if (session.role === "CUSTOMER" && existing.recipientId !== session.id) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+  if (session.role !== "ADMIN" && session.role !== "PROVIDER" && session.role !== "CUSTOMER") {
+    return res.status(403).json({ error: "Forbidden" });
+  }
 
   await prisma.document.delete({ where: { id } });
   return res.status(200).json({ success: true });

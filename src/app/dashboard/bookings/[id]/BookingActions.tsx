@@ -1,0 +1,88 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/Button";
+import { Check, X, CreditCard } from "lucide-react";
+
+export function BookingActions({
+  bookingId,
+  status,
+  hasBalance,
+}: {
+  bookingId: string;
+  status: string;
+  hasBalance?: boolean;
+}) {
+  const [submitting, setSubmitting] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const payableStatuses = ["CONFIRMED", "DEPOSIT_PAID"];
+
+  async function updateStatus(nextStatus: string) {
+    setSubmitting(nextStatus);
+    setError(null);
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "Something went wrong. Please try again.");
+        return;
+      }
+      window.location.reload();
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setSubmitting(null);
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-2">
+      <div className="flex gap-3">
+        {payableStatuses.includes(status) && hasBalance && (
+          <Link href={`/dashboard/checkout/${bookingId}`}>
+            <Button variant="primary">
+              <CreditCard className="mr-2 h-4 w-4" />
+              Pay Now
+            </Button>
+          </Link>
+        )}
+        {status === "QUOTATION_SENT" && (
+          <>
+            <Button
+              variant="primary"
+              disabled={submitting !== null}
+              onClick={() => updateStatus("CONFIRMED")}
+            >
+              <Check className="mr-2 h-4 w-4" />
+              Accept
+            </Button>
+            <Button
+              variant="danger"
+              disabled={submitting !== null}
+              onClick={() => updateStatus("REJECTED")}
+            >
+              <X className="mr-2 h-4 w-4" />
+              Reject
+            </Button>
+          </>
+        )}
+        {status === "CONFIRMED" && (
+          <Button
+            variant="danger"
+            disabled={submitting !== null}
+            onClick={() => updateStatus("CANCELLED")}
+          >
+            Cancel Booking
+          </Button>
+        )}
+      </div>
+      {error && <p className="text-sm text-red-600">{error}</p>}
+    </div>
+  );
+}

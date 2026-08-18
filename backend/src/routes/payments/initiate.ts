@@ -3,7 +3,6 @@ import { z } from "zod";
 import prisma from "../../lib/prisma";
 import { getSession } from "../../lib/auth";
 import { initiatePayment, type PaymentGateway } from "../../lib/payments";
-import { sendPaymentConfirmation } from "../../lib/email";
 import { paymentLimiter } from "../../lib/rate-limit";
 
 const initiateSchema = z.object({
@@ -107,18 +106,30 @@ router.post("/", paymentLimiter, async (req, res) => {
       return res.status(403).json({ error: "Forbidden" });
     }
 
+    const totalDue = booking.finalPrice || booking.quotedPrice || 0;
+    const totalPaid = booking.payments
+      .filter((p) => p.status === "DEPOSIT_PAID" || p.status === "FULLY_PAID")
+      .reduce((sum, p) => sum + p.amount, 0);
+    const remaining = Math.max(0, totalDue - totalPaid);
+
     if (data.isDeposit) {
-      if (booking.depositAmount && data.amount !== booking.depositAmount) {
+      // Never trust the client amount: derive the deposit server-side.
+      const depositAmount = booking.depositAmount ?? Math.round(totalDue * 0.3 * 100) / 100;
+      if (depositAmount <= 0) {
+        return res.status(400).json({ error: "No deposit is due for this booking" });
+      }
+      if (data.amount !== depositAmount) {
         return res.status(400).json({ error: "Amount does not match deposit amount" });
       }
       if (booking.depositPaid) {
         return res.status(400).json({ error: "Deposit already paid" });
       }
+      if (depositAmount > remaining) {
+        return res.status(400).json({ error: "Amount exceeds remaining balance" });
+      }
+      // Use the server-derived amount for the STK push and the payment row.
+      data.amount = depositAmount;
     } else {
-      const totalPaid = booking.payments
-        .filter((p) => p.status === "DEPOSIT_PAID" || p.status === "FULLY_PAID")
-        .reduce((sum, p) => sum + p.amount, 0);
-      const remaining = (booking.finalPrice || booking.quotedPrice || 0) - totalPaid;
       if (data.amount > remaining) {
         return res.status(400).json({ error: "Amount exceeds remaining balance" });
       }
@@ -155,13 +166,6 @@ router.post("/", paymentLimiter, async (req, res) => {
         notes: JSON.stringify({ gateway: data.gateway, checkoutRequestId: result.checkoutRequestId }),
       },
     });
-
-    sendPaymentConfirmation(booking.customer.user.email, booking.customer.user.firstName, {
-      amount: data.amount,
-      method: methodMap[data.gateway],
-      ref: result.transactionId || "",
-      eventName: booking.event?.title || "Booking",
-    }).catch((e) => console.error("Payment confirmation email failed:", e));
 
     return res.status(200).json(result);
   } catch (error) {

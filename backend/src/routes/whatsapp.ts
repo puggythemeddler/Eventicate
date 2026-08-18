@@ -7,12 +7,13 @@ import { sendMessageNotification } from "../lib/email";
 const router = Router();
 
 // GET /api/whatsapp/webhook — Meta subscription verification handshake.
-router.get("/webhook", (req, res) => {
+router.get("/webhook", async (req, res) => {
+  const verifyToken = await getWhatsAppVerifyToken();
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
 
-  if (mode === "subscribe" && token === getWhatsAppVerifyToken()) {
+  if (mode === "subscribe" && token === verifyToken) {
     return res.status(200).send(challenge);
   }
   return res.sendStatus(403);

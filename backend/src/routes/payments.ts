@@ -17,7 +17,11 @@ const router = Router();
 router.post("/", async (req, res) => {
   const session = await getSession(req);
   if (!session) return res.status(401).json({ error: "Unauthorized" });
-  if (session.role !== "CUSTOMER") return res.status(403).json({ error: "Forbidden" });
+  // Manual/offline payments (cash, bank transfer, mobile money) may only be
+  // recorded by the booking's provider or an admin — never self-certified by the customer.
+  if (session.role !== "PROVIDER" && session.role !== "ADMIN") {
+    return res.status(403).json({ error: "Forbidden" });
+  }
 
   try {
     const data = paymentSchema.parse(req.body);
@@ -33,10 +37,12 @@ router.post("/", async (req, res) => {
     });
     if (!booking) return res.status(404).json({ error: "Booking not found" });
 
-    // Only the booking's customer may record a payment.
-    const customer = await prisma.customerProfile.findUnique({ where: { userId: session.id } });
-    if (!customer || booking.customerId !== customer.id) {
-      return res.status(403).json({ error: "Forbidden" });
+    // Providers may only record payments for their own bookings.
+    if (session.role === "PROVIDER") {
+      const provider = await prisma.providerProfile.findUnique({ where: { userId: session.id } });
+      if (!provider || booking.providerId !== provider.id) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
     }
 
     // Only count completed payments toward the balance.

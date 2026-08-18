@@ -3,16 +3,15 @@ import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardDescription } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
 
 import { StarRating } from "@/components/ui/Badge";
 import { serverApi } from "@/lib/server-api";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import { REVIEW_CRITERIA } from "@/lib/constants";
 import { User } from "lucide-react";
+import { RateCustomerForm } from "./RateCustomerForm";
 
 const providerCriteria = REVIEW_CRITERIA.customerToProvider;
-const customerCriteria = REVIEW_CRITERIA.providerToCustomer;
 
 interface ReviewReceived {
   id: string;
@@ -45,50 +44,6 @@ interface BookingWithoutReview {
   customer: { user: { firstName: string; lastName: string } };
 }
 
-function RateCustomerForm({ bookingId }: { bookingId: string }) {
-  return (
-    <form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        const form = e.currentTarget as HTMLFormElement;
-        const formData = new FormData(form);
-        const body: Record<string, unknown> = { bookingId };
-        for (const c of customerCriteria) {
-          const val = formData.get(c.key);
-          if (val) body[c.key] = Number(val);
-        }
-        const res = await fetch("/api/reviews", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-        if (res.ok) window.location.reload();
-      }}
-      className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4"
-    >
-      <p className="text-sm font-medium">Rate this customer</p>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {customerCriteria.map((c) => (
-          <div key={c.key}>
-            <label className="mb-1 block text-xs font-medium text-gray-600">{c.label}</label>
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <label key={star} className="cursor-pointer">
-                  <input type="radio" name={c.key} value={star} className="sr-only" />
-                  <span className="text-xl text-gray-300 hover:text-yellow-400 peer-checked:text-yellow-400">
-                    ★
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-      <Button type="submit" size="sm">Submit Rating</Button>
-    </form>
-  );
-}
-
 export default async function ReviewsPage() {
   const session = await getSession();
   if (!session || session.role !== "PROVIDER") redirect("/auth/login");
@@ -112,7 +67,7 @@ export default async function ReviewsPage() {
     reviewsGiven = data.reviewsGiven;
     completedBookingsWithoutReview = data.completedBookingsWithoutReview;
   } catch {
-    redirect("/auth/login");
+    // fall through and render empty state instead of redirecting on API errors
   }
 
   return (
@@ -196,7 +151,7 @@ export default async function ReviewsPage() {
                     <span className="text-xs text-gray-400">{formatDateTime(new Date(review.createdAt))}</span>
                   </div>
                   <div className="grid grid-cols-4 gap-4">
-                    {customerCriteria.map((c) => {
+                    {REVIEW_CRITERIA.providerToCustomer.map((c) => {
                       const val = review[c.key as keyof typeof review] as number | null | undefined;
                       return (
                         <div key={c.key} className="text-center">

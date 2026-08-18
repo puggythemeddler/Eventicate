@@ -15,6 +15,15 @@ const IMG = {
 };
 
 async function main() {
+  // Never seed privileged demo accounts (well-known passwords) into production.
+  if (process.env.NODE_ENV === "production" && process.env.SEED_ALLOWED !== "true") {
+    console.error(
+      "Refusing to seed: NODE_ENV=production would create demo accounts with known passwords.\n" +
+        "If you really want this, run with SEED_ALLOWED=true and change the passwords afterwards."
+    );
+    process.exit(1);
+  }
+
   console.log("Seeding Eventicate database...");
 
   const passwordHash = await bcrypt.hash("password123", 12);

@@ -2,6 +2,7 @@ import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import type { Request, Response } from "express";
 import type { UserRole } from "@prisma/client";
+import prisma from "./prisma";
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
@@ -64,7 +65,21 @@ export function getSessionCookieToken(req: Request): string | null {
 export async function getSession(req: Request): Promise<SessionUser | null> {
   const token = getSessionCookieToken(req);
   if (!token) return null;
-  return verifyToken(token);
+  const session = await verifyToken(token);
+  if (!session) return null;
+
+  // Re-check the user against the DB so deactivated accounts lose access
+  // immediately instead of only when the 7-day JWT expires.
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.id },
+      select: { id: true, isActive: true, role: true },
+    });
+    if (!user || !user.isActive) return null;
+    return session;
+  } catch {
+    return null;
+  }
 }
 
 export function setSessionCookie(res: Response, token: string) {

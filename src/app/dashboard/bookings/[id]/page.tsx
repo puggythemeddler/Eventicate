@@ -10,8 +10,9 @@ import { serverApi } from "@/lib/server-api";
 import { formatCurrency, formatDate, formatDateTime, getCurrencyForCountry } from "@/lib/utils";
 import {
   ArrowLeft, Building2, Calendar, DollarSign, MessageSquare,
-  Phone, Mail, Globe, MapPin, Check, X, CreditCard,
+  Phone, Mail, Globe, MapPin,
 } from "lucide-react";
+import { BookingActions } from "./BookingActions";
 
 type BookingDetail = {
   id: string;
@@ -43,74 +44,6 @@ type BookingDetail = {
     sender: { firstName: string; lastName: string; role: string };
   }[];
 };
-
-function BookingActions({ bookingId, status, hasBalance }: { bookingId: string; status: string; hasBalance?: boolean }) {
-  const payableStatuses = ["CONFIRMED", "DEPOSIT_PAID"];
-
-  return (
-    <div className="flex gap-3">
-      {payableStatuses.includes(status) && hasBalance && (
-        <Link href={`/dashboard/checkout/${bookingId}`}>
-          <Button variant="primary">
-            <CreditCard className="mr-2 h-4 w-4" />
-            Pay Now
-          </Button>
-        </Link>
-      )}
-      {status === "QUOTATION_SENT" && (
-        <>
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const res = await fetch(`/api/bookings/${bookingId}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: "CONFIRMED" }),
-              });
-              if (res.ok) window.location.reload();
-            }}
-          >
-            <Button type="submit" variant="primary">
-              <Check className="mr-2 h-4 w-4" />
-              Accept
-            </Button>
-          </form>
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const res = await fetch(`/api/bookings/${bookingId}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: "REJECTED" }),
-              });
-              if (res.ok) window.location.reload();
-            }}
-          >
-            <Button type="submit" variant="danger">
-              <X className="mr-2 h-4 w-4" />
-              Reject
-            </Button>
-          </form>
-        </>
-      )}
-      {status === "CONFIRMED" && (
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            const res = await fetch(`/api/bookings/${bookingId}`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ status: "CANCELLED" }),
-            });
-            if (res.ok) window.location.reload();
-          }}
-        >
-          <Button type="submit" variant="danger">Cancel Booking</Button>
-        </form>
-      )}
-    </div>
-  );
-}
 
 export default async function BookingDetailPage({
   params,
