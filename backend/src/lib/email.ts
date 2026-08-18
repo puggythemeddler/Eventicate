@@ -168,3 +168,13 @@ export async function sendPasswordResetEmail(to: string, name: string, resetUrl:
     <p style="color:#888;font-size:13px">If you did not request this, you can safely ignore this email and your password will remain unchanged.</p>
   `));
 }
+
+export async function sendAccountDeactivatedEmail(to: string, name: string, days: number) {
+  await sendEmail(to, "Your Eventicate account has been deactivated", wrapHtml(`
+    <p style="font-size:18px;font-weight:600;margin:0 0 16px">Account Deactivated</p>
+    <p>Hi ${name},</p>
+    <p>Your account was deactivated because it has been inactive for <strong>${days} days</strong>.</p>
+    <p>You can regain access by contacting our support team, who will reactivate your account.</p>
+    ${ctaButton(`${process.env.NEXT_PUBLIC_APP_URL || ""}/auth/login`, "Go to Login")}
+  `));
+}

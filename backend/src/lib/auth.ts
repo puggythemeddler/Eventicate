@@ -76,6 +76,18 @@ export async function getSession(req: Request): Promise<SessionUser | null> {
       select: { id: true, isActive: true, role: true },
     });
     if (!user || !user.isActive) return null;
+    // Track activity so inactive accounts can be auto-deactivated. Only write
+    // when the last bump is stale (>= 1h old) to keep this cheap.
+    await prisma.user.updateMany({
+      where: {
+        id: session.id,
+        OR: [
+          { lastActiveAt: null },
+          { lastActiveAt: { lt: new Date(Date.now() - 60 * 60 * 1000) } },
+        ],
+      },
+      data: { lastActiveAt: new Date() },
+    });
     return session;
   } catch {
     return null;

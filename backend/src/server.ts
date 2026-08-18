@@ -90,6 +90,7 @@ import logosRouter from "./routes/logos";
 import localSyncRouter from "./routes/local-sync";
 import { generalLimiter } from "./lib/rate-limit";
 import prisma from "./lib/prisma";
+import { deactivateInactiveAccounts } from "./lib/inactive-accounts";
 
 const app = express();
 
@@ -258,6 +259,25 @@ const PORT = parseInt(process.env.PORT || "3001", 10);
 const server = app.listen(PORT, () => {
   console.log(`Eventicate backend listening on port ${PORT}`);
 });
+
+// Auto-deactivate accounts that have been inactive for 90+ days. Run once at
+// startup and then daily while the process is alive.
+let deactivationRunning = false;
+async function runInactiveAccountsJob() {
+  if (deactivationRunning) return;
+  deactivationRunning = true;
+  try {
+    await deactivateInactiveAccounts();
+  } catch (err) {
+    console.error("Inactive-accounts job failed:", err);
+  } finally {
+    deactivationRunning = false;
+  }
+}
+void runInactiveAccountsJob();
+const INACTIVITY_JOB_INTERVAL = 24 * 60 * 60 * 1000;
+const inactivityJobTimer = setInterval(() => void runInactiveAccountsJob(), INACTIVITY_JOB_INTERVAL);
+inactivityJobTimer.unref();
 
 // Graceful shutdown: stop accepting connections, close the Prisma pool, exit.
 async function shutdown(signal: string) {

@@ -27,6 +27,11 @@ router.post("/", authLimiter, async (req, res) => {
       return res.status(403).json({ error: "Account is deactivated" });
     }
 
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastActiveAt: new Date() },
+    });
+
     const token = await createToken({
       id: user.id,
       email: user.email,
