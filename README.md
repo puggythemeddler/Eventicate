@@ -31,10 +31,11 @@ Think of it like an "Uber for event services" — one website where you can:
 13. [Currencies & locations](#currencies--locations)
 14. [Dark/Light theme](#darklight-theme)
 15. [Google login](#google-login)
-16. [API routes](#api-routes)
-17. [Deployment](#deployment)
-18. [How to customize](#how-to-customize)
-19. [Security notes](#security-notes)
+16. [WhatsApp messaging](#whatsapp-messaging)
+17. [API routes](#api-routes)
+18. [Deployment](#deployment)
+19. [How to customize](#how-to-customize)
+20. [Security notes](#security-notes)
 
 ---
 
@@ -143,7 +144,7 @@ PostgreSQL (where all data is stored)
 - **Book services** — Accept quotes, pay deposits, track booking status
 - **Checkout & payments** — Pay by M-Pesa (STK push), PesaPal, card, or bank transfer
 - **Agreements** — Electronically sign booking agreements with a captured amount
-- **Messaging** — Chat with providers, including multi-provider group threads
+- **Messaging** — Chat with providers, including multi-provider group threads, unread badges, read receipts, file attachments, and a button to continue the chat on WhatsApp
 - **Reviews** — Rate providers after events are completed
 - **Documents** — View all your quotes, invoices, and receipts in one place
 
@@ -158,6 +159,7 @@ PostgreSQL (where all data is stored)
 - **Dynamic pricing** — Different prices for different event types, weekends, or peak seasons
 - **Quotations & invoices** — Generate professional documents for customers
 - **Booking management** — Accept/confirm/reject bookings
+- **Messaging** — Chat with customers (unread badges, read receipts, attachments); replies sync to WhatsApp when connected
 - **Subscription** — Free trial, then choose a paid plan
 - **Local sync** — Connect your local business system for offline inventory management
 - **Reviews** — See what customers say and respond
@@ -165,11 +167,12 @@ PostgreSQL (where all data is stored)
 ### For Administrators
 - **Dashboard** — Platform stats (users, providers, events, bookings, revenue)
 - **User management** — View all users, activate/deactivate accounts
-- **Provider management** — Approve/reject provider registrations
+- **Provider management** — Add providers manually, approve/reject registrations, edit profiles, deactivate/reactivate, delete, and filter by who has paid
 - **Complaint handling** — Track and resolve disputes
 - **Subscription plans** — Create and manage pricing tiers
 - **Branding** — Manage logos and app name
 - **Payment configuration** — Set M-Pesa credentials
+- **WhatsApp integration** — Connect the platform's WhatsApp Business account (two-way chat)
 - **Location data** — Manage countries and subdivisions
 
 ---
@@ -306,8 +309,9 @@ Eventicate/
 │   │       ├── events/     # event CRUD
 │   │       ├── payments/   # initiate, status, split, mpesa-callback, methods
 │   │       ├── documents/  # quotes, invoices, agreements
-│   │       ├── messages/   # chat + multi-provider threads
-│   │       ├── admin/      # users, providers, complaints, plans, payments
+│   │       ├── messages/   # chat, conversations, read receipts, WhatsApp mirror
+│   │       ├── whatsapp.ts # WhatsApp Cloud API webhook (inbound)
+│   │       ├── admin/      # users, providers, complaints, plans, payments, whatsapp
 │   │       ├── provider/   # settings, subscription, dashboard
 │   │       ├── customer/   # dashboard
 │   │       ├── quotes/     # generate from cart
@@ -324,7 +328,7 @@ Eventicate/
     │   ├── auth/           # Login & register
     │   ├── dashboard/      # ★ CUSTOMER PORTAL (events, bookings, messages, documents, packages, budget, timeline, cart, checkout, agreements)
     │   ├── provider/       # ★ PROVIDER PORTAL (bookings, services, equipment, calendar, messages, reviews, documents, subscription, settings, local-sync)
-    │   ├── admin/          # ★ ADMIN PORTAL (users, providers, complaints, subscription-plans, branding, payments, locations)
+    │   ├── admin/          # ★ ADMIN PORTAL (users, providers, complaints, subscription-plans, branding, payments, whatsapp, locations)
     │   └── providers/[id]  # ★ PUBLIC provider profiles
     ├── components/
     │   ├── ui/             # Reusable UI (Button, Card, Input, Badge...)
@@ -559,6 +563,28 @@ The theme is stored in `localStorage` and applied before the page renders to avo
 
 ---
 
+## WhatsApp messaging
+
+Eventicate integrates with the **WhatsApp Business Cloud API** for two-way chat: messages sent in the app can also be delivered on WhatsApp, and replies that customers send to the business number arrive in the app.
+
+### How to enable it
+1. Create a Meta app with the **WhatsApp product** at https://developers.facebook.com (requires a WhatsApp Business Account and a Meta business verification).
+2. As admin, go to **Admin → WhatsApp** and paste the four values:
+   - **Access Token** — a permanent token from the Meta app
+   - **Phone Number ID** — from the WhatsApp product settings
+   - **Verify Token** — any random string you choose
+   - **Business Phone** — the number people message (e.g. `254700000000`)
+3. In the Meta app dashboard, set the webhook to the callback URL `https://<your-api-domain>/api/whatsapp/webhook` and enter the **same verify token**.
+4. Save — the platform verifies the subscription automatically and starts receiving messages.
+
+### How it works
+- **Outbound** — Every message sent in the in-app chat is also sent over WhatsApp when configured. Each bubble shows the delivery status (sent / delivered / failed).
+- **Inbound** — When someone WhatsApps the business number, the message is matched to the app user by phone number and appears in the chat, plus a notification and email are sent.
+- **Demo** — The seeded demo accounts have phone numbers `+254700000001`–`+254700000006` assigned, so you can test with the WhatsApp Business sandbox.
+- If WhatsApp isn't configured, in-app messaging still works normally — WhatsApp sending is skipped silently.
+
+---
+
 ## API routes
 
 All endpoints live in the backend (`backend/src/routes/`) and are proxied from the frontend via `/api/*`.
@@ -596,15 +622,20 @@ All endpoints live in the backend (`backend/src/routes/`) and are proxied from t
 | `/api/documents/generate` | POST | Auto-generate from booking |
 | `/api/agreements` | POST | Customer signs a booking agreement (amount cross-checked) |
 | `/api/messages` | GET, POST | Send/receive messages |
+| `/api/messages/conversations` | GET | List conversations with participants and unread counts |
+| `/api/messages/read` | POST | Mark a conversation's messages as read |
+| `/api/messages/[conversationId]` | GET | Read a conversation (auto-marks as read) |
 | `/api/messages/thread` | POST | Create a multi-provider group thread |
 | `/api/messages/thread/[masterQuoteId]` | GET, POST | Read/send in a group thread |
 | `/api/upload` | POST | Upload an image (Cloudinary; role-gated) |
+| `/api/whatsapp/webhook` | GET, POST | Meta verification handshake + inbound WhatsApp messages |
 | `/api/admin` | GET, PATCH | Admin dashboard + approve providers |
 | `/api/admin/users` | GET, PATCH | User management (paginated) |
-| `/api/admin/providers` | GET, PATCH | Provider management |
+| `/api/admin/providers` | GET, POST, PUT, PATCH, DELETE | List (with paid/active status + payment filter), create, edit, deactivate/reactivate, delete (blocked if bookings/services exist) |
 | `/api/admin/complaints` | GET, PATCH | Complaint management |
 | `/api/admin/subscription-plans` | GET, POST, PATCH, DELETE | Plan management |
 | `/api/admin/payments` | GET, PUT | Payment credentials/config |
+| `/api/admin/whatsapp` | GET, PUT | Read/update WhatsApp Cloud API credentials (masked) |
 | `/api/admin/logos` | GET, PUT | Branding/logos |
 | `/api/provider/settings` | GET, PATCH | Provider profile settings |
 | `/api/provider/subscription` | GET, POST | Provider subscription |
@@ -631,6 +662,7 @@ The app is deployed as two services:
 - `render.yaml` at the repo root defines the `eventicate-api` service.
 - The build runs `npm ci && node scripts/migrate-retry.mjs && npm run build` (migrations are retried so transient Neon connection issues don't strand old code).
 - **Secrets are managed in the Render dashboard**, not committed — the DB URL, JWT secret, and Cloudinary credentials are marked `sync: false` in `render.yaml`. Set them in Dashboard → Environment before first deploy.
+- WhatsApp credentials are **not** env vars — they're stored in the database and set by an admin under **Admin → WhatsApp**. Just make sure the webhook URL (`/api/whatsapp/webhook`) is HTTPS.
 
 ### Frontend (Vercel)
 - `next.config.ts` proxies `/api` and `/uploads` to the backend via `BACKEND_URL`.
@@ -692,6 +724,7 @@ The project applies common security best practices:
 - **Rate limiting** on auth, uploads, payments, and globally
 - **Helmet** security headers, CORS allow-list (incl. preview deployments)
 - **Google OAuth CSRF state** and verified-email enforcement
+- **WhatsApp webhook** verify-token handshake (requests with a wrong token are rejected)
 - **Input validation** with Zod everywhere
 - **Secrets are not committed** — they live in the hosting dashboards (Render/Vercel)
 

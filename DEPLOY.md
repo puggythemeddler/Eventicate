@@ -74,3 +74,16 @@ npm run db:seed
 | Provider | catering@delight.com | password123 |
 | Provider | venue@grandhall.com | password123 |
 | Provider | tents@canopy.com | password123 |
+
+## 4. WhatsApp (optional, two-way chat)
+
+WhatsApp credentials are stored in the database (not env vars) and entered by an admin at **Admin → WhatsApp**.
+
+1. Create a Meta app with the WhatsApp product at https://developers.facebook.com (WhatsApp Business Account + business verification required).
+2. In **Admin → WhatsApp**, save:
+   - **Access Token** — permanent token from the Meta app
+   - **Phone Number ID** — from the WhatsApp product settings
+   - **Verify Token** — any random string you choose
+   - **Business Phone** — e.g. `254700000000`
+3. In the Meta app dashboard, add the callback URL `https://<backend>/api/whatsapp/webhook` and the **same verify token** under *WhatsApp → Configuration → Webhook*.
+4. Subscribe to the `messages` field. Inbound/outbound messages then flow between WhatsApp and the in-app chat automatically.

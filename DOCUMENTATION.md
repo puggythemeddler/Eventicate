@@ -83,6 +83,7 @@ The backend is a **separate Express API** in the `backend/` folder. The Next.js 
 | **Bcryptjs** | Scrambles (hashes) passwords so they can't be read even if the database is stolen |
 | **Zod** | Validates data — checks that API requests have the correct format before processing them |
 | **Nodemailer** | Sends notification emails (quotes, invoices, welcome) |
+| **WhatsApp Cloud API** | Two-way WhatsApp messaging — outbound send + inbound webhook (`backend/src/lib/whatsapp.ts`, `backend/src/routes/whatsapp.ts`) |
 | **Multer + Cloudinary** | Handles file uploads and cloud image storage |
 | **express-rate-limit** | Throttles requests to protect against abuse |
 | **Helmet** | Sets security HTTP headers |
@@ -209,6 +210,7 @@ src/app/
 │   │   │   └── page.tsx
 │   │   ├── branding/page.tsx       →  /admin/branding       (Logo upload)
 │   │   ├── payments/page.tsx       →  /admin/payments       (M-Pesa credentials)
+│   │   ├── whatsapp/page.tsx       →  /admin/whatsapp       (WhatsApp credentials)
 │   │   └── locations/page.tsx      →  /admin/locations      (Countries & subdivisions)
 └── providers/
     └── [id]/page.tsx           →  /providers/abc        (Public profile)
@@ -442,6 +444,7 @@ Before going live, make sure to:
 - [ ] **Configure Google OAuth** (if using Google login)
 - [ ] **Upload your brand logos** via `/admin/branding`
 - [ ] **Set M-Pesa credentials** via `/admin/payments` (needs a Daraja sandbox account first)
+- [ ] **Connect WhatsApp** via `/admin/whatsapp` + set the webhook in Meta (optional, enables two-way chat)
 - [ ] **Review subscription plan pricing** at `/admin/subscription-plans`
 - [ ] **Test all user flows** before announcing the platform
 - [ ] **Set up regular database backups**
@@ -766,11 +769,14 @@ Once a quote is accepted and confirmed:
 
 Go to `/dashboard/messages` to chat with your providers.
 
-- Select a conversation on the left
-- Type your message and click Send
+- Conversations are listed on the left, with **unread badges** on conversations you haven't opened
+- Opening a conversation marks it as read, so badges clear automatically
+- Type your message and press **Enter** to send (Shift+Enter for a new line)
+- Attach files — images, PDFs, and Word documents are supported
+- Click **Continue on WhatsApp** to jump out to WhatsApp with that provider (works even without the platform WhatsApp connection)
 - For multi-provider quotes (from the Package Builder or cart), you'll have a **group thread** with all providers
 - Messages can be about bookings, quotes, event details, etc.
-- Attachments are supported
+- The page **auto-refreshes** every few seconds, so new replies appear without reloading
 
 ### 8.11 Rating a Provider
 
@@ -972,10 +978,12 @@ Requested → Quotation Sent → Pending Approval → Confirmed
 
 Go to `/provider/messages` to chat with customers:
 
-- Conversations are grouped by customer
-- Send text messages
-- Share files, quotes, and event details
+- Conversations are grouped by customer, with **unread badges** on conversations you haven't opened
+- Opening a conversation marks it as read
+- Send text messages (Enter to send, Shift+Enter for a new line) and attach files — images, PDFs, Word documents
 - Customers are notified when you message them
+- If WhatsApp is connected, your replies are also delivered to the customer's WhatsApp; message bubbles show the delivery status
+- The page **auto-refreshes** every few seconds
 
 ### 9.10 Reviews
 
@@ -1055,11 +1063,14 @@ Go to `/admin/users`:
 
 Go to `/admin/providers`:
 
-- View all providers in a table
-- **Filter by approval status** (Pending, Approved, All)
-- **Filter by category**
-- **Approve** new providers — Click "Approve" to let them start receiving bookings
-- **Reject** providers if they don't meet your standards
+- View all providers in a table with name, email, phone, business, category, approval status, **payment status**, and active status
+- **Payment filter** — see who has **Paid** (green badge, active subscription) vs **Not Paid** (red badge, trial/no subscription), or show everyone
+- **Filter by approval status** (Pending, Approved, All) and **by category**
+- **Add Provider** — create a provider account manually (name, email, password, phone, business, category, location). The provider receives a welcome email and can log in immediately
+- **Approve/Reject** new providers — let them start receiving bookings or reject them
+- **Edit** — update contact info, business name, category, description, location, and approval status
+- **Deactivate/Reactivate** — deactivated providers **cannot log in** (their account is blocked); reactivating restores access
+- **Delete** — permanently removes the account, but only if they have no bookings or services. If they do, the system tells you to **deactivate instead** so you don't lose historical data
 
 ### 10.4 Subscription Plans
 
@@ -1124,6 +1135,28 @@ Go to `/admin/branding` to customize the look:
 - **Dark Logo** — Top-left of every page (in dark mode)
 - **Invoice Logo** — Top of quotes, invoices, and receipts
 
+### 10.7 WhatsApp Configuration
+
+Go to `/admin/whatsapp` to connect the platform's WhatsApp Business account for **two-way chat**:
+
+**Fields:**
+- **Access Token** — a permanent token from your Meta app (WhatsApp Business Cloud API)
+- **Phone Number ID** — from the WhatsApp product settings
+- **Verify Token** — any random string you choose
+- **Business Phone** — the number people message, e.g. `254700000000`
+
+**Setup:**
+1. Create a Meta app with the WhatsApp product (requires a WhatsApp Business Account and business verification).
+2. Save the four values here — the token and verify token are **masked** after saving (only the first/last 4 characters show) and never returned in full.
+3. In the Meta app dashboard, set the **Callback URL** to `https://<your-api-domain>/api/whatsapp/webhook` and the **Verify Token** to the same value you saved.
+4. Subscribe to the `messages` webhook field.
+
+**What happens next:**
+- Messages sent inside the app are also delivered to WhatsApp (each bubble shows sent/failed status).
+- Replies sent to your business number appear in the app chat, matched to the user by phone number, and trigger a notification + email.
+- If you leave it unconfigured, in-app messaging keeps working — WhatsApp sending is skipped silently.
+- Demo phone numbers `+254700000001`–`+254700000006` are assigned to the demo accounts, so you can test with the WhatsApp sandbox.
+
 ---
 
 ## 11. Feature Catalog
@@ -1148,10 +1181,9 @@ Go to `/admin/branding` to customize the look:
 | 14 | **Sign Agreement** | `/dashboard/agreements/[bookingId]` | Customer |
 | 15 | **Shopping Cart** | `/dashboard/cart` | Customer |
 | 16 | **Cart → Quotes** | Cart page → "Generate Quotes" | Customer |
-| 17 | **Customer Messages** | `/dashboard/messages` | Customer |
+| 17 | **Customer Messages** | `/dashboard/messages` (unread badges, read receipts, attachments, WhatsApp) | Customer |
 | 18 | **Multi-provider Threads** | Messages (grouped by master quote) | Customer/Provider |
-| 19 | **Customer Documents** | `/dashboard/documents` | Customer |
-| 20 | **Package Builder** | `/dashboard/packages` | Customer |
+| 19 | **Customer Documents** | `/dashboard/documents` | Customer || 20 | **Package Builder** | `/dashboard/packages` | Customer |
 | 21 | **Budget Calculator** | `/dashboard/budget` | Customer |
 | 22 | **Timeline Planner** | `/dashboard/timeline` | Customer |
 | 23 | **Rate Provider** | Booking detail (after completed) | Customer |
@@ -1163,7 +1195,7 @@ Go to `/admin/branding` to customize the look:
 | 29 | **Provider Bookings** | `/provider/bookings` | Provider |
 | 30 | **Send Quotation** | Booking detail page | Provider |
 | 31 | **Confirm/Reject Booking** | Booking detail page | Provider |
-| 32 | **Provider Messages** | `/provider/messages` | Provider |
+| 32 | **Provider Messages** | `/provider/messages` (unread badges, read receipts, attachments, WhatsApp) | Provider |
 | 33 | **Provider Reviews** | `/provider/reviews` | Provider |
 | 34 | **Provider Documents** | `/provider/documents` | Provider |
 | 35 | **Provider Settings** | `/provider/settings` | Provider |
@@ -1171,20 +1203,22 @@ Go to `/admin/branding` to customize the look:
 | 37 | **Local System Sync** | `/provider/local-sync` | Provider |
 | 38 | **Admin Dashboard** | `/admin` | Admin |
 | 39 | **User Management** | `/admin/users` | Admin |
-| 40 | **Provider Management** | `/admin/providers` | Admin |
+| 40 | **Provider Management** | `/admin/providers` (add/edit/deactivate/delete, paid filter) | Admin |
 | 41 | **Complaint Management** | `/admin/complaints` | Admin |
 | 42 | **Subscription Plans** | `/admin/subscription-plans` | Admin |
 | 43 | **Branding (Logos)** | `/admin/branding` | Admin |
 | 44 | **Payment Configuration (M-Pesa)** | `/admin/payments` | Admin |
-| 45 | **Location Data** | `/admin/locations` | Admin |
-| 46 | **Dark/Light Theme** | Toggle in header/sidebar | Everyone |
-| 47 | **Print A4 Documents** | Document detail → "Print A4" | Customer/Provider |
-| 48 | **Print Thermal Receipts** | Document detail → "Print Thermal" | Customer/Provider |
-| 49 | **Invoice Auto-Generation** | Automatic on payment | System |
-| 50 | **Quote Auto-Generation** | Automatic on quote sent | System |
-| 51 | **Notifications** | On bookings, messages, payments | Everyone |
-| 52 | **Two-Way Ratings** | After completed bookings | Customer/Provider |
-| 53 | **Country-Aware Currency** | Every price display | Everyone |
+| 45 | **WhatsApp Configuration** | `/admin/whatsapp` | Admin |
+| 46 | **Location Data** | `/admin/locations` | Admin |
+| 47 | **Dark/Light Theme** | Toggle in header/sidebar | Everyone |
+| 48 | **Print A4 Documents** | Document detail → "Print A4" | Customer/Provider |
+| 49 | **Print Thermal Receipts** | Document detail → "Print Thermal" | Customer/Provider |
+| 50 | **Invoice Auto-Generation** | Automatic on payment | System |
+| 51 | **Quote Auto-Generation** | Automatic on quote sent | System |
+| 52 | **Notifications** | On bookings, messages, payments | Everyone |
+| 53 | **Two-Way Ratings** | After completed bookings | Customer/Provider |
+| 54 | **Country-Aware Currency** | Every price display | Everyone |
+| 55 | **Two-Way WhatsApp Chat** | Automatic (when connected) | Customer/Provider |
 
 ### Database tables (at a glance)
 
@@ -1206,7 +1240,7 @@ Go to `/admin/branding` to customize the look:
 | CartItem | Items in a customer's shopping cart |
 | Agreement | Electronically signed booking agreements |
 | AvailabilitySlot | Provider calendar dates (with booking links) |
-| Message | In-app messages |
+| Message | In-app messages (incl. WhatsApp ID/status for mirrored messages) |
 | Conversation | Message thread grouping (incl. multi-provider) |
 | Review | Ratings and reviews |
 | Notification | User notifications |
@@ -1216,7 +1250,7 @@ Go to `/admin/branding` to customize the look:
 | ProviderSubscription | Provider subscription status |
 | LocalSyncConfig | Local system connection settings |
 | LocalSyncLog | Sync activity records |
-| SystemConfig | App settings (logo paths, app name, M-Pesa config) |
+| SystemConfig | App settings (logo paths, app name, M-Pesa config, WhatsApp credentials) |
 
 ---
 
@@ -1389,6 +1423,7 @@ You can do this through the admin UI at `/admin/subscription-plans`, no coding n
 | Subscription plans | `/admin/subscription-plans` |
 | Upload logos | `/admin/branding` |
 | Configure M-Pesa | `/admin/payments` |
+| Configure WhatsApp | `/admin/whatsapp` |
 | Manage locations | `/admin/locations` |
 | View database in GUI | `cd backend && npx prisma studio` |
 | View demo data seed | File: `backend/prisma/seed.ts` |
