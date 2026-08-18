@@ -159,6 +159,13 @@ export function AuthForm({ mode, defaultRole = "customer", googleError }: AuthFo
               required
               minLength={8}
             />
+            {!isRegister && (
+              <div className="text-right">
+                <Link href="/auth/forgot-password" className="text-xs text-primary-600 hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
+            )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Please wait..." : isRegister ? "Create Account" : "Sign In"}
             </Button>

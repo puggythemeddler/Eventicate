@@ -158,3 +158,13 @@ export async function sendDocumentNotification(to: string, name: string, doc: { 
     ${ctaButton(doc.url, "View Document")}
   `));
 }
+
+export async function sendPasswordResetEmail(to: string, name: string, resetUrl: string) {
+  await sendEmail(to, "Reset your Eventicate password", wrapHtml(`
+    <p style="font-size:18px;font-weight:600;margin:0 0 16px">Reset Your Password</p>
+    <p>Hi ${name},</p>
+    <p>We received a request to reset your password. Use the button below to set a new one. This link expires in <strong>1 hour</strong>.</p>
+    ${ctaButton(resetUrl, "Reset Password")}
+    <p style="color:#888;font-size:13px">If you did not request this, you can safely ignore this email and your password will remain unchanged.</p>
+  `));
+}
