@@ -32,6 +32,12 @@ import servicesRouter from "./routes/services";
 import servicesBulkDiscountRouter from "./routes/services/bulk-discount";
 import equipmentRouter from "./routes/equipment";
 import packagesRouter from "./routes/packages";
+import {
+  venuesRouter,
+  vehiclesRouter,
+  menuPackagesRouter,
+  photoPackagesRouter,
+} from "./routes/listings";
 import availabilityRouter from "./routes/availability";
 import timelineRouter from "./routes/timeline";
 import budgetRouter from "./routes/budget";
@@ -156,6 +162,10 @@ app.use("/api/services", servicesRouter);
 app.use("/api/services/bulk-discount", servicesBulkDiscountRouter);
 app.use("/api/equipment", equipmentRouter);
 app.use("/api/packages", packagesRouter);
+app.use("/api/venues", venuesRouter);
+app.use("/api/vehicles", vehiclesRouter);
+app.use("/api/menu-packages", menuPackagesRouter);
+app.use("/api/photo-packages", photoPackagesRouter);
 app.use("/api/availability", availabilityRouter);
 app.use("/api/timeline", timelineRouter);
 app.use("/api/budget", budgetRouter);

@@ -12,7 +12,7 @@ import {
   LayoutDashboard, Package, Settings, Truck, Music,
   Camera, UtensilsCrossed, Building2, RefreshCw, BarChart3,
   CreditCard, FileText, MapPin, ShoppingCart, Menu, X, Palette,
-  MessageCircle,
+  MessageCircle, Layers,
 } from "lucide-react";
 
 interface NavItem {
@@ -46,6 +46,7 @@ const providerCalendarItem: NavItem = { href: "/provider/calendar", label: "Cale
 const providerMessagesItem: NavItem = { href: "/provider/messages", label: "Messages", icon: <MessageSquare className="h-4 w-4" /> };
 const providerServicesItem: NavItem = { href: "/provider/services", label: "Services", icon: <Building2 className="h-4 w-4" /> };
 const providerEquipmentItem: NavItem = { href: "/provider/equipment", label: "Equipment", icon: <Music className="h-4 w-4" /> };
+const providerListingsItem: NavItem = { href: "/provider/listings", label: "Venues & Packages", icon: <Layers className="h-4 w-4" /> };
 const providerDocumentsItem: NavItem = { href: "/provider/documents", label: "Documents", icon: <FileText className="h-4 w-4" /> };
 const providerReviewsItem: NavItem = { href: "/provider/reviews", label: "Reviews", icon: <Star className="h-4 w-4" /> };
 const providerSyncItem: NavItem = { href: "/provider/local-sync", label: "Local Sync", icon: <RefreshCw className="h-4 w-4" /> };
@@ -55,7 +56,7 @@ const providerSettingsItem: NavItem = { href: "/provider/settings", label: "Sett
 const providerGroups: NavGroup[] = [
   { label: "Overview", items: [providerDashboardItem] },
   { label: "Bookings & Chat", items: [providerBookingsItem, providerCalendarItem, providerMessagesItem] },
-  { label: "Inventory", items: [providerServicesItem, providerEquipmentItem] },
+  { label: "Inventory", items: [providerServicesItem, providerEquipmentItem, providerListingsItem] },
   { label: "Business", items: [providerDocumentsItem, providerReviewsItem, providerSyncItem, providerSubscriptionItem, providerSettingsItem] },
 ];
 
