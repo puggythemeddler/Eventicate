@@ -84,6 +84,7 @@ import providerSubscriptionCheckRouter from "./routes/provider/subscription-chec
 import providerReviewsRouter from "./routes/provider/reviews";
 import providerDashboardRouter from "./routes/provider/dashboard";
 import providerVerificationRouter from "./routes/provider/verification";
+import providerAnalyticsRouter from "./routes/provider/analytics";
 import customerDashboardRouter from "./routes/customer/dashboard";
 import logosRouter from "./routes/logos";
 import localSyncRouter from "./routes/local-sync";
@@ -226,6 +227,7 @@ app.use("/api/provider/subscription/check", providerSubscriptionCheckRouter);
 app.use("/api/provider/reviews", providerReviewsRouter);
 app.use("/api/provider/dashboard", providerDashboardRouter);
 app.use("/api/provider/verification", providerVerificationRouter);
+app.use("/api/provider/analytics", providerAnalyticsRouter);
 app.use("/api/customer/dashboard", customerDashboardRouter);
 app.use("/api/complaints", complaintsRouter);
 app.use("/api/logos", logosRouter);

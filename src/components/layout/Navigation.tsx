@@ -53,13 +53,14 @@ const providerDocumentsItem: NavItem = { href: "/provider/documents", label: "Do
 const providerReviewsItem: NavItem = { href: "/provider/reviews", label: "Reviews", icon: <Star className="h-4 w-4" /> };
 const providerSyncItem: NavItem = { href: "/provider/local-sync", label: "Local Sync", icon: <RefreshCw className="h-4 w-4" /> };
 const providerSubscriptionItem: NavItem = { href: "/provider/subscription", label: "Subscription", icon: <CreditCard className="h-4 w-4" /> };
+const providerAnalyticsItem: NavItem = { href: "/provider/analytics", label: "Analytics", icon: <BarChart3 className="h-4 w-4" /> };
 const providerSettingsItem: NavItem = { href: "/provider/settings", label: "Settings", icon: <Settings className="h-4 w-4" /> };
 
 const providerGroups: NavGroup[] = [
   { label: "Overview", items: [providerDashboardItem] },
   { label: "Bookings & Chat", items: [providerBookingsItem, providerCalendarItem, providerMessagesItem] },
   { label: "Inventory", items: [providerServicesItem, providerEquipmentItem, providerListingsItem] },
-  { label: "Business", items: [providerDocumentsItem, providerReviewsItem, providerSyncItem, providerSubscriptionItem, complaintsItem, providerSettingsItem] },
+  { label: "Business", items: [providerDocumentsItem, providerReviewsItem, providerSyncItem, providerSubscriptionItem, providerAnalyticsItem, complaintsItem, providerSettingsItem] },
 ];
 
 const adminOverviewItem: NavItem = { href: "/admin", label: "Overview", icon: <BarChart3 className="h-4 w-4" /> };
