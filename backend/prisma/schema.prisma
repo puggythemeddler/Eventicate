@@ -206,6 +206,10 @@ model ProviderProfile {
   subscription    ProviderSubscription?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
+
+  @@index([category])
+  @@index([isApproved])
+  @@index([city])
 }
 
 // ─── Events ──────────────────────────────────────────────────────────────────
@@ -436,7 +440,7 @@ model AvailabilitySlot {
 model Booking {
   id              String        @id @default(cuid())
   eventId         String
-  event           Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event           Event         @relation(fields: [eventId], references: [id], onDelete: Restrict)
   customerId      String
   customer        CustomerProfile @relation(fields: [customerId], references: [id])
   providerId      String
@@ -492,7 +496,7 @@ model BookingItem {
 model Payment {
   id            String        @id @default(cuid())
   bookingId     String
-  booking       Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  booking       Booking       @relation(fields: [bookingId], references: [id], onDelete: Restrict)
   amount        Float
   method        PaymentMethod @default(CARD)
   status        PaymentStatus @default(PENDING)
@@ -637,6 +641,11 @@ model Review {
   providerReviewerId String?
 
   createdAt       DateTime @default(now())
+
+  @@unique([bookingId, reviewerId, reviewerRole])
+  @@index([bookingId])
+  @@index([revieweeId])
+  @@index([reviewerId])
 }
 
 // ─── Notifications ───────────────────────────────────────────────────────────
@@ -676,6 +685,9 @@ model Complaint {
   resolvedAt    DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  @@index([reporterId])
+  @@index([status])
 }
 
 // ─── Subscriptions ────────────────────────────────────────────────────────────
@@ -801,5 +813,5 @@ model LocalSyncLog {
   entityId    String
   status      SyncStatus @default(PENDING)
   details     String?
-  createdAt   DateTime   @default(now())
+  createdAt       DateTime @default(now())
 }
