@@ -127,17 +127,17 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
   })();
 
   return (
-    <div className="border-b border-gray-100 last:border-0">
+    <div className="border-b border-charcoal-100 last:border-0 dark:border-charcoal-800">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center justify-between px-6 py-4 text-left hover:bg-gray-50"
+        className="flex w-full items-center justify-between px-6 py-4 text-left hover:bg-sand dark:hover:bg-charcoal-800/60"
       >
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <p className="font-medium text-gray-900">{complaint.subject}</p>
+            <p className="font-medium text-charcoal-900 dark:text-charcoal-100">{complaint.subject}</p>
             <Badge variant={PRIORITY_VARIANTS[complaint.priority] || "default"}>{complaint.priority}</Badge>
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
             {complaint.reporter ? `${complaint.reporter.firstName} ${complaint.reporter.lastName}` : "Unknown"}
             {" · "}
             {COMPLAINT_TYPE_LABELS[complaint.complaintType] || complaint.complaintType}
@@ -148,21 +148,21 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
           <Badge variant={STATUS_VARIANTS[complaint.status] || "default"}>
             {complaint.status}
           </Badge>
-          <span className="text-xs text-gray-400">{formatDateTime(complaint.createdAt)}</span>
+          <span className="text-xs text-charcoal-400 dark:text-charcoal-500">{formatDateTime(complaint.createdAt)}</span>
         </div>
       </button>
 
       {expanded && (
-        <div className="border-t border-gray-100 bg-gray-50 px-6 py-4">
+        <div className="border-t border-charcoal-100 bg-sand px-6 py-4 dark:border-charcoal-800 dark:bg-charcoal-800/50">
           <div className="mb-4">
-            <p className="mb-1 text-xs font-medium text-gray-500">Description</p>
-            <p className="text-sm text-gray-700">{complaint.description}</p>
+            <p className="mb-1 text-xs font-medium text-charcoal-500 dark:text-charcoal-400">Description</p>
+            <p className="text-sm text-charcoal-700 dark:text-charcoal-200">{complaint.description}</p>
           </div>
 
           {complaint.booking && (
             <div className="mb-4">
-              <p className="text-xs font-medium text-gray-500">Booking</p>
-              <p className="text-sm text-gray-700">
+              <p className="text-xs font-medium text-charcoal-500 dark:text-charcoal-400">Booking</p>
+              <p className="text-sm text-charcoal-700 dark:text-charcoal-200">
                 {complaint.booking.id} · {complaint.booking.status}
                 {complaint.booking.finalPrice != null && ` · ${complaint.booking.finalPrice}`}
                 {complaint.booking.provider && ` · ${complaint.booking.provider.businessName}`}
@@ -172,7 +172,7 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
 
           {evidenceUrls.length > 0 && (
             <div className="mb-4">
-              <p className="mb-1 text-xs font-medium text-gray-500">Evidence</p>
+              <p className="mb-1 text-xs font-medium text-charcoal-500 dark:text-charcoal-400">Evidence</p>
               <div className="flex flex-wrap gap-2">
                 {evidenceUrls.map((url, i) => (
                   <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 underline">
@@ -185,7 +185,7 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
 
           <div className="mb-4 grid gap-4 md:grid-cols-3">
             <div>
-              <p className="mb-1 text-xs font-medium text-gray-500">Status</p>
+              <p className="mb-1 text-xs font-medium text-charcoal-500 dark:text-charcoal-400">Status</p>
               <div className="flex gap-2">
                 <div className="flex-1">
                   <Select
@@ -200,7 +200,7 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
               </div>
             </div>
             <div>
-              <p className="mb-1 text-xs font-medium text-gray-500">Resolution</p>
+              <p className="mb-1 text-xs font-medium text-charcoal-500 dark:text-charcoal-400">Resolution</p>
               <Select
                 options={RESOLUTION_OPTIONS}
                 value={resolution}
@@ -209,7 +209,7 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
               />
             </div>
             <div>
-              <p className="mb-1 text-xs font-medium text-gray-500">Refund Amount</p>
+              <p className="mb-1 text-xs font-medium text-charcoal-500 dark:text-charcoal-400">Refund Amount</p>
               <Input
                 type="number"
                 value={refundAmount}
@@ -221,7 +221,7 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
           </div>
 
           <div>
-            <p className="mb-1 text-xs font-medium text-gray-500">Admin Notes</p>
+            <p className="mb-1 text-xs font-medium text-charcoal-500 dark:text-charcoal-400">Admin Notes</p>
             <div className="flex gap-2">
               <div className="flex-1">
                 <Textarea

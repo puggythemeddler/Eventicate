@@ -77,14 +77,14 @@ export default function BrandingPage() {
     <div className="flex min-h-screen">
       <Sidebar role="ADMIN" />
       <PageContent>
-        <h1 className="mb-8 text-2xl font-bold">Branding</h1>
+        <h1 className="mb-8 font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Branding</h1>
 
         <div className="grid gap-6 md:grid-cols-3">
           {(["logoLight", "logoDark", "logoInvoice"] as LogoType[]).map((type) => (
             <Card key={type}>
               <CardTitle className="mb-4">{logoLabels[type]}</CardTitle>
 
-              <div className="mb-4 flex h-32 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-800">
+              <div className="mb-4 flex h-32 items-center justify-center rounded-lg border-2 border-dashed border-charcoal-300 dark:border-charcoal-700 bg-sand dark:bg-charcoal-800">
                 {config[type] ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -93,7 +93,7 @@ export default function BrandingPage() {
                     className="max-h-28 max-w-full object-contain"
                   />
                 ) : (
-                  <span className="text-sm text-gray-400">No logo uploaded</span>
+                  <span className="text-sm text-charcoal-400 dark:text-charcoal-500">No logo uploaded</span>
                 )}
               </div>
 
@@ -102,11 +102,11 @@ export default function BrandingPage() {
                   ref={type === "logoLight" ? lightRef : type === "logoDark" ? darkRef : invoiceRef}
                   type="file"
                   accept="image/*"
-                  className="block w-full text-sm text-gray-500 file:mr-2 file:rounded file:border-0 file:bg-primary-50 file:px-2 file:py-1 file:text-sm file:font-medium file:text-primary-700 dark:file:bg-primary-900/30 dark:file:text-primary-300"
+                  className="block w-full text-sm text-charcoal-500 dark:text-charcoal-400 file:mr-2 file:rounded file:border-0 file:bg-primary-50 file:px-2 file:py-1 file:text-sm file:font-medium file:text-primary-700 dark:file:bg-primary-900/30 dark:file:text-primary-300"
                   onChange={() => handleUpload(type)}
                 />
                 {uploading === type && (
-                  <p className="text-sm text-gray-500">Uploading...</p>
+                  <p className="text-sm text-charcoal-500 dark:text-charcoal-400">Uploading...</p>
                 )}
                 {config[type] && (
                   <Button

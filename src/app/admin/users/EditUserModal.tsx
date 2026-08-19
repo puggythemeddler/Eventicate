@@ -78,14 +78,14 @@ export function EditUserModal({ user, isSelf, onClose }: EditUserModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-lg overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-900">
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-800">
-          <h2 className="text-lg font-semibold">Edit User</h2>
+      <div className="w-full max-w-lg overflow-hidden rounded-xl border border-charcoal-200 bg-white shadow-xl dark:border-charcoal-700 dark:bg-charcoal-900">
+        <div className="flex items-center justify-between border-b border-charcoal-100 px-5 py-4 dark:border-charcoal-800">
+          <h2 className="font-display text-lg font-semibold text-charcoal-900 dark:text-charcoal-100">Edit User</h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="rounded-lg p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="rounded-lg p-1 text-charcoal-500 hover:bg-sand dark:text-charcoal-400 dark:hover:bg-charcoal-800"
           >
             <X className="h-5 w-5" />
           </button>
@@ -93,7 +93,7 @@ export function EditUserModal({ user, isSelf, onClose }: EditUserModalProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4 p-5">
           {error && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/30 dark:text-red-400">{error}</div>
+            <div className="rounded-lg bg-terracotta-50 p-3 text-sm text-terracotta-700 dark:bg-terracotta-900/30 dark:text-terracotta-400">{error}</div>
           )}
 
           <div className="grid grid-cols-2 gap-3">
@@ -152,7 +152,7 @@ export function EditUserModal({ user, isSelf, onClose }: EditUserModalProps) {
             minLength={8}
           />
           {isSelf && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-charcoal-500 dark:text-charcoal-400">
               You cannot change your own role or deactivate your own account.
             </p>
           )}

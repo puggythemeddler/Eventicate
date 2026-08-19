@@ -60,7 +60,7 @@ export default async function AdminDashboard() {
     <div className="flex min-h-screen">
       <Sidebar role="ADMIN" />
       <PageContent>
-        <h1 className="mb-8 text-2xl font-bold">Admin Dashboard</h1>
+        <h1 className="mb-8 font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Admin Dashboard</h1>
 
         <div className="mb-8 grid gap-4 md:grid-cols-4">
           {[
@@ -71,7 +71,7 @@ export default async function AdminDashboard() {
           ].map((stat) => (
             <Card key={stat.label}>
               <p className="text-2xl font-bold">{stat.value}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</p>
+              <p className="text-sm text-charcoal-500 dark:text-charcoal-400">{stat.label}</p>
             </Card>
           ))}
         </div>
@@ -79,13 +79,13 @@ export default async function AdminDashboard() {
         <div className="mb-8 grid gap-4 md:grid-cols-2">
           <Card>
             <CardTitle className="mb-2">Platform Revenue</CardTitle>
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-3xl font-bold text-olive-700 dark:text-olive-400">
               {formatCurrency(totalRevenue, currency)}
             </p>
           </Card>
           <Card>
             <CardTitle className="mb-2">Open Complaints</CardTitle>
-            <p className="text-3xl font-bold text-red-600">{openComplaints}</p>
+            <p className="text-3xl font-bold text-terracotta-700 dark:text-terracotta-400">{openComplaints}</p>
           </Card>
         </div>
 
@@ -93,14 +93,14 @@ export default async function AdminDashboard() {
           <Card>
             <CardTitle className="mb-4">Pending Provider Approvals</CardTitle>
             {pendingProviders.length === 0 ? (
-              <p className="text-sm text-gray-500 dark:text-gray-400">No pending approvals.</p>
+              <p className="text-sm text-charcoal-500 dark:text-charcoal-400">No pending approvals.</p>
             ) : (
               <div className="space-y-3">
                 {pendingProviders.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+                  <div key={p.id} className="flex items-center justify-between rounded-lg border border-charcoal-200 dark:border-charcoal-800 p-3">
                     <div>
                       <p className="font-medium">{p.businessName}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
                         {p.user.firstName} {p.user.lastName} · {p.category}
                       </p>
                     </div>
@@ -129,7 +129,7 @@ export default async function AdminDashboard() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b text-left text-gray-500 dark:text-gray-400">
+                <tr className="border-b text-left text-charcoal-500 dark:text-charcoal-400">
                   <th className="pb-2">Event</th>
                   <th className="pb-2">Provider</th>
                   <th className="pb-2">Status</th>
@@ -137,7 +137,7 @@ export default async function AdminDashboard() {
               </thead>
               <tbody>
                 {recentBookings.map((b) => (
-                  <tr key={b.id} className="border-b border-gray-50 dark:border-gray-800">
+                  <tr key={b.id} className="border-b border-charcoal-100 dark:border-charcoal-800">
                     <td className="py-2">{b.event.title}</td>
                     <td className="py-2">{b.provider.businessName}</td>
                     <td className="py-2">{b.status.replace(/_/g, " ")}</td>

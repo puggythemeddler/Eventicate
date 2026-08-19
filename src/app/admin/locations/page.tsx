@@ -162,12 +162,12 @@ export default function LocationsPage() {
     <div className="flex min-h-screen">
       <Sidebar role="ADMIN" />
       <PageContent>
-        <h1 className="mb-8 text-2xl font-bold">Locations Management</h1>
+        <h1 className="mb-8 font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Locations Management</h1>
 
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>CSV Import</CardTitle>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
               Paste CSV with columns: country,subdivision (one per row). Header row optional.
             </p>
           </CardHeader>
@@ -184,14 +184,14 @@ export default function LocationsPage() {
               {importing ? "Importing..." : "Import CSV"}
             </Button>
             {importResult && (
-              <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-                <p className="text-sm font-medium text-green-600">
+              <div className="rounded-lg border border-charcoal-200 dark:border-charcoal-800 p-3">
+                <p className="text-sm font-medium text-olive-700 dark:text-olive-400">
                   Imported: {importResult.imported}
                 </p>
                 {importResult.errors.length > 0 && (
                   <div className="mt-1">
-                    <p className="text-sm font-medium text-red-600">Errors:</p>
-                    <ul className="list-inside list-disc text-sm text-red-500">
+                    <p className="text-sm font-medium text-terracotta-700 dark:text-terracotta-400">Errors:</p>
+                    <ul className="list-inside list-disc text-sm text-terracotta-600 dark:text-terracotta-400">
                       {importResult.errors.map((e, i) => (
                         <li key={i}>{e}</li>
                       ))}
@@ -204,7 +204,7 @@ export default function LocationsPage() {
         </Card>
 
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Countries</h2>
+          <h2 className="font-display text-lg font-semibold text-charcoal-900 dark:text-charcoal-100">Countries</h2>
           <Button size="sm" onClick={() => setShowAddCountry(true)}>
             <Plus className="mr-1 h-4 w-4" /> Add Country
           </Button>
@@ -232,11 +232,11 @@ export default function LocationsPage() {
           </Card>
         )}
 
-        {loading && <p className="text-gray-500 dark:text-gray-400">Loading...</p>}
-        {error && <p className="text-red-500">{error}</p>}
+        {loading && <p className="text-charcoal-500 dark:text-charcoal-400">Loading...</p>}
+        {error && <p className="text-terracotta-600 dark:text-terracotta-400">{error}</p>}
 
         {!loading && !error && countries.length === 0 && (
-          <p className="text-gray-500 dark:text-gray-400">No countries found.</p>
+          <p className="text-charcoal-500 dark:text-charcoal-400">No countries found.</p>
         )}
 
         <div className="space-y-3">
@@ -246,7 +246,7 @@ export default function LocationsPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => toggleExpand(country.id)}
-                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    className="text-charcoal-400 dark:text-charcoal-500 hover:text-charcoal-600 dark:hover:text-charcoal-300"
                   >
                     {expanded.has(country.id) ? (
                       <ChevronDown className="h-4 w-4" />
@@ -255,7 +255,7 @@ export default function LocationsPage() {
                     )}
                   </button>
                   <span className="font-medium">{country.name}</span>
-                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                  <span className="text-xs text-charcoal-400 dark:text-charcoal-500">
                     ({country.subdivisions.length} subdivisions)
                   </span>
                 </div>
@@ -279,13 +279,13 @@ export default function LocationsPage() {
                     variant="ghost"
                     onClick={() => handleDeleteCountry(country.id)}
                   >
-                    <Trash2 className="h-3 w-3 text-red-500" />
+                    <Trash2 className="h-3 w-3 text-terracotta-600 dark:text-terracotta-400" />
                   </Button>
                 </div>
               </div>
 
               {editingCountry?.id === country.id && (
-                <div className="mt-3 flex items-end gap-3 border-t border-gray-100 pt-3 dark:border-gray-800">
+                <div className="mt-3 flex items-end gap-3 border-t border-charcoal-100 dark:border-charcoal-800 pt-3">
                   <div className="flex-1">
                     <Input
                       label="Edit Country Name"
@@ -304,7 +304,7 @@ export default function LocationsPage() {
               )}
 
               {addingSubdiv === country.id && (
-                <div className="mt-3 flex items-end gap-3 border-t border-gray-100 pt-3 dark:border-gray-800">
+                <div className="mt-3 flex items-end gap-3 border-t border-charcoal-100 dark:border-charcoal-800 pt-3">
                   <div className="flex-1">
                     <Input
                       label="Subdivision Name"
@@ -324,11 +324,11 @@ export default function LocationsPage() {
               )}
 
               {expanded.has(country.id) && country.subdivisions.length > 0 && (
-                <div className="mt-3 space-y-1 border-t border-gray-100 pt-3 dark:border-gray-800">
+                <div className="mt-3 space-y-1 border-t border-charcoal-100 dark:border-charcoal-800 pt-3">
                   {country.subdivisions.map((sub) => (
                     <div
                       key={sub.id}
-                      className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm dark:bg-gray-800"
+                      className="flex items-center justify-between rounded-lg bg-sand dark:bg-charcoal-800 px-3 py-2 text-sm"
                     >
                       <span>{sub.name}</span>
                       <div className="flex items-center gap-1">
@@ -344,7 +344,7 @@ export default function LocationsPage() {
                           variant="ghost"
                           onClick={() => handleDeleteSubdivision(sub.id)}
                         >
-                          <Trash2 className="h-3 w-3 text-red-500" />
+                          <Trash2 className="h-3 w-3 text-terracotta-600 dark:text-terracotta-400" />
                         </Button>
                       </div>
                     </div>
@@ -353,7 +353,7 @@ export default function LocationsPage() {
               )}
 
               {editingSubdiv && editingSubdiv.countryId === country.id && expanded.has(country.id) && (
-                <div className="mt-3 flex items-end gap-3 border-t border-gray-100 pt-3 dark:border-gray-800">
+                <div className="mt-3 flex items-end gap-3 border-t border-charcoal-100 dark:border-charcoal-800 pt-3">
                   <div className="flex-1">
                     <Input
                       label="Edit Subdivision Name"

@@ -148,8 +148,8 @@ export default function SubscriptionPlansPage() {
       <PageContent>
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Subscription Plans</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Subscription Plans</h1>
+            <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
               Manage subscription tiers and pricing
             </p>
           </div>
@@ -175,9 +175,9 @@ export default function SubscriptionPlansPage() {
               </div>
               <Textarea label="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
               <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Features (JSON array)</label>
+                <label className="block text-sm font-medium text-charcoal-700 dark:text-charcoal-200">Features (JSON array)</label>
                 <textarea value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500" rows={3} />
+                  className="w-full rounded-lg border border-charcoal-300 dark:border-charcoal-700 px-3 py-2 text-sm font-mono dark:bg-charcoal-800 dark:text-charcoal-100 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500" rows={3} />
               </div>
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} className="rounded" />
@@ -195,7 +195,7 @@ export default function SubscriptionPlansPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b text-left text-gray-500 dark:text-gray-400">
+                <tr className="border-b text-left text-charcoal-500 dark:text-charcoal-400">
                   <th className="pb-3 pr-4">Sort</th>
                   <th className="pb-3 pr-4">Name</th>
                   <th className="pb-3 pr-4">Price</th>
@@ -209,44 +209,44 @@ export default function SubscriptionPlansPage() {
               </thead>
               <tbody>
                 {plans.map((plan) => (
-                  <tr key={plan.id} className="border-b border-gray-50 dark:border-gray-800">
+                  <tr key={plan.id} className="border-b border-charcoal-100 dark:border-charcoal-800">
                     {editingId === plan.id ? (
                       <>
                         <td className="py-3 pr-4">
                           <input type="number" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: parseInt(e.target.value) || 0 })}
-                            className="w-16 rounded border px-2 py-1 text-xs dark:border-gray-600 dark:bg-gray-800" />
+                            className="w-16 rounded border px-2 py-1 text-xs dark:border-charcoal-700 dark:bg-charcoal-800" />
                         </td>
                         <td className="py-3 pr-4">
                           <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                            className="w-32 rounded border px-2 py-1 text-xs dark:border-gray-600 dark:bg-gray-800" />
+                            className="w-32 rounded border px-2 py-1 text-xs dark:border-charcoal-700 dark:bg-charcoal-800" />
                         </td>
                         <td className="py-3 pr-4">
                           <input type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) || 0 })}
-                            className="w-20 rounded border px-2 py-1 text-xs dark:border-gray-600 dark:bg-gray-800" />
+                            className="w-20 rounded border px-2 py-1 text-xs dark:border-charcoal-700 dark:bg-charcoal-800" />
                         </td>
                         <td className="py-3 pr-4">
                           <input type="number" min="0" value={form.trialDays} onChange={(e) => setForm({ ...form, trialDays: parseInt(e.target.value) || 0 })}
-                            className="w-16 rounded border px-2 py-1 text-xs dark:border-gray-600 dark:bg-gray-800" />
+                            className="w-16 rounded border px-2 py-1 text-xs dark:border-charcoal-700 dark:bg-charcoal-800" />
                         </td>
                         <td className="py-3 pr-4">
                           <input type="number" min="-1" value={form.maxServices} onChange={(e) => setForm({ ...form, maxServices: parseInt(e.target.value) || 0 })}
-                            className="w-16 rounded border px-2 py-1 text-xs dark:border-gray-600 dark:bg-gray-800" />
+                            className="w-16 rounded border px-2 py-1 text-xs dark:border-charcoal-700 dark:bg-charcoal-800" />
                         </td>
                         <td className="py-3 pr-4">
                           <input type="number" min="-1" value={form.maxEquipment} onChange={(e) => setForm({ ...form, maxEquipment: parseInt(e.target.value) || 0 })}
-                            className="w-16 rounded border px-2 py-1 text-xs dark:border-gray-600 dark:bg-gray-800" />
+                            className="w-16 rounded border px-2 py-1 text-xs dark:border-charcoal-700 dark:bg-charcoal-800" />
                         </td>
                         <td className="py-3 pr-4">
                           <input type="number" min="-1" value={form.maxBookings} onChange={(e) => setForm({ ...form, maxBookings: parseInt(e.target.value) || 0 })}
-                            className="w-16 rounded border px-2 py-1 text-xs dark:border-gray-600 dark:bg-gray-800" />
+                            className="w-16 rounded border px-2 py-1 text-xs dark:border-charcoal-700 dark:bg-charcoal-800" />
                         </td>
                         <td className="py-3 pr-4">
                           <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />
                         </td>
                         <td className="py-3">
                           <div className="flex gap-1">
-                            <button onClick={() => handleUpdate(plan.id)} className="rounded p-1 text-green-600 hover:bg-green-50"><Check className="h-4 w-4" /></button>
-                            <button type="button" onClick={() => { setEditingId(null); setForm(emptyForm); }} aria-label="Cancel editing" className="rounded p-1 text-gray-600 hover:bg-gray-50"><X className="h-4 w-4" /></button>
+                            <button onClick={() => handleUpdate(plan.id)} className="rounded p-1 text-olive-700 dark:text-olive-400 hover:bg-olive-50"><Check className="h-4 w-4" /></button>
+                            <button type="button" onClick={() => { setEditingId(null); setForm(emptyForm); }} aria-label="Cancel editing" className="rounded p-1 text-charcoal-600 dark:text-charcoal-300 hover:bg-sand dark:hover:bg-charcoal-800"><X className="h-4 w-4" /></button>
                           </div>
                         </td>
                       </>
@@ -260,12 +260,12 @@ export default function SubscriptionPlansPage() {
                         <td className="py-3 pr-4">{plan.maxEquipment === -1 ? "\u221E" : plan.maxEquipment}</td>
                         <td className="py-3 pr-4">{plan.maxBookings === -1 ? "\u221E" : plan.maxBookings}</td>
                         <td className="py-3 pr-4">
-                          <span className={`inline-block h-2 w-2 rounded-full ${plan.isActive ? "bg-green-500" : "bg-red-500"}`} />
+                          <span className={`inline-block h-2 w-2 rounded-full ${plan.isActive ? "bg-olive-600" : "bg-terracotta-600"}`} />
                         </td>
                         <td className="py-3">
                           <div className="flex gap-1">
-                            <button type="button" onClick={() => startEdit(plan)} aria-label={`Edit ${plan.name}`} className="rounded p-1 text-blue-600 hover:bg-blue-50"><Pencil className="h-4 w-4" /></button>
-                            <button type="button" onClick={() => handleDelete(plan.id)} aria-label={`Delete ${plan.name}`} className="rounded p-1 text-red-600 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button>
+                            <button type="button" onClick={() => startEdit(plan)} aria-label={`Edit ${plan.name}`} className="rounded p-1 text-primary-700 dark:text-primary-400 hover:bg-primary-50"><Pencil className="h-4 w-4" /></button>
+                            <button type="button" onClick={() => handleDelete(plan.id)} aria-label={`Delete ${plan.name}`} className="rounded p-1 text-terracotta-700 dark:text-terracotta-400 hover:bg-terracotta-50"><Trash2 className="h-4 w-4" /></button>
                           </div>
                         </td>
                       </>

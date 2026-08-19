@@ -82,16 +82,16 @@ export function VerifyProviderButton({ provider }: { provider: EditableProvider 
           <Card className="max-h-[90vh] w-full max-w-lg overflow-y-auto">
             <div className="mb-4 flex items-center justify-between">
               <CardTitle><span id="verify-provider-title">Review Verification — {provider.businessName}</span></CardTitle>
-              <button type="button" onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600" aria-label="Close">
+              <button type="button" onClick={() => setOpen(false)} className="text-charcoal-400 hover:text-charcoal-600 dark:text-charcoal-500 dark:hover:text-charcoal-300" aria-label="Close">
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+            <p className="mb-2 text-sm font-medium text-charcoal-700 dark:text-charcoal-200">
               Submitted documents
             </p>
             {docs.length === 0 ? (
-              <p className="mb-4 text-sm text-gray-500">No documents submitted.</p>
+              <p className="mb-4 text-sm text-charcoal-500 dark:text-charcoal-400">No documents submitted.</p>
             ) : (
               <ul className="mb-4 space-y-1.5">
                 {docs.map((url, i) => (
@@ -110,7 +110,7 @@ export function VerifyProviderButton({ provider }: { provider: EditableProvider 
             )}
 
             {provider.verificationNote && (
-              <p className="mb-3 text-sm text-gray-600 dark:text-gray-300">
+              <p className="mb-3 text-sm text-charcoal-600 dark:text-charcoal-300">
                 Previous note: {provider.verificationNote}
               </p>
             )}
@@ -123,7 +123,7 @@ export function VerifyProviderButton({ provider }: { provider: EditableProvider 
               placeholder="Reason for rejection or a note to the provider..."
             />
 
-            {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+            {error && <p className="mt-3 text-sm text-terracotta-700 dark:text-terracotta-400">{error}</p>}
 
             <div className="mt-6 flex justify-end gap-2">
               <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
@@ -215,7 +215,7 @@ export function EditProviderButton({ provider }: { provider: EditableProvider })
                   setError("");
                   setSaved(false);
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-charcoal-400 hover:text-charcoal-600 dark:text-charcoal-500 dark:hover:text-charcoal-300"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -251,20 +251,20 @@ export function EditProviderButton({ provider }: { provider: EditableProvider })
                 <Input label="Country" value={form.country} onChange={(e) => update("country", e.target.value)} />
               </div>
 
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="flex items-center gap-2 text-sm font-medium text-charcoal-700 dark:text-charcoal-200">
                 <input
                   type="checkbox"
                   checked={form.isApproved}
                   onChange={(e) => update("isApproved", e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  className="h-4 w-4 rounded border-charcoal-300 text-primary-600 focus:ring-primary-500 dark:border-charcoal-700"
                 />
                 Approved
               </label>
             </div>
 
-            {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+            {error && <p className="mt-3 text-sm text-terracotta-700 dark:text-terracotta-400">{error}</p>}
             {saved && (
-              <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-green-600">
+              <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-olive-700 dark:text-olive-400">
                 <CheckCircle className="h-4 w-4" />
                 Saved
               </p>
@@ -373,7 +373,7 @@ export function DeleteProviderButton({ provider }: { provider: EditableProvider 
       disabled={loading}
       aria-label={`Delete ${provider.businessName}`}
     >
-      <Trash2 className="h-3.5 w-3.5 text-red-500" />
+      <Trash2 className="h-3.5 w-3.5 text-terracotta-600 dark:text-terracotta-400" />
     </Button>
   );
 }

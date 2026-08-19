@@ -33,10 +33,10 @@ interface ProviderRow {
 }
 
 const VERIFICATION_META: Record<string, { label: string; className: string }> = {
-  VERIFIED: { label: "Verified", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" },
-  PENDING: { label: "Verification Pending", className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300" },
-  REJECTED: { label: "Verification Rejected", className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300" },
-  NONE: { label: "Not Verified", className: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300" },
+  VERIFIED: { label: "Verified", className: "bg-olive-100 dark:bg-olive-900/50 text-olive-700 dark:text-olive-300" },
+  PENDING: { label: "Verification Pending", className: "bg-gold-100 text-gold-800 dark:bg-gold-900/50 dark:text-gold-300" },
+  REJECTED: { label: "Verification Rejected", className: "bg-terracotta-100 dark:bg-terracotta-900/50 text-terracotta-700 dark:text-terracotta-300" },
+  NONE: { label: "Not Verified", className: "bg-sand dark:bg-charcoal-800 text-charcoal-600 dark:text-charcoal-300" },
 };
 
 const APPROVAL_OPTIONS = [
@@ -95,14 +95,14 @@ export default async function AdminProvidersPage({
       <PageContent>
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Providers</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Providers</h1>
+            <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
               {providers.length} providers · {paidCount} paid
             </p>
           </div>
           <div className="flex items-center gap-3">
             {pendingCount > 0 && (
-              <div className="rounded-lg bg-yellow-50 px-4 py-2 text-sm text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+              <div className="rounded-lg bg-gold-50 px-4 py-2 text-sm text-gold-800 dark:bg-gold-900/50 dark:text-gold-300">
                 {pendingCount} awaiting approval
               </div>
             )}
@@ -128,7 +128,7 @@ export default async function AdminProvidersPage({
         <Card className="overflow-hidden p-0">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200 text-left text-gray-500 dark:border-gray-700 dark:text-gray-400">
+              <tr className="border-b border-charcoal-200 dark:border-charcoal-800 text-left text-charcoal-500 dark:text-charcoal-400">
                 <th className="px-6 py-3 font-medium">Business</th>
                 <th className="px-6 py-3 font-medium">Owner</th>
                 <th className="px-6 py-3 font-medium">Category</th>
@@ -145,11 +145,11 @@ export default async function AdminProvidersPage({
               {providers.map((p) => (
                 <tr
                   key={p.id}
-                  className={`border-b border-gray-100 last:border-0 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800 ${
+                  className={`border-b border-charcoal-100 dark:border-charcoal-800 last:border-0 hover:bg-sand dark:hover:bg-charcoal-800 ${
                     !p.isActive ? "opacity-50" : ""
                   }`}
                 >
-                  <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">
+                  <td className="px-6 py-4 font-medium text-charcoal-900 dark:text-charcoal-100">
                     {p.businessName}
                     {p.verificationStatus && p.verificationStatus !== "NONE" && (
                       <span className={`ml-2 inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${VERIFICATION_META[p.verificationStatus]?.className || VERIFICATION_META.NONE.className}`}>
@@ -157,30 +157,30 @@ export default async function AdminProvidersPage({
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
+                  <td className="px-6 py-4 text-charcoal-500 dark:text-charcoal-400">
                     {p.user.firstName} {p.user.lastName}
                     {!p.isActive && (
-                      <span className="ml-2 rounded bg-gray-200 px-1.5 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                      <span className="ml-2 rounded bg-charcoal-100 dark:bg-charcoal-800 px-1.5 py-0.5 text-[10px] font-medium text-charcoal-600 dark:text-charcoal-300">
                         Deactivated
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
+                  <td className="px-6 py-4 text-charcoal-500 dark:text-charcoal-400">
                     {SERVICE_CATEGORIES.find((c) => c.value === p.category)?.label || p.category}
                   </td>
-                  <td className="px-6 py-4 text-gray-500 dark:text-gray-400">{p.city || "—"}</td>
+                  <td className="px-6 py-4 text-charcoal-500 dark:text-charcoal-400">{p.city || "—"}</td>
                   <td className="px-6 py-4">
                     <StatusBadge status={p.isApproved ? "AVAILABLE" : "PENDING"} />
                   </td>
                   <td className="px-6 py-4">
                     {p.hasPaid ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">
-                        <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-olive-100 dark:bg-olive-900/50 px-2.5 py-0.5 text-xs font-medium text-olive-700 dark:text-olive-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-olive-600" />
                         Paid
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-300">
-                        <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-terracotta-100 dark:bg-terracotta-900/50 px-2.5 py-0.5 text-xs font-medium text-terracotta-700 dark:text-terracotta-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-terracotta-600" />
                         Not Paid
                       </span>
                     )}
@@ -188,8 +188,8 @@ export default async function AdminProvidersPage({
                   <td className="px-6 py-4">
                     <StarRating rating={p.averageRating} />
                   </td>
-                  <td className="px-6 py-4 text-right text-gray-500 dark:text-gray-400">{p._count.reviewsReceived}</td>
-                  <td className="px-6 py-4 text-right text-gray-500 dark:text-gray-400">{p._count.bookings}</td>
+                  <td className="px-6 py-4 text-right text-charcoal-500 dark:text-charcoal-400">{p._count.reviewsReceived}</td>
+                  <td className="px-6 py-4 text-right text-charcoal-500 dark:text-charcoal-400">{p._count.bookings}</td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1.5">
                       {!p.isApproved && (
@@ -208,7 +208,7 @@ export default async function AdminProvidersPage({
               ))}
               {providers.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={10} className="px-6 py-8 text-center text-charcoal-500 dark:text-charcoal-400">
                     No providers found
                   </td>
                 </tr>

@@ -55,8 +55,8 @@ export function PublicAvailabilityCalendar({
   return (
     <div className="relative">
       {loading && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/60 dark:bg-gray-900/60">
-          <p className="text-sm text-gray-500">Loading...</p>
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/60 dark:bg-charcoal-900/60">
+          <p className="text-sm text-charcoal-500 dark:text-charcoal-400">Loading...</p>
         </div>
       )}
       <AvailabilityCalendar

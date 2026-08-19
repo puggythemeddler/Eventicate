@@ -100,7 +100,7 @@ export function AddProviderButton() {
                   setError("");
                   setSaved(false);
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-charcoal-400 hover:text-charcoal-600 dark:text-charcoal-500 dark:hover:text-charcoal-300"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -184,20 +184,20 @@ export function AddProviderButton() {
                 />
               </div>
 
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="flex items-center gap-2 text-sm font-medium text-charcoal-700 dark:text-charcoal-200">
                 <input
                   type="checkbox"
                   checked={form.isApproved}
                   onChange={(e) => update("isApproved", e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  className="h-4 w-4 rounded border-charcoal-300 text-primary-600 focus:ring-primary-500 dark:border-charcoal-700"
                 />
                 Approved on sign-up
               </label>
             </div>
 
-            {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+            {error && <p className="mt-3 text-sm text-terracotta-700 dark:text-terracotta-400">{error}</p>}
             {saved && (
-              <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-green-600">
+              <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-olive-700 dark:text-olive-400">
                 <CheckCircle className="h-4 w-4" />
                 Provider created
               </p>

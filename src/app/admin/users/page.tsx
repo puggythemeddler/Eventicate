@@ -60,8 +60,8 @@ export default async function AdminUsersPage({
       <PageContent>
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Users</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{data.total} total users</p>
+            <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Users</h1>
+            <p className="text-sm text-charcoal-500 dark:text-charcoal-400">{data.total} total users</p>
           </div>
         </div>
 
@@ -80,7 +80,7 @@ export default async function AdminUsersPage({
         <Card className="overflow-hidden p-0">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200 text-left text-gray-500 dark:border-gray-700 dark:text-gray-400">
+              <tr className="border-b border-charcoal-200 dark:border-charcoal-800 text-left text-charcoal-500 dark:text-charcoal-400">
                 <th className="px-6 py-3 font-medium">Name</th>
                 <th className="px-6 py-3 font-medium">Email</th>
                 <th className="px-6 py-3 font-medium">Role</th>
@@ -92,11 +92,11 @@ export default async function AdminUsersPage({
             </thead>
             <tbody>
               {enriched.map((user) => (
-                <tr key={user.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800">
-                  <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">
+                <tr key={user.id} className="border-b border-charcoal-100 dark:border-charcoal-800 last:border-0 hover:bg-sand dark:hover:bg-charcoal-800">
+                  <td className="px-6 py-4 font-medium text-charcoal-900 dark:text-charcoal-100">
                     {user.firstName} {user.lastName}
                   </td>
-                  <td className="px-6 py-4 text-gray-500 dark:text-gray-400">{user.email}</td>
+                  <td className="px-6 py-4 text-charcoal-500 dark:text-charcoal-400">{user.email}</td>
                   <td className="px-6 py-4">
                     <Badge variant={user.role === "ADMIN" ? "info" : user.role === "PROVIDER" ? "warning" : "default"}>
                       {user.role}
@@ -107,8 +107,8 @@ export default async function AdminUsersPage({
                       {user.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </td>
-                  <td className="px-6 py-4 text-gray-500 dark:text-gray-400">{formatDate(user.createdAt)}</td>
-                  <td className="px-6 py-4 text-right text-gray-500 dark:text-gray-400">{user.bookingCount}</td>
+                  <td className="px-6 py-4 text-charcoal-500 dark:text-charcoal-400">{formatDate(user.createdAt)}</td>
+                  <td className="px-6 py-4 text-right text-charcoal-500 dark:text-charcoal-400">{user.bookingCount}</td>
                   <td className="px-6 py-4 text-right">
                     <UserActions user={user} isSelf={user.id === session.id} />
                   </td>
@@ -116,7 +116,7 @@ export default async function AdminUsersPage({
               ))}
               {enriched.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-8 text-center text-charcoal-500 dark:text-charcoal-400">
                     No users found
                   </td>
                 </tr>

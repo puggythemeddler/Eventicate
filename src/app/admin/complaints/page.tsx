@@ -61,8 +61,8 @@ export default async function AdminComplaintsPage({
       <PageContent>
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Complaints</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{complaints.length} total</p>
+            <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Complaints</h1>
+            <p className="text-sm text-charcoal-500 dark:text-charcoal-400">{complaints.length} total</p>
           </div>
         </div>
 
@@ -77,7 +77,7 @@ export default async function AdminComplaintsPage({
 
         <Card className="overflow-hidden p-0">
           {complaints.length === 0 ? (
-            <div className="p-8 text-center text-sm text-gray-500 dark:text-gray-400">No complaints found</div>
+            <div className="p-8 text-center text-sm text-charcoal-500 dark:text-charcoal-400">No complaints found</div>
           ) : (
             complaints.map((complaint) => (
               <ComplaintRow

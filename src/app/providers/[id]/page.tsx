@@ -204,7 +204,7 @@ export default async function ProviderProfilePage({
               <FadeUp>
                 <Card>
                   <CardTitle className="mb-2">About</CardTitle>
-                  <p className="text-gray-600 dark:text-gray-300">{provider.description}</p>
+                  <p className="text-charcoal-600 dark:text-charcoal-200">{provider.description}</p>
                 </Card>
               </FadeUp>
             )}
@@ -218,7 +218,7 @@ export default async function ProviderProfilePage({
                     const hasDiscount = service.discountPercent > 0;
                     const discountedPrice = service.basePrice * (100 - service.discountPercent) / 100;
                     return (
-                      <div key={service.id} className="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+                      <div key={service.id} className="rounded-lg border border-charcoal-200 p-3 dark:border-charcoal-800">
                         {serviceImages.length > 0 && (
                           <div className="mb-2 flex gap-2 overflow-x-auto">
                             {serviceImages.map((url, i) => (
@@ -230,7 +230,7 @@ export default async function ProviderProfilePage({
                             <div>
                               <p className="font-medium">{service.name}</p>
                               {service.description && (
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{service.description}</p>
+                                <p className="text-sm text-charcoal-500 dark:text-charcoal-400">{service.description}</p>
                               )}
                             </div>
                             <div className="flex items-center gap-3">
@@ -238,7 +238,7 @@ export default async function ProviderProfilePage({
                               <div className="text-right">
                                 {hasDiscount ? (
                                   <>
-                                    <p className="text-sm text-gray-400 line-through">{formatCurrency(service.basePrice, currency)}</p>
+                                    <p className="text-sm text-charcoal-400 line-through">{formatCurrency(service.basePrice, currency)}</p>
                                     <p className="font-semibold text-primary-600">{formatCurrency(discountedPrice, currency)}</p>
                                   </>
                                 ) : (
@@ -260,7 +260,7 @@ export default async function ProviderProfilePage({
                 <CardTitle className="mb-4">Venues</CardTitle>
                 <div className="space-y-4">
                   {provider.venues.map((venue) => (
-                    <div key={venue.id} className="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                    <div key={venue.id} className="rounded-lg border border-charcoal-200 p-4 dark:border-charcoal-800">
                       {venue.images.length > 0 && (
                         <div className="mb-3 flex gap-2 overflow-x-auto">
                           {venue.images.map((url, i) => (
@@ -271,11 +271,11 @@ export default async function ProviderProfilePage({
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <h4 className="font-medium">{venue.name}</h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
                             <MapPin className="mr-1 inline h-3 w-3" />
                             {venue.location}
                           </p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
                             Capacity: {venue.capacity} guests
                           </p>
                           {venue.facilities.length > 0 && (
@@ -290,7 +290,7 @@ export default async function ProviderProfilePage({
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           <div className="text-right">
-                            <p className="text-xs text-gray-500 dark:text-gray-400">From</p>
+                            <p className="text-xs text-charcoal-500 dark:text-charcoal-400">From</p>
                             <p className="font-semibold text-primary-600">{formatCurrency(venue.basePrice, currency)}</p>
                           </div>
                           <Link href={session ? `/dashboard/bookings/new?providerId=${id}` : "/auth/login"}>
@@ -309,14 +309,14 @@ export default async function ProviderProfilePage({
                 <CardTitle className="mb-4">Catering Packages</CardTitle>
                 <div className="space-y-3">
                   {provider.menuPackages.map((pkg) => (
-                    <div key={pkg.id} className="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                    <div key={pkg.id} className="rounded-lg border border-charcoal-200 p-4 dark:border-charcoal-800">
                       <div className="flex items-center justify-between">
                         <h4 className="font-medium">{pkg.name}</h4>
                         <span className="font-semibold text-primary-600">
                           {formatCurrency(pkg.basePrice, currency)}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
                         {pkg.guestCount} guests · {pkg.servingStyle}
                         {pkg.includesDrinks && " · Drinks included"}
                         {pkg.includesDessert && " · Dessert included"}
@@ -336,7 +336,7 @@ export default async function ProviderProfilePage({
                     const hasDiscount = item.discountPercent > 0;
                     const discountedPrice = item.rentalPrice * (100 - item.discountPercent) / 100;
                     return (
-                      <div key={item.id} className="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+                      <div key={item.id} className="rounded-lg border border-charcoal-200 p-3 dark:border-charcoal-800">
                         {equipImages.length > 0 && (
                           <div className="mb-2 flex gap-2 overflow-x-auto">
                             {equipImages.map((url, i) => (
@@ -347,14 +347,14 @@ export default async function ProviderProfilePage({
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-medium">{item.name}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">{item.subcategory} · Qty: {item.quantity}</p>
+                            <p className="text-xs text-charcoal-500 dark:text-charcoal-400">{item.subcategory} · Qty: {item.quantity}</p>
                           </div>
                           <div className="flex items-center gap-3">
                             {hasDiscount && <Badge variant="warning">{item.discountPercent}% OFF</Badge>}
                             <div className="text-right">
                               {hasDiscount ? (
                                 <p className="text-sm">
-                                  <span className="text-gray-400 line-through">{formatCurrency(item.rentalPrice, currency)}</span>{' '}
+                                  <span className="text-charcoal-400 line-through">{formatCurrency(item.rentalPrice, currency)}</span>{' '}
                                   <span className="font-semibold text-primary-600">{formatCurrency(discountedPrice, currency)}/day</span>
                                 </p>
                               ) : (
@@ -402,7 +402,7 @@ export default async function ProviderProfilePage({
                 <CardTitle className="mb-4">Reviews</CardTitle>
                 <div className="space-y-4">
                   {provider.reviewsReceived.map((review) => (
-                    <div key={review.id} className="border-b border-gray-100 pb-4 last:border-0 dark:border-gray-800">
+                    <div key={review.id} className="border-b border-charcoal-100 pb-4 last:border-0 dark:border-charcoal-800">
                       <div className="mb-1 flex items-center justify-between">
                         <span className="font-medium">
                           {review.customerReviewer?.user.firstName}{" "}
@@ -422,7 +422,7 @@ export default async function ProviderProfilePage({
                         />
                       </div>
                       {review.comment && (
-                        <p className="text-sm text-gray-600 dark:text-gray-300">{review.comment}</p>
+                        <p className="text-sm text-charcoal-600 dark:text-charcoal-200">{review.comment}</p>
                       )}
                     </div>
                   ))}

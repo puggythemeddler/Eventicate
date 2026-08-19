@@ -79,16 +79,16 @@ export default function WhatsAppPage() {
     <div className="flex min-h-screen">
       <Sidebar role="ADMIN" />
       <PageContent>
-        <h1 className="mb-8 text-2xl font-bold">WhatsApp Messaging</h1>
+        <h1 className="mb-8 font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">WhatsApp Messaging</h1>
 
         <div className="mb-6 flex items-center gap-3">
           {config.configured ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-olive-100 dark:bg-olive-900/50 px-3 py-1 text-sm font-medium text-olive-700 dark:text-olive-300">
               <CheckCircle className="h-4 w-4" />
               WhatsApp connected
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-gold-100 dark:bg-gold-900/50 px-3 py-1 text-sm font-medium text-gold-700 dark:text-gold-400">
               <AlertTriangle className="h-4 w-4" />
               WhatsApp not connected — in-app messages stay in-app until configured
             </span>
@@ -130,8 +130,8 @@ export default function WhatsAppPage() {
             />
           </div>
 
-          <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-            <p className="text-xs font-medium text-gray-600 dark:text-gray-300">
+          <div className="mt-4 rounded-lg border border-charcoal-200 dark:border-charcoal-800 bg-sand dark:bg-charcoal-800 p-3">
+            <p className="text-xs font-medium text-charcoal-600 dark:text-charcoal-300">
               Webhook URL (register in Meta App Dashboard)
             </p>
             <code className="mt-1 block break-all text-xs text-primary-600 dark:text-primary-400">
@@ -139,7 +139,7 @@ export default function WhatsAppPage() {
             </code>
           </div>
 
-          <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-4 text-xs text-charcoal-500 dark:text-charcoal-400">
             When connected, messages sent in the app are also delivered to the recipient&apos;s WhatsApp number, and
             replies from WhatsApp come back into the same conversation here. Credentials are stored in the database and
             applied immediately; existing values are masked and left blank to keep them. Set these up at{" "}
@@ -154,9 +154,9 @@ export default function WhatsAppPage() {
             .
           </p>
 
-          {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+          {error && <p className="mt-3 text-sm text-terracotta-600 dark:text-terracotta-400">{error}</p>}
           {saved && (
-            <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-green-600">
+            <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-olive-700 dark:text-olive-400">
               <CheckCircle className="h-4 w-4" />
               Saved successfully
             </p>

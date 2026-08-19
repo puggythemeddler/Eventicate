@@ -80,16 +80,16 @@ export default function PaymentsPage() {
     <div className="flex min-h-screen">
       <Sidebar role="ADMIN" />
       <PageContent>
-        <h1 className="mb-8 text-2xl font-bold">Payment Gateway</h1>
+        <h1 className="mb-8 font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Payment Gateway</h1>
 
         <div className="mb-6 flex items-center gap-3">
           {config.configured ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-olive-100 dark:bg-olive-900/50 px-3 py-1 text-sm font-medium text-olive-700 dark:text-olive-300">
               <CheckCircle className="h-4 w-4" />
               M-Pesa configured
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-gold-100 dark:bg-gold-900/50 px-3 py-1 text-sm font-medium text-gold-700 dark:text-gold-400">
               <AlertTriangle className="h-4 w-4" />
               M-Pesa not configured — payments will fail until credentials are added
             </span>
@@ -156,7 +156,7 @@ export default function PaymentsPage() {
             />
           </div>
 
-          <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-4 text-xs text-charcoal-500 dark:text-charcoal-400">
             Credentials are stored in the database and applied immediately. Existing values are masked and left blank
             to keep them. Get test credentials at{" "}
             <a
@@ -170,9 +170,9 @@ export default function PaymentsPage() {
             .
           </p>
 
-          {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+          {error && <p className="mt-3 text-sm text-terracotta-600 dark:text-terracotta-400">{error}</p>}
           {saved && (
-            <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-green-600">
+            <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-olive-700 dark:text-olive-400">
               <CheckCircle className="h-4 w-4" />
               Saved successfully
             </p>

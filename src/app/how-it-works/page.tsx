@@ -20,7 +20,7 @@ export default function HowItWorksPage() {
               </div>
               <div>
                 <h2 className="text-xl font-semibold">{step.title}</h2>
-                <p className="text-gray-600 dark:text-gray-300">{step.body}</p>
+                <p className="text-charcoal-600 dark:text-charcoal-300">{step.body}</p>
               </div>
             </div>
           ))}
