@@ -196,11 +196,22 @@ export default function CheckoutPage() {
       <div className="flex min-h-screen">
         <Sidebar role="CUSTOMER" />
         <PageContent>
-          <p className="text-gray-500">{loadError || "Booking not found."}</p>
+          <Card>
+            <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
+              {loadError || "Booking not found."}
+            </p>
+          </Card>
         </PageContent>
       </div>
     );
   }
+
+  const optionButton = (active: boolean) =>
+    `flex w-full items-center justify-between gap-3 rounded-xl border p-4 text-left transition-colors ${
+      active
+        ? "border-primary-500 bg-primary-50 dark:border-primary-500 dark:bg-primary-900/20"
+        : "border-charcoal-200 hover:border-charcoal-300 dark:border-charcoal-700 dark:hover:border-charcoal-600"
+    }`;
 
   return (
     <div className="flex min-h-screen">
@@ -208,29 +219,37 @@ export default function CheckoutPage() {
       <PageContent>
         <Link
           href={`/dashboard/bookings/${bookingId}`}
-          className="mb-4 flex items-center gap-1 text-sm text-primary-600 hover:underline"
+          className="mb-4 flex items-center gap-1 text-sm font-medium text-primary-700 hover:underline dark:text-primary-400"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Booking
         </Link>
 
-        <h1 className="mb-6 text-2xl font-bold">Checkout</h1>
+        <h1 className="mb-6 font-display text-2xl font-semibold tracking-tight text-charcoal-900 dark:text-charcoal-100">
+          Checkout
+        </h1>
 
         <div className="mb-6 grid gap-4 md:grid-cols-3">
           <Card>
             <CardTitle className="mb-1">Booking</CardTitle>
-            <p className="text-sm font-medium">{booking.event.title}</p>
-            <p className="text-xs text-gray-500">{booking.provider.businessName}</p>
+            <p className="text-sm font-medium text-charcoal-900 dark:text-charcoal-100">{booking.event.title}</p>
+            <p className="text-xs text-charcoal-500 dark:text-charcoal-400">{booking.provider.businessName}</p>
           </Card>
           <Card>
             <CardTitle className="mb-1">Total</CardTitle>
-            <p className="text-2xl font-bold text-primary-600">{totalDue ? formatCurrency(totalDue, currency) : "—"}</p>
+            <p className="font-display text-2xl font-semibold text-primary-700 dark:text-primary-400">
+              {totalDue ? formatCurrency(totalDue, currency) : "—"}
+            </p>
           </Card>
           <Card>
             <CardTitle className="mb-1">Remaining</CardTitle>
-            <p className="text-2xl font-bold">{formatCurrency(remaining, currency)}</p>
+            <p className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">
+              {formatCurrency(remaining, currency)}
+            </p>
             {totalPaid > 0 && (
-              <p className="text-xs text-gray-500">{formatCurrency(totalPaid, currency)} already paid</p>
+              <p className="mt-1 text-xs text-charcoal-500 dark:text-charcoal-400">
+                {formatCurrency(totalPaid, currency)} already paid
+              </p>
             )}
           </Card>
         </div>
@@ -242,49 +261,49 @@ export default function CheckoutPage() {
               {!depositPaid && (
                 <button
                   onClick={() => setPaymentMode("deposit")}
-                  className={`flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors ${
-                    paymentMode === "deposit"
-                      ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
-                      : "border-gray-200 hover:border-gray-300 dark:border-gray-700"
-                  }`}
+                  className={optionButton(paymentMode === "deposit")}
                 >
                   <div>
-                    <p className="font-medium">Pay Deposit</p>
-                    <p className="text-sm text-gray-500">Pay {formatCurrency(depositAmount, currency)} to secure your booking</p>
+                    <p className="font-medium text-charcoal-900 dark:text-charcoal-100">Pay Deposit</p>
+                    <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
+                      Pay {formatCurrency(depositAmount, currency)} to secure your booking
+                    </p>
                   </div>
-                  <span className="text-lg font-bold text-primary-600">{formatCurrency(depositAmount, currency)}</span>
+                  <span className="text-lg font-bold text-primary-700 dark:text-primary-400">
+                    {formatCurrency(depositAmount, currency)}
+                  </span>
                 </button>
               )}
               {depositPaid && remaining > 0 && (
                 <button
                   onClick={() => setPaymentMode("remaining")}
-                  className={`flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors ${
-                    paymentMode === "remaining"
-                      ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
-                      : "border-gray-200 hover:border-gray-300 dark:border-gray-700"
-                  }`}
+                  className={optionButton(paymentMode === "remaining")}
                 >
                   <div>
-                    <p className="font-medium">Pay Remaining Balance</p>
-                    <p className="text-sm text-gray-500">Deposit of {formatCurrency(depositAmount, currency)} already paid</p>
+                    <p className="font-medium text-charcoal-900 dark:text-charcoal-100">Pay Remaining Balance</p>
+                    <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
+                      Deposit of {formatCurrency(depositAmount, currency)} already paid
+                    </p>
                   </div>
-                  <span className="text-lg font-bold text-primary-600">{formatCurrency(remaining, currency)}</span>
+                  <span className="text-lg font-bold text-primary-700 dark:text-primary-400">
+                    {formatCurrency(remaining, currency)}
+                  </span>
                 </button>
               )}
               {!depositPaid && (
                 <button
                   onClick={() => setPaymentMode("full")}
-                  className={`flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors ${
-                    paymentMode === "full"
-                      ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
-                      : "border-gray-200 hover:border-gray-300 dark:border-gray-700"
-                  }`}
+                  className={optionButton(paymentMode === "full")}
                 >
                   <div>
-                    <p className="font-medium">Pay Full Amount</p>
-                    <p className="text-sm text-gray-500">Pay the full quoted price now</p>
+                    <p className="font-medium text-charcoal-900 dark:text-charcoal-100">Pay Full Amount</p>
+                    <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
+                      Pay the full quoted price now
+                    </p>
                   </div>
-                  <span className="text-lg font-bold text-primary-600">{formatCurrency(totalDue, currency)}</span>
+                  <span className="text-lg font-bold text-primary-700 dark:text-primary-400">
+                    {formatCurrency(totalDue, currency)}
+                  </span>
                 </button>
               )}
             </div>
@@ -294,17 +313,21 @@ export default function CheckoutPage() {
         {remaining <= 0 ? (
           <Card>
             <div className="flex flex-col items-center gap-3 py-6">
-              <CheckCircle className="h-12 w-12 text-green-500" />
+              <CheckCircle className="h-12 w-12 text-olive-600" />
               <CardTitle>All payments completed</CardTitle>
-              <p className="text-sm text-gray-500">No outstanding balance for this booking.</p>
+              <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
+                No outstanding balance for this booking.
+              </p>
             </div>
           </Card>
         ) : pollStatus === "COMPLETED" ? (
           <Card>
             <div className="flex flex-col items-center gap-3 py-6">
-              <CheckCircle className="h-12 w-12 text-green-500" />
+              <CheckCircle className="h-12 w-12 text-olive-600" />
               <CardTitle>Payment Successful</CardTitle>
-              <p className="text-sm text-gray-500">Thank you! Your payment has been received.</p>
+              <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
+                Thank you! Your payment has been received.
+              </p>
               <Button variant="primary" onClick={() => router.push(`/dashboard/bookings/${bookingId}`)}>
                 View Booking
               </Button>
@@ -313,9 +336,11 @@ export default function CheckoutPage() {
         ) : pollStatus === "FAILED" ? (
           <Card>
             <div className="flex flex-col items-center gap-3 py-6">
-              <XCircle className="h-12 w-12 text-red-500" />
+              <XCircle className="h-12 w-12 text-terracotta-600" />
               <CardTitle>Payment Failed</CardTitle>
-              <p className="text-sm text-red-500">{pollError || "The payment was not completed."}</p>
+              <p className="text-sm text-terracotta-700 dark:text-terracotta-300">
+                {pollError || "The payment was not completed."}
+              </p>
               <Button
                 variant="primary"
                 onClick={() => {
@@ -334,24 +359,28 @@ export default function CheckoutPage() {
             <div className="flex flex-col items-center gap-3 py-6">
               <Loader2 className="h-12 w-12 animate-spin text-primary-600" />
               <CardTitle>Waiting for Payment</CardTitle>
-              <p className="text-sm text-gray-500">
+              <p className="text-center text-sm text-charcoal-500 dark:text-charcoal-400">
                 Check your phone for the M-Pesa STK push prompt and enter your PIN
                 <br />
                 to complete the payment.
               </p>
-              <p className="text-xs text-gray-400">Checking status every few seconds...</p>
+              <p className="text-xs text-charcoal-400 dark:text-charcoal-500">
+                Checking status every few seconds...
+              </p>
             </div>
           </Card>
         ) : result?.success ? (
           <Card>
             <div className="flex flex-col items-center gap-3 py-6">
-              <CheckCircle className="h-12 w-12 text-green-500" />
+              <CheckCircle className="h-12 w-12 text-olive-600" />
               <CardTitle>Payment Initiated</CardTitle>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
                 Transaction ID: {result.transactionId}
               </p>
               {result.checkoutRequestId && (
-                <p className="text-xs text-gray-400">Checkout Request: {result.checkoutRequestId}</p>
+                <p className="text-xs text-charcoal-400 dark:text-charcoal-500">
+                  Checkout Request: {result.checkoutRequestId}
+                </p>
               )}
               <Button variant="outline" onClick={() => router.refresh()}>
                 Check Status
@@ -361,9 +390,11 @@ export default function CheckoutPage() {
         ) : result && !result.success ? (
           <Card>
             <div className="flex flex-col items-center gap-3 py-6">
-              <XCircle className="h-12 w-12 text-red-500" />
+              <XCircle className="h-12 w-12 text-terracotta-600" />
               <CardTitle>Payment Failed</CardTitle>
-              <p className="text-sm text-red-500">{result.error || "An error occurred"}</p>
+              <p className="text-sm text-terracotta-700 dark:text-terracotta-300">
+                {result.error || "An error occurred"}
+              </p>
               <Button variant="primary" onClick={() => setResult(null)}>
                 Try Again
               </Button>
@@ -378,30 +409,26 @@ export default function CheckoutPage() {
                   <button
                     key={method.id}
                     onClick={() => setSelectedMethod(method.id)}
-                    className={`flex w-full items-center gap-4 rounded-lg border p-4 text-left transition-colors ${
-                      selectedMethod === method.id
-                        ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
-                        : "border-gray-200 hover:border-gray-300 dark:border-gray-700"
-                    }`}
+                    className={optionButton(selectedMethod === method.id)}
                   >
                     <span
-                      className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${
                         selectedMethod === method.id
                           ? "bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300"
-                          : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                          : "bg-sand text-charcoal-600 dark:bg-charcoal-800 dark:text-charcoal-300"
                       }`}
                     >
                       {methodIcons[method.icon] || <CreditCard className="h-6 w-6" />}
                     </span>
                     <div className="flex-1">
-                      <p className="font-medium">{method.name}</p>
-                      <p className="text-sm text-gray-500">{method.description}</p>
+                      <p className="font-medium text-charcoal-900 dark:text-charcoal-100">{method.name}</p>
+                      <p className="text-sm text-charcoal-500 dark:text-charcoal-400">{method.description}</p>
                     </div>
                     <span
-                      className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
                         selectedMethod === method.id
-                          ? "border-primary-500 bg-primary-500"
-                          : "border-gray-300"
+                          ? "border-primary-600 bg-primary-600"
+                          : "border-charcoal-300 dark:border-charcoal-600"
                       }`}
                     >
                       {selectedMethod === method.id && (
@@ -422,7 +449,7 @@ export default function CheckoutPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-charcoal-500 dark:text-charcoal-400">
                   You will receive an STK push prompt on your phone to complete payment.
                 </p>
               </Card>
@@ -433,6 +460,7 @@ export default function CheckoutPage() {
               disabled={!selectedMethod || paying || (selectedMethod === "mpesa" && !phone.trim())}
               className="w-full"
               size="lg"
+              variant="gold"
             >
               {paying ? (
                 <>

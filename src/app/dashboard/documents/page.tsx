@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { serverApi } from "@/lib/server-api";
 import { formatCurrency, formatDate, getCurrencyForCountry } from "@/lib/utils";
+import { FileText } from "lucide-react";
 
 const typeOptions = [
   { value: "ALL", label: "All Types" },
@@ -77,24 +78,31 @@ export default async function CustomerDocumentsPage({
     <div className="flex min-h-screen">
       <Sidebar role="CUSTOMER" />
       <PageContent>
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Documents</h1>
+        <div className="mb-6">
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-charcoal-900 dark:text-charcoal-100">
+            Documents
+          </h1>
+          <p className="mt-1 text-sm text-charcoal-500 dark:text-charcoal-400">
+            Quotes, invoices and receipts from your providers.
+          </p>
         </div>
 
         <Card className="mb-6">
-          <form className="flex gap-4">
-            <div className="w-48">
+          <form className="flex flex-col gap-4 sm:flex-row sm:items-end">
+            <div className="sm:w-48">
               <Select
                 name="type"
                 options={typeOptions}
                 defaultValue={type || "ALL"}
+                aria-label="Filter by document type"
               />
             </div>
-            <div className="w-48">
+            <div className="sm:w-48">
               <Select
                 name="status"
                 options={statusOptions}
                 defaultValue={status || "ALL"}
+                aria-label="Filter by status"
               />
             </div>
             <Button type="submit" variant="secondary">Filter</Button>
@@ -103,61 +111,70 @@ export default async function CustomerDocumentsPage({
 
         {documents.length === 0 ? (
           <Card>
-            <CardTitle>No documents found</CardTitle>
-            <p className="mt-2 text-sm text-gray-500">
-              You don&apos;t have any documents yet. They will appear here when providers send you quotes or invoices.
-            </p>
+            <div className="flex flex-col items-center gap-4 py-12 text-center">
+              <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-sand text-primary-700 dark:bg-charcoal-800 dark:text-primary-300">
+                <FileText className="h-7 w-7" />
+              </span>
+              <div>
+                <CardTitle className="text-center">No documents found</CardTitle>
+                <p className="mx-auto mt-2 max-w-sm text-sm text-charcoal-500 dark:text-charcoal-400">
+                  You don&apos;t have any documents yet. They will appear here when providers send you quotes or invoices.
+                </p>
+              </div>
+            </div>
           </Card>
         ) : (
           <Card className="overflow-hidden p-0">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 text-left text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
-                  <th className="px-6 py-3 font-medium">Document #</th>
-                  <th className="px-6 py-3 font-medium">Type</th>
-                  <th className="px-6 py-3 font-medium">From</th>
-                  <th className="px-6 py-3 font-medium">Status</th>
-                  <th className="px-6 py-3 font-medium text-right">Total</th>
-                  <th className="px-6 py-3 font-medium text-right">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {documents.map((doc) => (
-                  <tr
-                    key={doc.id}
-                    className="border-b border-gray-100 last:border-0 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"
-                  >
-                    <td className="px-6 py-4">
-                      <Link
-                        href={`/dashboard/documents/${doc.id}`}
-                        className="font-medium text-gray-900 hover:text-primary-600 dark:text-gray-100"
-                      >
-                        {doc.documentNumber}
-                      </Link>
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant={typeBadgeVariant[doc.type] || "default"}>
-                        {doc.type}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                      {doc.senderName}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant={statusBadgeVariant[doc.status] || "default"}>
-                        {doc.status.replace(/_/g, " ")}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-right text-sm font-medium">
-                      {formatCurrency(doc.total, currency)}
-                    </td>
-                    <td className="px-6 py-4 text-right text-xs text-gray-400 dark:text-gray-500">
-                      {formatDate(doc.createdAt)}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px]">
+                <thead>
+                  <tr className="border-b border-charcoal-200 bg-sand/50 text-left text-sm text-charcoal-500 dark:border-charcoal-800 dark:bg-charcoal-800/50 dark:text-charcoal-400">
+                    <th className="px-6 py-3 font-medium">Document #</th>
+                    <th className="px-6 py-3 font-medium">Type</th>
+                    <th className="px-6 py-3 font-medium">From</th>
+                    <th className="px-6 py-3 font-medium">Status</th>
+                    <th className="px-6 py-3 text-right font-medium">Total</th>
+                    <th className="px-6 py-3 text-right font-medium">Date</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {documents.map((doc) => (
+                    <tr
+                      key={doc.id}
+                      className="border-b border-charcoal-100 last:border-0 transition-colors hover:bg-sand dark:border-charcoal-800 dark:hover:bg-charcoal-800"
+                    >
+                      <td className="px-6 py-4">
+                        <Link
+                          href={`/dashboard/documents/${doc.id}`}
+                          className="font-medium text-charcoal-900 hover:text-primary-700 dark:text-charcoal-100 dark:hover:text-primary-300"
+                        >
+                          {doc.documentNumber}
+                        </Link>
+                      </td>
+                      <td className="px-6 py-4">
+                        <Badge variant={typeBadgeVariant[doc.type] || "default"}>
+                          {doc.type}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-charcoal-500 dark:text-charcoal-400">
+                        {doc.senderName}
+                      </td>
+                      <td className="px-6 py-4">
+                        <Badge variant={statusBadgeVariant[doc.status] || "default"}>
+                          {doc.status.replace(/_/g, " ")}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 text-right text-sm font-semibold text-charcoal-900 dark:text-charcoal-100">
+                        {formatCurrency(doc.total, currency)}
+                      </td>
+                      <td className="px-6 py-4 text-right text-xs text-charcoal-400 dark:text-charcoal-500">
+                        {formatDate(doc.createdAt)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </Card>
         )}
       </PageContent>

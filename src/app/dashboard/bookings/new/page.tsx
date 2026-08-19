@@ -27,7 +27,7 @@ interface ServiceOption {
 
 export default function NewBookingPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-charcoal-500 dark:text-charcoal-400">Loading...</div>}>
       <NewBookingContent />
     </Suspense>
   );
@@ -156,22 +156,22 @@ function NewBookingContent() {
             />
 
             {selectedService && (
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Cost Summary</h4>
+              <div className="rounded-lg border border-charcoal-200 dark:border-charcoal-800 bg-sand dark:bg-charcoal-800 p-4">
+                <h4 className="mb-2 text-sm font-medium text-charcoal-700 dark:text-charcoal-200">Cost Summary</h4>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">{selectedService.name}</span>
-                    <span className={hasDiscount ? "text-gray-400 line-through" : "font-medium"}>
+                    <span className="text-charcoal-500 dark:text-charcoal-400">{selectedService.name}</span>
+                    <span className={hasDiscount ? "text-charcoal-400 dark:text-charcoal-500 line-through" : "font-medium"}>
                       {formatCurrency(selectedService.basePrice, currency)}
                     </span>
                   </div>
                   {hasDiscount && (
                     <>
-                      <div className="flex justify-between text-green-600">
+                      <div className="flex justify-between text-olive-700 dark:text-olive-400">
                         <span>Discount ({selectedService.discountPercent}%)</span>
                         <span>-{formatCurrency(selectedService.basePrice - discountedPrice, currency)}</span>
                       </div>
-                      <div className="flex justify-between border-t border-gray-200 pt-1 font-medium dark:border-gray-600">
+                      <div className="flex justify-between border-t border-charcoal-200 dark:border-charcoal-800 pt-1 font-medium">
                         <span>Final Price</span>
                         <span className="text-primary-600">{formatCurrency(discountedPrice, currency)}</span>
                       </div>

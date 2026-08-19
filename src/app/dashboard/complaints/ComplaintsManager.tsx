@@ -113,7 +113,7 @@ export function ComplaintsManager({ initial }: { initial: Complaint[] }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
           File a complaint about a booking or vendor and track its progress.
         </p>
         <Button onClick={() => setShowForm((v) => !v)}>
@@ -144,25 +144,25 @@ export function ComplaintsManager({ initial }: { initial: Complaint[] }) {
             <Input label="Booking ID (optional)" value={bookingId} onChange={(e) => setBookingId(e.target.value)} placeholder="Reference the booking this relates to" />
 
             <div>
-              <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Evidence (optional)</p>
+              <p className="mb-2 text-sm font-medium text-charcoal-700 dark:text-charcoal-200">Evidence (optional)</p>
               <div className="space-y-2">
                 {evidence.map((url, i) => (
-                  <div key={i} className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
-                    <span className="truncate text-gray-700 dark:text-gray-300">{url.split("/").pop()}</span>
+                  <div key={i} className="flex items-center justify-between rounded-lg border border-charcoal-200 px-3 py-2 text-sm dark:border-charcoal-700">
+                    <span className="truncate text-charcoal-700 dark:text-charcoal-200">{url.split("/").pop()}</span>
                     <button type="button" onClick={() => setEvidence((d) => d.filter((_, idx) => idx !== i))}>
-                      <X className="h-4 w-4 text-gray-400 hover:text-red-500" />
+                      <X className="h-4 w-4 text-charcoal-400 hover:text-terracotta-600" />
                     </button>
                   </div>
                 ))}
               </div>
-              <label className="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800">
+              <label className="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-charcoal-300 px-3 py-2 text-sm text-charcoal-700 hover:bg-sand dark:border-charcoal-600 dark:text-charcoal-200 dark:hover:bg-charcoal-800">
                 <Upload className="h-4 w-4" />
                 {uploading ? "Uploading..." : "Upload evidence"}
                 <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden" onChange={handleUpload} disabled={uploading} />
               </label>
             </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-terracotta-700 dark:text-terracotta-400">{error}</p>}
 
             <Button onClick={submit} disabled={submitting || uploading}>
               {submitting ? "Submitting..." : "Submit Complaint"}
@@ -174,7 +174,7 @@ export function ComplaintsManager({ initial }: { initial: Complaint[] }) {
       <div className="space-y-3">
         {complaints.length === 0 && (
           <Card>
-            <p className="py-8 text-center text-sm text-gray-500">No complaints yet.</p>
+            <p className="py-8 text-center text-sm text-charcoal-500 dark:text-charcoal-400">No complaints yet.</p>
           </Card>
         )}
         {complaints.map((c) => {
@@ -189,8 +189,8 @@ export function ComplaintsManager({ initial }: { initial: Complaint[] }) {
             <Card key={c.id}>
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-gray-100">{c.subject}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="font-medium text-charcoal-900 dark:text-charcoal-100">{c.subject}</p>
+                  <p className="text-xs text-charcoal-500 dark:text-charcoal-400">
                     {COMPLAINT_TYPES.find((t) => t.value === c.complaintType)?.label || c.complaintType}
                     {" · "}
                     {formatDateTime(c.createdAt)}
@@ -199,10 +199,10 @@ export function ComplaintsManager({ initial }: { initial: Complaint[] }) {
                 <Badge variant={STATUS_VARIANTS[c.status] || "default"}>{c.status}</Badge>
               </div>
 
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{c.description}</p>
+              <p className="mt-2 text-sm text-charcoal-600 dark:text-charcoal-200">{c.description}</p>
 
               {c.bookingId && (
-                <p className="mt-2 text-xs text-gray-400">Booking reference: {c.bookingId}</p>
+                <p className="mt-2 text-xs text-charcoal-400 dark:text-charcoal-500">Booking reference: {c.bookingId}</p>
               )}
 
               {evidenceUrls.length > 0 && (
@@ -216,7 +216,7 @@ export function ComplaintsManager({ initial }: { initial: Complaint[] }) {
               )}
 
               {c.status === "resolved" && (
-                <p className="mt-3 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-300">
+                <p className="mt-3 rounded-lg bg-olive-50 px-3 py-2 text-sm text-olive-700 dark:bg-olive-900/20 dark:text-olive-300">
                   {c.resolution === "REFUNDED"
                     ? `Resolved with a full refund${c.refundAmount ? ` of ${c.refundAmount}` : ""}.`
                     : c.resolution === "PARTIAL_REFUND"
@@ -226,7 +226,7 @@ export function ComplaintsManager({ initial }: { initial: Complaint[] }) {
                 </p>
               )}
               {c.status === "dismissed" && c.adminNotes && (
-                <p className="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                <p className="mt-3 rounded-lg bg-sand px-3 py-2 text-sm text-charcoal-600 dark:bg-charcoal-800 dark:text-charcoal-200">
                   Note: {c.adminNotes}
                 </p>
               )}

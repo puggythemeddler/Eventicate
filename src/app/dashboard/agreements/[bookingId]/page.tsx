@@ -140,7 +140,7 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
       <div className="flex min-h-screen">
         <Sidebar role="CUSTOMER" />
         <PageContent>
-          <p className="text-gray-500">Booking not found.</p>
+          <p className="text-charcoal-500 dark:text-charcoal-400">Booking not found.</p>
         </PageContent>
       </div>
     );
@@ -153,9 +153,9 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
         <PageContent>
           <Card>
             <div className="flex flex-col items-center gap-4 py-12">
-              <CheckCircle className="h-16 w-16 text-green-500" />
+              <CheckCircle className="h-16 w-16 text-olive-600 dark:text-olive-400" />
               <CardTitle>Agreement Signed Successfully!</CardTitle>
-              <p className="text-sm text-gray-500">Redirecting to booking details...</p>
+              <p className="text-sm text-charcoal-500 dark:text-charcoal-400">Redirecting to booking details...</p>
             </div>
           </Card>
         </PageContent>
@@ -170,9 +170,9 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
         <PageContent>
           <Card>
             <div className="flex flex-col items-center gap-4 py-12">
-              <FileSignature className="h-16 w-16 text-gray-300" />
+              <FileSignature className="h-16 w-16 text-charcoal-300 dark:text-charcoal-600" />
               <CardTitle>Agreement Already Signed</CardTitle>
-              <p className="text-sm text-gray-500">An agreement has already been submitted for this booking.</p>
+              <p className="text-sm text-charcoal-500 dark:text-charcoal-400">An agreement has already been submitted for this booking.</p>
               <Link href={`/dashboard/bookings/${bookingId}`}>
                 <Button>View Booking</Button>
               </Link>
@@ -195,19 +195,19 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
           Back to Booking
         </Link>
 
-        <h1 className="mb-6 text-2xl font-bold">Customer Agreement</h1>
+        <h1 className="mb-6 font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Customer Agreement</h1>
 
         <div className="mb-6 grid gap-4 md:grid-cols-2">
           <Card>
             <CardTitle className="mb-1">Event</CardTitle>
             <p className="text-sm font-medium">{booking.event.title}</p>
-            <p className="text-xs text-gray-500">{booking.provider.businessName}</p>
+            <p className="text-xs text-charcoal-500 dark:text-charcoal-400">{booking.provider.businessName}</p>
           </Card>
           <Card>
             <CardTitle className="mb-1">Total Amount</CardTitle>
             <p className="text-2xl font-bold text-primary-600">{formatCurrency(totalAmount, currency)}</p>
             {depositAmount > 0 && (
-              <p className="text-xs text-gray-500">Deposit: {formatCurrency(depositAmount, currency)}</p>
+              <p className="text-xs text-charcoal-500 dark:text-charcoal-400">Deposit: {formatCurrency(depositAmount, currency)}</p>
             )}
           </Card>
         </div>
@@ -217,16 +217,16 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
             <CardTitle className="mb-3">Quote Details</CardTitle>
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 text-left">
-                  <th className="pb-2 font-medium text-gray-500">Description</th>
-                  <th className="pb-2 font-medium text-gray-500">Qty</th>
-                  <th className="pb-2 font-medium text-gray-500">Unit Price</th>
-                  <th className="pb-2 text-right font-medium text-gray-500">Total</th>
+                <tr className="border-b border-charcoal-200 dark:border-charcoal-800 text-left">
+                  <th className="pb-2 font-medium text-charcoal-500 dark:text-charcoal-400">Description</th>
+                  <th className="pb-2 font-medium text-charcoal-500 dark:text-charcoal-400">Qty</th>
+                  <th className="pb-2 font-medium text-charcoal-500 dark:text-charcoal-400">Unit Price</th>
+                  <th className="pb-2 text-right font-medium text-charcoal-500 dark:text-charcoal-400">Total</th>
                 </tr>
               </thead>
               <tbody>
                 {parseLineItems(quoteDoc.lineItems).map((li, i) => (
-                  <tr key={i} className="border-b border-gray-100">
+                  <tr key={i} className="border-b border-charcoal-100 dark:border-charcoal-800">
                     <td className="py-2">{li.description}</td>
                     <td className="py-2">{li.quantity}</td>
                     <td className="py-2">{formatCurrency(li.unitPrice, currency)}</td>
@@ -273,7 +273,7 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
 
           <Card className="mb-6">
             <CardTitle className="mb-4">Terms & Conditions</CardTitle>
-            <div className="max-h-64 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
+            <div className="max-h-64 overflow-y-auto rounded-lg border border-charcoal-200 dark:border-charcoal-800 bg-sand dark:bg-charcoal-800 p-4 text-sm text-charcoal-600 dark:text-charcoal-300">
               {termsText.split("\n").map((line, i) => (
                 <p key={i} className="mb-1">{line}</p>
               ))}
@@ -282,7 +282,7 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
 
           <Card className="mb-6">
             <CardTitle className="mb-4">Signature</CardTitle>
-            <p className="mb-3 text-sm text-gray-500">
+            <p className="mb-3 text-sm text-charcoal-500 dark:text-charcoal-400">
               Type your full name below to sign this agreement electronically. By typing your name, you agree to the terms above.
             </p>
             <Input
@@ -295,8 +295,8 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
           </Card>
 
           {error && (
-            <Card className="mb-6 border-red-200 bg-red-50">
-              <p className="text-sm text-red-600">{error}</p>
+            <Card className="mb-6 border-terracotta-200 dark:border-terracotta-800 bg-terracotta-50 dark:bg-terracotta-900/30">
+              <p className="text-sm text-terracotta-700 dark:text-terracotta-400">{error}</p>
             </Card>
           )}
 

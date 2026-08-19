@@ -86,10 +86,10 @@ export default async function BookingDetailPage({
         <div className="mb-8 flex items-start justify-between">
           <div>
             <div className="mb-2 flex items-center gap-3">
-              <h1 className="text-2xl font-bold">{booking.provider.businessName}</h1>
+              <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">{booking.provider.businessName}</h1>
               <StatusBadge status={booking.status} />
             </div>
-            <p className="text-sm text-gray-500">{booking.provider.category}</p>
+            <p className="text-sm text-charcoal-500 dark:text-charcoal-400">{booking.provider.category}</p>
           </div>
           <BookingActions bookingId={booking.id} status={booking.status} hasBalance={remainingBalance > 0} />
         </div>
@@ -99,14 +99,14 @@ export default async function BookingDetailPage({
             <div className="flex items-center gap-3">
               <Calendar className="h-5 w-5 text-primary-600" />
               <div>
-                <p className="text-xs text-gray-500">Event</p>
+                <p className="text-xs text-charcoal-500 dark:text-charcoal-400">Event</p>
                 <Link
                   href={`/dashboard/events/${booking.event.id}`}
                   className="text-sm font-medium hover:text-primary-600"
                 >
                   {booking.event.title}
                 </Link>
-                <p className="text-xs text-gray-400">{formatDate(new Date(booking.event.eventDate))}</p>
+                <p className="text-xs text-charcoal-400 dark:text-charcoal-500">{formatDate(new Date(booking.event.eventDate))}</p>
               </div>
             </div>
           </Card>
@@ -114,7 +114,7 @@ export default async function BookingDetailPage({
             <div className="flex items-center gap-3">
               <DollarSign className="h-5 w-5 text-primary-600" />
               <div>
-                <p className="text-xs text-gray-500">Service</p>
+                <p className="text-xs text-charcoal-500 dark:text-charcoal-400">Service</p>
                 <p className="text-sm font-medium">{booking.service?.name || "General"}</p>
               </div>
             </div>
@@ -123,7 +123,7 @@ export default async function BookingDetailPage({
             <div className="flex items-center gap-3">
               <Building2 className="h-5 w-5 text-primary-600" />
               <div>
-                <p className="text-xs text-gray-500">Category</p>
+                <p className="text-xs text-charcoal-500 dark:text-charcoal-400">Category</p>
                 <p className="text-sm font-medium">{booking.provider.category}</p>
               </div>
             </div>
@@ -154,7 +154,7 @@ export default async function BookingDetailPage({
         {booking.customerNotes && (
           <Card className="mb-8">
             <CardTitle className="mb-2">Your Notes</CardTitle>
-            <p className="text-sm text-gray-600">{booking.customerNotes}</p>
+            <p className="text-sm text-charcoal-600 dark:text-charcoal-300">{booking.customerNotes}</p>
           </Card>
         )}
 
@@ -168,11 +168,11 @@ export default async function BookingDetailPage({
                 {booking.payments.map((payment) => (
                   <div
                     key={payment.id}
-                    className="flex items-center justify-between rounded-lg border border-gray-100 p-3"
+                    className="flex items-center justify-between rounded-lg border border-charcoal-100 dark:border-charcoal-800 p-3"
                   >
                     <div>
                       <p className="font-medium">{formatCurrency(payment.amount, currency)}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-charcoal-500 dark:text-charcoal-400">
                         {payment.method.replace(/_/g, " ")} · {formatDateTime(new Date(payment.createdAt))}
                       </p>
                     </div>
@@ -192,17 +192,17 @@ export default async function BookingDetailPage({
                 {booking.messages.map((msg) => (
                   <div
                     key={msg.id}
-                    className="rounded-lg border border-gray-100 p-3"
+                    className="rounded-lg border border-charcoal-100 dark:border-charcoal-800 p-3"
                   >
                     <div className="mb-1 flex items-center justify-between">
                       <span className="text-sm font-medium">
                         {msg.sender.firstName} {msg.sender.lastName}
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-charcoal-400 dark:text-charcoal-500">
                         {formatDateTime(new Date(msg.createdAt))}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600">{msg.content}</p>
+                    <p className="text-sm text-charcoal-600 dark:text-charcoal-300">{msg.content}</p>
                   </div>
                 ))}
               </div>
@@ -219,25 +219,25 @@ export default async function BookingDetailPage({
         <Card>
           <CardTitle className="mb-3">Provider Contact</CardTitle>
           <div className="grid gap-3 sm:grid-cols-3">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Mail className="h-4 w-4 text-gray-400" />
+            <div className="flex items-center gap-2 text-sm text-charcoal-600 dark:text-charcoal-300">
+              <Mail className="h-4 w-4 text-charcoal-400 dark:text-charcoal-500" />
               {booking.provider.user.email}
             </div>
             {booking.provider.user.phone && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Phone className="h-4 w-4 text-gray-400" />
+              <div className="flex items-center gap-2 text-sm text-charcoal-600 dark:text-charcoal-300">
+                <Phone className="h-4 w-4 text-charcoal-400 dark:text-charcoal-500" />
                 {booking.provider.user.phone}
               </div>
             )}
             {booking.provider.website && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Globe className="h-4 w-4 text-gray-400" />
+              <div className="flex items-center gap-2 text-sm text-charcoal-600 dark:text-charcoal-300">
+                <Globe className="h-4 w-4 text-charcoal-400 dark:text-charcoal-500" />
                 {booking.provider.website}
               </div>
             )}
             {booking.provider.address && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <MapPin className="h-4 w-4 text-gray-400" />
+              <div className="flex items-center gap-2 text-sm text-charcoal-600 dark:text-charcoal-300">
+                <MapPin className="h-4 w-4 text-charcoal-400 dark:text-charcoal-500" />
                 {booking.provider.address}
               </div>
             )}

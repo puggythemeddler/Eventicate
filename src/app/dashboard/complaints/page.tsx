@@ -38,8 +38,8 @@ export default async function ComplaintsPage() {
       <Sidebar role={session.role === "PROVIDER" ? "PROVIDER" : "CUSTOMER"} />
       <PageContent>
         <div className="mb-6">
-          <h1 className="text-2xl font-bold">Complaints</h1>
-          <p className="text-gray-500 dark:text-gray-400">File and track complaints about bookings or vendors</p>
+          <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Complaints</h1>
+          <p className="text-charcoal-500 dark:text-charcoal-400">File and track complaints about bookings or vendors</p>
         </div>
         <ComplaintsManager initial={complaints} />
       </PageContent>

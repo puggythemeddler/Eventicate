@@ -147,10 +147,14 @@ export default function CartPage() {
     <div className="flex min-h-screen">
       <Sidebar role="CUSTOMER" />
       <PageContent>
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Shopping Cart</h1>
-            <p className="text-sm text-gray-500">{items.length} item(s)</p>
+            <h1 className="font-display text-2xl font-semibold tracking-tight text-charcoal-900 dark:text-charcoal-100">
+              Shopping Cart
+            </h1>
+            <p className="mt-1 text-sm text-charcoal-500 dark:text-charcoal-400">
+              {items.length} item{items.length === 1 ? "" : "s"} ready to quote.
+            </p>
           </div>
           {items.length > 0 && (
             <Button variant="outline" onClick={clearCart}>
@@ -161,19 +165,25 @@ export default function CartPage() {
         </div>
 
         {error && (
-          <Card className="mb-6 border-red-200 bg-red-50">
-            <p className="text-sm text-red-600">{error}</p>
+          <Card className="mb-6 border-terracotta-200 bg-terracotta-50 dark:border-terracotta-800 dark:bg-terracotta-900/30">
+            <p className="text-sm text-terracotta-700 dark:text-terracotta-300">{error}</p>
           </Card>
         )}
 
         {items.length === 0 ? (
           <Card>
-            <div className="flex flex-col items-center gap-4 py-12">
-              <ShoppingCart className="h-16 w-16 text-gray-300" />
-              <CardTitle>Your cart is empty</CardTitle>
-              <p className="text-sm text-gray-500">Browse services and equipment to add items to your cart.</p>
+            <div className="flex flex-col items-center gap-4 py-12 text-center">
+              <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-sand text-primary-700 dark:bg-charcoal-800 dark:text-primary-300">
+                <ShoppingCart className="h-7 w-7" />
+              </span>
+              <div>
+                <CardTitle className="text-center">Your cart is empty</CardTitle>
+                <p className="mx-auto mt-2 max-w-sm text-sm text-charcoal-500 dark:text-charcoal-400">
+                  Browse services and equipment in the marketplace and add what you need to your cart.
+                </p>
+              </div>
               <Link href="/search">
-                <Button>Browse Services</Button>
+                <Button>Browse the Marketplace</Button>
               </Link>
             </div>
           </Card>
@@ -184,12 +194,16 @@ export default function CartPage() {
                 const pt = providerTotals.find((t) => t.providerId === group.provider.id);
                 return (
                   <Card key={group.provider.id}>
-                    <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-3">
+                    <div className="mb-4 flex items-center justify-between border-b border-charcoal-100 pb-3 dark:border-charcoal-800">
                       <div>
-                        <p className="text-lg font-semibold">{group.provider.businessName}</p>
-                        <p className="text-xs text-gray-500">{group.items.length} item(s)</p>
+                        <p className="font-display text-lg font-semibold text-charcoal-900 dark:text-charcoal-100">
+                          {group.provider.businessName}
+                        </p>
+                        <p className="text-xs text-charcoal-500 dark:text-charcoal-400">
+                          {group.items.length} item{group.items.length === 1 ? "" : "s"}
+                        </p>
                       </div>
-                      <p className="text-lg font-bold text-primary-600">
+                      <p className="font-display text-lg font-semibold text-primary-700 dark:text-primary-400">
                         {pt ? formatCurrency(pt.total, currency) : ""}
                       </p>
                     </div>
@@ -197,9 +211,9 @@ export default function CartPage() {
                       {group.items.map((item) => (
                         <div
                           key={item.id}
-                          className="flex items-center gap-4 rounded-lg border border-gray-100 p-3"
+                          className="flex flex-wrap items-center gap-4 rounded-xl border border-charcoal-200 bg-sand/30 p-3 dark:border-charcoal-800 dark:bg-charcoal-800/50"
                         >
-                          <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                          <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-charcoal-100 dark:bg-charcoal-800">
                             {getItemImage(item) ? (
                               <Image
                                 src={getItemImage(item)!}
@@ -210,18 +224,22 @@ export default function CartPage() {
                                 unoptimized
                               />
                             ) : (
-                              <div className="flex h-full w-full items-center justify-center text-gray-400 text-xs">
+                              <div className="flex h-full w-full items-center justify-center text-xs text-charcoal-400">
                                 No img
                               </div>
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="font-medium">{getItemName(item)}</p>
-                            <p className="text-sm text-gray-500">
+                            <p className="font-medium text-charcoal-900 dark:text-charcoal-100">
+                              {getItemName(item)}
+                            </p>
+                            <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
                               {formatCurrency(getUnitPrice(item), currency)} each
                             </p>
                             {item.notes && (
-                              <p className="text-xs text-gray-400 italic">{item.notes}</p>
+                              <p className="text-xs italic text-charcoal-400 dark:text-charcoal-500">
+                                {item.notes}
+                              </p>
                             )}
                           </div>
                           <div className="flex items-center gap-2">
@@ -229,28 +247,32 @@ export default function CartPage() {
                               type="button"
                               onClick={() => updateQuantity(item.id, item.quantity - 1)}
                               aria-label={`Decrease quantity of ${getItemName(item)}`}
-                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
+                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-charcoal-200 text-charcoal-600 transition-colors hover:bg-sand dark:border-charcoal-700 dark:text-charcoal-300 dark:hover:bg-charcoal-800"
                             >
                               <Minus className="h-4 w-4" />
                             </button>
-                            <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                            <span className="w-8 text-center text-sm font-medium text-charcoal-900 dark:text-charcoal-100">
+                              {item.quantity}
+                            </span>
                             <button
                               type="button"
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
                               aria-label={`Increase quantity of ${getItemName(item)}`}
-                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
+                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-charcoal-200 text-charcoal-600 transition-colors hover:bg-sand dark:border-charcoal-700 dark:text-charcoal-300 dark:hover:bg-charcoal-800"
                             >
                               <Plus className="h-4 w-4" />
                             </button>
                           </div>
                           <div className="w-24 text-right">
-                            <p className="font-medium">{formatCurrency(getSubtotal(item), currency)}</p>
+                            <p className="font-semibold text-charcoal-900 dark:text-charcoal-100">
+                              {formatCurrency(getSubtotal(item), currency)}
+                            </p>
                           </div>
                           <button
                             type="button"
                             onClick={() => removeItem(item.id)}
                             aria-label={`Remove ${getItemName(item)} from cart`}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-charcoal-400 transition-colors hover:bg-terracotta-50 hover:text-terracotta-600 dark:hover:bg-terracotta-900/30 dark:hover:text-terracotta-400"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -265,14 +287,26 @@ export default function CartPage() {
             <Card className="mb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-lg font-semibold">Grand Total</p>
-                  <p className="text-xs text-gray-500">{grouped.length} provider(s)</p>
+                  <p className="font-display text-lg font-semibold text-charcoal-900 dark:text-charcoal-100">
+                    Grand Total
+                  </p>
+                  <p className="text-xs text-charcoal-500 dark:text-charcoal-400">
+                    {grouped.length} provider{grouped.length === 1 ? "" : "s"}
+                  </p>
                 </div>
-                <p className="text-2xl font-bold text-primary-600">{formatCurrency(grandTotal, currency)}</p>
+                <p className="font-display text-2xl font-semibold text-primary-700 dark:text-primary-400">
+                  {formatCurrency(grandTotal, currency)}
+                </p>
               </div>
             </Card>
 
-            <Button onClick={generateQuotes} disabled={generating} className="w-full" size="lg">
+            <Button
+              onClick={generateQuotes}
+              disabled={generating}
+              className="w-full"
+              size="lg"
+              variant="gold"
+            >
               {generating ? (
                 <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generating...</>
               ) : (
