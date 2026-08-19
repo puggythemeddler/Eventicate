@@ -1,4 +1,5 @@
 import prisma from "./prisma";
+import { formatCurrency } from "./utils";
 
 export interface LineItem {
   description: string;
@@ -198,7 +199,7 @@ export async function generateProformaInvoice(bookingId: string) {
       depositRequired: booking.depositAmount,
       depositPaid: booking.depositPaid,
       notes: remaining > 0
-        ? `Deposit of ${booking.depositAmount ? `$${booking.depositAmount.toFixed(2)} ` : ""}required. Balance of $${remaining.toFixed(2)} due by the event date.`
+        ? `Deposit of ${booking.depositAmount ? `${formatCurrency(Number(booking.depositAmount))} ` : ""}required. Balance of ${formatCurrency(remaining)} due by the event date.`
         : "Fully paid.",
       terms: "This is a proforma invoice — not a tax invoice. A deposit is required to confirm the booking.",
       validUntil: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
@@ -254,7 +255,7 @@ export async function generateTaxInvoice(bookingId: string, taxRate = 16) {
       total: totals.total,
       depositRequired: booking.depositAmount,
       depositPaid: booking.depositPaid,
-      notes: `Tax Invoice (VAT ${taxRate}%) for ${booking.event.title}. ${booking.depositPaid ? `Deposit of $${(booking.depositAmount || 0).toFixed(2)} paid.` : ""}`,
+      notes: `Tax Invoice (VAT ${taxRate}%) for ${booking.event.title}. ${booking.depositPaid ? `Deposit of ${formatCurrency(Number(booking.depositAmount || 0))} paid.` : ""}`,
       terms: "Payment is due within 30 days. This is a valid tax invoice for VAT purposes.",
       dueAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       issuedAt: new Date(),

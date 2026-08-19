@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { formatCurrency } from "./utils";
 
 let transporter: nodemailer.Transporter | null = null;
 
@@ -86,7 +87,7 @@ export async function sendBookingConfirmation(to: string, name: string, booking:
       <tr><td style="font-weight:600;width:120px;color:#666">Event</td><td>${booking.eventName}</td></tr>
       <tr><td style="font-weight:600;width:120px;color:#666">Date</td><td>${dateStr}</td></tr>
       <tr><td style="font-weight:600;width:120px;color:#666">Provider</td><td>${booking.providerName}</td></tr>
-      <tr><td style="font-weight:600;width:120px;color:#666">Total</td><td>$${booking.totalCost.toFixed(2)}</td></tr>
+      <tr><td style="font-weight:600;width:120px;color:#666">Total</td><td>${formatCurrency(Number(booking.totalCost))}</td></tr>
       <tr><td style="font-weight:600;width:120px;color:#666">Status</td><td style="color:#c04a1f;font-weight:600">${booking.status.replace(/_/g, " ")}</td></tr>
     </table>
     ${ctaButton(`${process.env.NEXT_PUBLIC_APP_URL || ""}/dashboard/bookings/${booking.id}`, "View Booking")}
@@ -103,7 +104,7 @@ export async function sendNewBookingNotification(to: string, name: string, booki
       <tr><td style="font-weight:600;width:120px;color:#666">Event</td><td>${booking.eventName}</td></tr>
       <tr><td style="font-weight:600;width:120px;color:#666">Date</td><td>${dateStr}</td></tr>
       <tr><td style="font-weight:600;width:120px;color:#666">Customer</td><td>${booking.customerName}</td></tr>
-      <tr><td style="font-weight:600;width:120px;color:#666">Amount</td><td>$${booking.totalCost.toFixed(2)}</td></tr>
+      <tr><td style="font-weight:600;width:120px;color:#666">Amount</td><td>${formatCurrency(Number(booking.totalCost))}</td></tr>
     </table>
     ${ctaButton(`${process.env.NEXT_PUBLIC_APP_URL || ""}/provider/bookings/${booking.id}`, "Review Booking")}
   `));
@@ -138,7 +139,7 @@ export async function sendPaymentConfirmation(to: string, name: string, payment:
     <p>We have successfully received your payment. Here are the details:</p>
     <table width="100%" cellpadding="8" cellspacing="0" style="margin:16px 0;background:#f5f5f5;border-radius:8px">
       <tr><td style="font-weight:600;width:120px;color:#666">Event</td><td>${payment.eventName}</td></tr>
-      <tr><td style="font-weight:600;width:120px;color:#666">Amount</td><td>$${payment.amount.toFixed(2)}</td></tr>
+      <tr><td style="font-weight:600;width:120px;color:#666">Amount</td><td>${formatCurrency(Number(payment.amount))}</td></tr>
       <tr><td style="font-weight:600;width:120px;color:#666">Method</td><td>${payment.method}</td></tr>
       <tr><td style="font-weight:600;width:120px;color:#666">Reference</td><td style="font-family:monospace;font-size:13px">${payment.ref}</td></tr>
     </table>
