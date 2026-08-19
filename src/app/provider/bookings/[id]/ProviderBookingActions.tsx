@@ -59,7 +59,7 @@ export function ProviderBookingActions({ bookingId, status }: { bookingId: strin
       {status === "QUOTATION_REQUESTED" && (
         <form
           onSubmit={handleSendQuotation}
-          className="flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4"
+          className="flex flex-wrap items-end gap-3 rounded-lg border border-charcoal-200 bg-sand p-4 dark:border-charcoal-800 dark:bg-charcoal-800"
         >
           <Input
             label="Quoted Price"
@@ -133,7 +133,7 @@ export function ProviderBookingActions({ bookingId, status }: { bookingId: strin
           Complete Booking
         </Button>
       )}
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-terracotta-700 dark:text-terracotta-400">{error}</p>}
     </div>
   );
 }
@@ -184,7 +184,7 @@ export function ProviderNotesForm({
       <Button type="submit" variant="outline" size="sm" disabled={saving}>
         Save Notes
       </Button>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-terracotta-700 dark:text-terracotta-400">{error}</p>}
     </form>
   );
 }
@@ -233,7 +233,7 @@ export function DocumentActions({ bookingId }: { bookingId: string }) {
           Generate Tax Invoice
         </Button>
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-terracotta-700 dark:text-terracotta-400">{error}</p>}
     </div>
   );
 }

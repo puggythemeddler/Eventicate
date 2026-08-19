@@ -68,8 +68,8 @@ export default function LocalSyncPage() {
     <div className="flex min-h-screen">
       <Sidebar role="PROVIDER" />
       <PageContent>
-        <h1 className="mb-2 text-2xl font-bold">Local System Integration</h1>
-        <p className="mb-8 text-gray-500">
+        <h1 className="mb-2 font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Local System Integration</h1>
+        <p className="mb-8 text-charcoal-500 dark:text-charcoal-400">
           Connect your local business system for offline inventory and booking sync.
         </p>
 
@@ -139,7 +139,7 @@ export default function LocalSyncPage() {
               </Button>
             </div>
             {message && (
-              <p className="mt-4 text-sm text-gray-600">{message}</p>
+              <p className="mt-4 text-sm text-charcoal-600 dark:text-charcoal-300">{message}</p>
             )}
           </Card>
         </div>
@@ -147,19 +147,19 @@ export default function LocalSyncPage() {
         <Card className="mt-8">
           <CardTitle className="mb-4">Sync History</CardTitle>
           {logs.length === 0 ? (
-            <p className="text-sm text-gray-500">No sync logs yet.</p>
+            <p className="text-sm text-charcoal-500 dark:text-charcoal-400">No sync logs yet.</p>
           ) : (
             <div className="space-y-2">
               {logs.map((log) => (
                 <div key={log.id} className="flex items-center gap-3 rounded-lg border p-3 text-sm">
                   {log.status === "SYNCED" ? (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckCircle className="h-4 w-4 text-olive-600 dark:text-olive-400" />
                   ) : (
-                    <XCircle className="h-4 w-4 text-red-500" />
+                    <XCircle className="h-4 w-4 text-terracotta-600 dark:text-terracotta-400" />
                   )}
                   <span className="font-medium">{log.action}</span>
-                  <span className="text-gray-500">{log.entityType}</span>
-                  <span className="ml-auto text-gray-400">
+                  <span className="text-charcoal-500 dark:text-charcoal-400">{log.entityType}</span>
+                  <span className="ml-auto text-charcoal-400 dark:text-charcoal-500">
                     {new Date(log.createdAt).toLocaleString()}
                   </span>
                 </div>

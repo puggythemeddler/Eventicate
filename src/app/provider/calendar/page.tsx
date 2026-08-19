@@ -57,8 +57,8 @@ export default function ProviderCalendarPage() {
         <TopBar />
         <div className="p-8">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold">Calendar</h1>
-            <p className="text-gray-500 dark:text-gray-400">Manage your availability</p>
+            <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Calendar</h1>
+            <p className="text-charcoal-500 dark:text-charcoal-400 ">Manage your availability</p>
           </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
@@ -74,7 +74,7 @@ export default function ProviderCalendarPage() {
           <div className="space-y-4">
             <Card>
               <CardTitle className="mb-3">Quick Actions</CardTitle>
-              <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">
+              <p className="mb-3 text-sm text-charcoal-500 dark:text-charcoal-400 ">
                 Click a date on the calendar to toggle it between available and unavailable.
               </p>
               <div className="flex gap-2">
@@ -96,19 +96,19 @@ export default function ProviderCalendarPage() {
               <CardTitle className="mb-3">Legend</CardTitle>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
-                    <span className="h-3 w-3 rounded bg-green-100 dark:bg-green-900/60" />
+                    <span className="h-3 w-3 rounded bg-olive-100 dark:bg-olive-900/50" />
                   <span>Available</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded bg-yellow-100 dark:bg-yellow-900/60" />
+                  <span className="h-3 w-3 rounded bg-gold-100 dark:bg-gold-900/50" />
                   <span>Pending</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded bg-red-100 dark:bg-red-900/60" />
+                  <span className="h-3 w-3 rounded bg-terracotta-100 dark:bg-terracotta-900/50" />
                   <span>Booked / Confirmed</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded bg-gray-200 dark:bg-gray-700" />
+                  <span className="h-3 w-3 rounded bg-charcoal-100 dark:bg-charcoal-800 " />
                   <span>Unavailable</span>
                 </div>
               </div>
@@ -118,12 +118,12 @@ export default function ProviderCalendarPage() {
               <CardTitle className="mb-3">Stats</CardTitle>
               {loading ? (
                 <div className="flex justify-center py-4">
-                  <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                  <Loader2 className="h-5 w-5 animate-spin text-charcoal-400 dark:text-charcoal-500" />
                 </div>
               ) : (
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Available</span>
+                    <span className="text-charcoal-500 dark:text-charcoal-400 ">Available</span>
                     <span className="font-medium">
                       {slots.filter((s) => s.status === "AVAILABLE" || !slots.some(
                         (s2) => new Date(s2.date).getMonth() === month && new Date(s2.date).getFullYear() === year
@@ -131,13 +131,13 @@ export default function ProviderCalendarPage() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Unavailable</span>
+                    <span className="text-charcoal-500 dark:text-charcoal-400 ">Unavailable</span>
                     <span className="font-medium">
                       {slots.filter((s) => s.status === "UNAVAILABLE").length}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Booked</span>
+                    <span className="text-charcoal-500 dark:text-charcoal-400 ">Booked</span>
                     <span className="font-medium">
                       {slots.filter((s) => s.status === "CONFIRMED" || s.status === "PENDING").length}
                     </span>

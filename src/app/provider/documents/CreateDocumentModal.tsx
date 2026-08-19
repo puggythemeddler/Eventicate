@@ -64,7 +64,7 @@ export function CreateDocumentModal({ bookings }: CreateDocumentModalProps) {
                 <FileText className="h-5 w-5" />
                 <span id="create-document-title">New Document</span>
               </CardTitle>
-              <button type="button" aria-label="Close document dialog" onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600">
+              <button type="button" aria-label="Close document dialog" onClick={() => setOpen(false)} className="text-charcoal-400 hover:text-charcoal-600 dark:text-charcoal-500 dark:hover:text-charcoal-300">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -89,7 +89,7 @@ export function CreateDocumentModal({ bookings }: CreateDocumentModalProps) {
                 ]}
               />
 
-              {error && <p className="text-sm text-red-500">{error}</p>}
+              {error && <p className="text-sm text-terracotta-600 dark:text-terracotta-400">{error}</p>}
 
               <div className="flex gap-2">
                 <Button onClick={handleCreate} disabled={loading || !bookingId}>

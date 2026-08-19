@@ -260,7 +260,7 @@ export function ListingsManager() {
               "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
               tab === t.value
                 ? "bg-primary-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300"
+                : "bg-sand text-charcoal-700 hover:bg-charcoal-100 dark:bg-charcoal-800 dark:text-charcoal-200"
             )}
           >
             {t.label}
@@ -268,10 +268,10 @@ export function ListingsManager() {
         ))}
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-terracotta-700 dark:text-terracotta-400">{error}</p>}
 
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
           {rows.length} total · {summary.active || 0} active · {summary.inactive || 0} inactive
         </p>
         {!adding && (
@@ -297,11 +297,11 @@ export function ListingsManager() {
       )}
 
       {loading ? (
-        <p className="py-8 text-center text-sm text-gray-500">Loading...</p>
+        <p className="py-8 text-center text-sm text-charcoal-500 dark:text-charcoal-400">Loading...</p>
       ) : rows.length === 0 ? (
         <Card>
           <CardTitle>No listings yet</CardTitle>
-          <p className="mt-2 text-sm text-gray-500">Add your first {TABS.find((t) => t.value === tab)?.label.toLowerCase()} using the button above.</p>
+          <p className="mt-2 text-sm text-charcoal-500 dark:text-charcoal-400">Add your first {TABS.find((t) => t.value === tab)?.label.toLowerCase()} using the button above.</p>
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -310,20 +310,20 @@ export function ListingsManager() {
               <div className="mb-2 flex items-start justify-between gap-2">
                 <div>
                   <h3 className="font-semibold">{String(row.name)}</h3>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-charcoal-500 dark:text-charcoal-400">
                     {row.type ? `${String(row.type)} · ` : ""}
                     {formatCurrency(Number(row.basePrice || 0))}
                   </p>
                 </div>
                 <span className={cn(
                   "rounded-full px-2 py-0.5 text-xs font-medium",
-                  row.isActive ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-600"
+                  row.isActive ? "bg-olive-100 text-olive-800" : "bg-charcoal-100 text-charcoal-600"
                 )}>
                   {row.isActive ? "Active" : "Inactive"}
                 </span>
               </div>
               {row.description ? (
-                <p className="mb-3 line-clamp-2 text-sm text-gray-600 dark:text-gray-300">
+                <p className="mb-3 line-clamp-2 text-sm text-charcoal-600 dark:text-charcoal-300">
                   {String(row.description)}
                 </p>
               ) : null}
@@ -371,11 +371,11 @@ function ListingForm({
             <label key={f.name} className="flex cursor-pointer items-center gap-2 sm:col-span-2">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-gray-300 text-primary-600"
+                className="h-4 w-4 rounded border-charcoal-300 text-primary-600 dark:border-charcoal-700"
                 checked={Boolean(value)}
                 onChange={(e) => setForm({ ...form, [f.name]: e.target.checked })}
               />
-              <span className="text-sm text-gray-700 dark:text-gray-300">{f.label}</span>
+              <span className="text-sm text-charcoal-700 dark:text-charcoal-200">{f.label}</span>
             </label>
           );
         }

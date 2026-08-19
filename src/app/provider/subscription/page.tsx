@@ -292,8 +292,8 @@ export default function ProviderSubscriptionPage() {
       <Sidebar role="PROVIDER" />
       <PageContent>
         <div className="mb-8">
-          <h1 className="text-2xl font-bold">Subscription</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Manage your plan and billing</p>
+          <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Subscription</h1>
+          <p className="text-sm text-charcoal-500 dark:text-charcoal-400 ">Manage your plan and billing</p>
         </div>
 
         {subscription && (
@@ -302,7 +302,7 @@ export default function ProviderSubscriptionPage() {
             <div className="flex items-start justify-between">
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-bold">{subscription.plan.name}</h2>
+                  <h2 className="font-display text-xl font-semibold text-charcoal-900 dark:text-charcoal-100">{subscription.plan.name}</h2>
                   <Badge
                     variant={
                       isActive ? "success" : isOnTrial ? "warning" : "danger"
@@ -317,7 +317,7 @@ export default function ProviderSubscriptionPage() {
                     : formatCurrency(subscription.plan.price, currency) + "/month"}
                 </p>
                 {isOnTrial && subscription.daysRemaining !== undefined && (
-                  <p className="flex items-center gap-2 text-sm text-yellow-600 dark:text-yellow-400">
+                  <p className="flex items-center gap-2 text-sm text-gold-700 dark:text-gold-400">
                     <Clock className="h-4 w-4" />
                     {subscription.daysRemaining > 0
                       ? `${subscription.daysRemaining} day${subscription.daysRemaining !== 1 ? "s" : ""} remaining in trial`
@@ -325,13 +325,13 @@ export default function ProviderSubscriptionPage() {
                   </p>
                 )}
                 {isActive && subscription.currentPeriodEnd && (
-                  <p className="flex items-center gap-2 text-sm text-gray-500">
+                  <p className="flex items-center gap-2 text-sm text-charcoal-500 dark:text-charcoal-400">
                     <CreditCard className="h-4 w-4" />
                     Next billing: {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
                   </p>
                 )}
                 {subscription.plan.description && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-charcoal-500 dark:text-charcoal-400 ">
                     {subscription.plan.description}
                   </p>
                 )}
@@ -350,18 +350,18 @@ export default function ProviderSubscriptionPage() {
                   const unlimited = item.max === -1;
                   const pct = unlimited ? 0 : (item.used / Math.max(item.max, 1)) * 100;
                   return (
-                    <div key={item.label} className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-                      <p className="text-xs text-gray-500">{item.label}</p>
+                    <div key={item.label} className="rounded-lg border border-charcoal-200 dark:border-charcoal-800 p-3 ">
+                      <p className="text-xs text-charcoal-500 dark:text-charcoal-400">{item.label}</p>
                       <p className="text-lg font-bold">
                         {item.used}{" "}
-                        <span className="text-sm font-normal text-gray-400">
+                        <span className="text-sm font-normal text-charcoal-400 dark:text-charcoal-500">
                           / {unlimited ? "\u221E" : item.max}
                         </span>
                       </p>
                       {!unlimited && (
-                        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-charcoal-100 dark:bg-charcoal-800 ">
                           <div
-                            className={`h-full rounded-full ${pct >= 90 ? "bg-red-500" : pct >= 70 ? "bg-yellow-500" : "bg-primary-500"}`}
+                            className={`h-full rounded-full ${pct >= 90 ? "bg-terracotta-50 dark:bg-terracotta-900/30" : pct >= 70 ? "bg-gold-500" : "bg-primary-500"}`}
                             style={{ width: `${Math.min(pct, 100)}%` }}
                           />
                         </div>
@@ -378,8 +378,8 @@ export default function ProviderSubscriptionPage() {
           <Card className="mb-8 border-primary-200 bg-primary-50 dark:border-primary-800 dark:bg-primary-900/20">
             <div className="text-center py-6">
               <Shield className="mx-auto h-12 w-12 text-primary-500 mb-4" />
-              <h2 className="text-xl font-bold mb-2">Start Your 30-Day Free Trial</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+              <h2 className="font-display text-xl font-semibold text-charcoal-900 dark:text-charcoal-100 mb-2">Start Your 30-Day Free Trial</h2>
+              <p className="text-sm text-charcoal-500 dark:text-charcoal-400  mb-6 max-w-md mx-auto">
                 Get full access to all features for 30 days. No credit card required.
               </p>
               <Button size="lg" onClick={handleStartTrial} disabled={subscribing}>
@@ -390,11 +390,11 @@ export default function ProviderSubscriptionPage() {
         )}
 
         {isExpired && (
-          <Card className="mb-8 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
+          <Card className="mb-8 border-terracotta-200 bg-terracotta-50 dark:border-terracotta-800 dark:bg-terracotta-900/30">
             <div className="text-center py-6">
-              <X className="mx-auto h-12 w-12 text-red-500 mb-4" />
-              <h2 className="text-xl font-bold mb-2">Subscription Expired</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              <X className="mx-auto h-12 w-12 text-terracotta-600 dark:text-terracotta-400 mb-4" />
+              <h2 className="font-display text-xl font-semibold text-charcoal-900 dark:text-charcoal-100 mb-2">Subscription Expired</h2>
+              <p className="text-sm text-charcoal-500 dark:text-charcoal-400  mb-4">
                 Your subscription has ended. Subscribe to a plan to continue using our services.
               </p>
             </div>
@@ -405,14 +405,14 @@ export default function ProviderSubscriptionPage() {
           <CardTitle className="mb-6">Available Plans</CardTitle>
 
           <div className="mb-6 flex items-center gap-4">
-            <span className="text-sm text-gray-500 dark:text-gray-400">Billing period:</span>
-            <div className="flex overflow-hidden rounded-lg border border-gray-300 dark:border-gray-600">
+            <span className="text-sm text-charcoal-500 dark:text-charcoal-400 ">Billing period:</span>
+            <div className="flex overflow-hidden rounded-lg border border-charcoal-300 dark:border-charcoal-700">
               <button
                 type="button"
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
                   selectedBilling === "MONTHLY"
                     ? "bg-primary-600 text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                    : "bg-white text-charcoal-700 hover:bg-sand dark:text-charcoal-200 dark:hover:bg-charcoal-800"
                 }`}
                 onClick={() => setSelectedBilling("MONTHLY")}
               >
@@ -423,7 +423,7 @@ export default function ProviderSubscriptionPage() {
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
                   selectedBilling === "ANNUAL"
                     ? "bg-primary-600 text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                    : "bg-white text-charcoal-700 hover:bg-sand dark:text-charcoal-200 dark:hover:bg-charcoal-800"
                 }`}
                 onClick={() => setSelectedBilling("ANNUAL")}
               >
@@ -453,7 +453,7 @@ export default function ProviderSubscriptionPage() {
                       ? "border-primary-500 ring-2 ring-primary-200 dark:ring-primary-800"
                       : isSelected
                       ? "border-primary-400 ring-1 ring-primary-200 dark:ring-primary-700"
-                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                      : "border-charcoal-200 dark:border-charcoal-800  hover:border-charcoal-300 dark:hover:border-charcoal-600"
                   }`}
                   onClick={() => {
                     if (isCurrentPlan) return;
@@ -471,13 +471,13 @@ export default function ProviderSubscriptionPage() {
                           if (isCurrentPlan) return;
                           setSelectedPlanId(isSelected ? null : plan.id);
                         }}
-                        className="h-4 w-4 rounded-full border-gray-300 text-primary-600 focus:ring-primary-500"
+                        className="h-4 w-4 rounded-full border-charcoal-300 dark:border-charcoal-700 text-primary-600 focus:ring-primary-500"
                         onClick={(e) => e.stopPropagation()}
                       />
                       <div>
-                        <h3 className="text-lg font-bold">{plan.name}</h3>
+                        <h3 className="font-display text-lg font-semibold text-charcoal-900 dark:text-charcoal-100">{plan.name}</h3>
                         {plan.description && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <p className="text-xs text-charcoal-500 dark:text-charcoal-400 ">
                             {plan.description}
                           </p>
                         )}
@@ -493,7 +493,7 @@ export default function ProviderSubscriptionPage() {
                     ) : (
                       <>
                         {formatCurrency(effectivePrice, currency)}
-                        <span className="text-sm font-normal text-gray-400">
+                        <span className="text-sm font-normal text-charcoal-400 dark:text-charcoal-500">
                           {selectedBilling === "ANNUAL" ? "/yr" : "/mo"}
                         </span>
                         {selectedBilling === "ANNUAL" && plan.price > 0 && getSavingsPct(plan) != null && (
@@ -506,28 +506,28 @@ export default function ProviderSubscriptionPage() {
                   </p>
                   <ul className="mb-6 space-y-2 text-sm">
                     <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500" />
+                      <Check className="h-4 w-4 text-olive-600 dark:text-olive-400" />
                       {limitLabel(plan.maxServices)} services
                     </li>
                     <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500" />
+                      <Check className="h-4 w-4 text-olive-600 dark:text-olive-400" />
                       {limitLabel(plan.maxEquipment)} equipment
                     </li>
                     <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500" />
+                      <Check className="h-4 w-4 text-olive-600 dark:text-olive-400" />
                       {limitLabel(plan.maxBookings)} bookings
                     </li>
                     <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500" />
+                      <Check className="h-4 w-4 text-olive-600 dark:text-olive-400" />
                       {limitLabel(plan.maxVenues)} venues
                     </li>
                     <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500" />
+                      <Check className="h-4 w-4 text-olive-600 dark:text-olive-400" />
                       {limitLabel(plan.maxVehicles)} vehicles
                     </li>
                     {plan.features.map((feature: string, i: number) => (
                       <li key={i} className="flex items-center gap-2">
-                        <Star className="h-3.5 w-3.5 text-yellow-500" />
+                        <Star className="h-3.5 w-3.5 text-gold-500" />
                         {feature}
                       </li>
                     ))}
@@ -562,22 +562,22 @@ export default function ProviderSubscriptionPage() {
             <div
               ref={modalRef}
               tabIndex={-1}
-              className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-xl outline-none dark:bg-gray-900"
+              className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-xl outline-none dark:bg-charcoal-900"
             >
-              <h3 id="payment-modal-title" className="mb-4 text-lg font-bold">Complete Payment</h3>
+              <h3 id="payment-modal-title" className="font-display mb-4 text-lg font-semibold text-charcoal-900 dark:text-charcoal-100">Complete Payment</h3>
 
-              <div className="mb-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-                <p className="text-sm text-gray-500 dark:text-gray-400">{selectedPlan.name}</p>
+              <div className="mb-4 rounded-lg border border-charcoal-200 dark:border-charcoal-800 p-4 ">
+                <p className="text-sm text-charcoal-500 dark:text-charcoal-400 ">{selectedPlan.name}</p>
                 <p className="mt-1 text-2xl font-bold text-primary-600">
                   {formatCurrency(getEffectivePrice(selectedPlan), currency)}
-                  <span className="text-sm font-normal text-gray-400">
+                  <span className="text-sm font-normal text-charcoal-400 dark:text-charcoal-500">
                     {" "}{selectedBilling === "ANNUAL" ? "/yr" : "/mo"}
                   </span>
                 </p>
               </div>
 
               <div className="mb-4 space-y-2">
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Payment Method</p>
+                <p className="text-sm font-medium text-charcoal-700 dark:text-charcoal-200">Payment Method</p>
                 {GATEWAYS.map((g) => (
                   <button
                     key={g.value}
@@ -585,7 +585,7 @@ export default function ProviderSubscriptionPage() {
                     className={`flex w-full items-center gap-3 rounded-lg border p-3 text-sm transition-colors ${
                       selectedGateway === g.value
                         ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
-                        : "border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                        : "border-charcoal-200 dark:border-charcoal-800 hover:bg-sand dark:hover:bg-charcoal-800  "
                     }`}
                     onClick={() => setSelectedGateway(g.value)}
                   >
@@ -606,18 +606,18 @@ export default function ProviderSubscriptionPage() {
               )}
 
               {paymentError && (
-                <p className="mb-4 text-sm text-red-500">{paymentError}</p>
+                <p className="mb-4 text-sm text-terracotta-600 dark:text-terracotta-400">{paymentError}</p>
               )}
 
               {paymentStatus === "waiting" && (
-                <div className="mb-4 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                <div className="mb-4 flex items-center gap-2 text-sm text-charcoal-600 dark:text-charcoal-300">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   STK push sent! Enter your M-Pesa PIN to confirm the payment...
                 </div>
               )}
 
               {paymentSuccess ? (
-                <div className="mb-4 flex items-center gap-2 text-sm text-green-600">
+                <div className="mb-4 flex items-center gap-2 text-sm text-olive-700 dark:text-olive-400">
                   <Check className="h-4 w-4" />
                   Payment successful! Activating subscription...
                 </div>

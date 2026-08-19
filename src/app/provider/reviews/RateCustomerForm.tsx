@@ -42,13 +42,13 @@ export function RateCustomerForm({ bookingId }: { bookingId: string }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4"
+      className="space-y-3 rounded-lg border border-charcoal-200 bg-sand p-4 dark:border-charcoal-800 dark:bg-charcoal-800"
     >
       <p className="text-sm font-medium">Rate this customer</p>
       <div className="grid gap-3 sm:grid-cols-2">
         {customerCriteria.map((c) => (
           <div key={c.key}>
-            <label className="mb-1 block text-xs font-medium text-gray-600">{c.label}</label>
+            <label className="mb-1 block text-xs font-medium text-charcoal-600 dark:text-charcoal-300">{c.label}</label>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <label key={star} className="cursor-pointer">
@@ -59,7 +59,7 @@ export function RateCustomerForm({ bookingId }: { bookingId: string }) {
                     required
                     className="peer sr-only"
                   />
-                  <span className="text-xl text-gray-300 transition-colors hover:text-yellow-400 peer-checked:text-yellow-400">
+                  <span className="text-xl text-charcoal-300 transition-colors hover:text-gold-500 peer-checked:text-gold-500 dark:text-charcoal-600">
                     ★
                   </span>
                 </label>
@@ -71,7 +71,7 @@ export function RateCustomerForm({ bookingId }: { bookingId: string }) {
       <Button type="submit" size="sm" disabled={submitting}>
         Submit Rating
       </Button>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-terracotta-700 dark:text-terracotta-400">{error}</p>}
     </form>
   );
 }

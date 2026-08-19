@@ -305,7 +305,7 @@ function MessagesContent() {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={msg.fileUrl} alt={msg.content} className="max-h-48 rounded-lg" />
         ) : (
-          <span className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs dark:border-gray-700 dark:bg-gray-800">
+          <span className="flex items-center gap-2 rounded-lg border border-charcoal-200 dark:border-charcoal-800 bg-white px-3 py-2 text-xs  ">
             <FileText className="h-4 w-4 text-primary-600" />
             <span className="truncate">{msg.content || "Attachment"}</span>
           </span>
@@ -320,18 +320,18 @@ function MessagesContent() {
       <main className="flex h-screen flex-1 flex-col overflow-hidden">
         <TopBar />
         {error && (
-          <div className="flex items-center justify-between border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+          <div className="flex items-center justify-between border-b border-terracotta-200 bg-terracotta-50 px-4 py-2 text-sm text-terracotta-700 dark:border-terracotta-800 dark:bg-terracotta-900/30 dark:text-terracotta-400">
             <span>{error}</span>
-            <button type="button" aria-label="Dismiss" onClick={() => setError("")} className="text-red-400 hover:text-red-600">
+            <button type="button" aria-label="Dismiss" onClick={() => setError("")} className="text-terracotta-500 hover:text-terracotta-700 dark:hover:text-terracotta-400">
               <X className="h-4 w-4" />
             </button>
           </div>
         )}
         <div className="flex flex-1 overflow-hidden">
-          <div className="flex w-80 flex-col border-r border-gray-200">
-            <div className="border-b border-gray-200 p-4">
+          <div className="flex w-80 flex-col border-r border-charcoal-200 dark:border-charcoal-800">
+            <div className="border-b border-charcoal-200 dark:border-charcoal-800 p-4">
               <div className="flex items-center justify-between">
-                <h1 className="text-lg font-bold">Messages</h1>
+                <h1 className="font-display text-lg font-semibold text-charcoal-900 dark:text-charcoal-100">Messages</h1>
                 <Button size="sm" onClick={() => setShowNewModal(true)}>
                   <Plus className="mr-1 h-4 w-4" />
                   New
@@ -347,7 +347,7 @@ function MessagesContent() {
             </div>
             <div className="flex-1 overflow-y-auto">
               {filteredConvs.length === 0 ? (
-                <div className="p-4 text-center text-sm text-gray-500">
+                <div className="p-4 text-center text-sm text-charcoal-500 dark:text-charcoal-400">
                   {search ? "No matching conversations." : "No messages yet. Start a conversation with a customer."}
                 </div>
               ) : (
@@ -359,7 +359,7 @@ function MessagesContent() {
                     <button
                       key={conv.id}
                       onClick={() => openConversation(conv)}
-                      className={`flex w-full items-start gap-3 border-b border-gray-100 p-4 text-left hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50 ${
+                      className={`flex w-full items-start gap-3 border-b border-charcoal-100 dark:border-charcoal-800 p-4 text-left hover:bg-sand dark:hover:bg-charcoal-800  /50 ${
                         activeConv?.id === conv.id ? "bg-primary-50 dark:bg-primary-900/20" : ""
                       }`}
                     >
@@ -379,13 +379,13 @@ function MessagesContent() {
                               : displayName(partner)}
                           </p>
                           {conv.lastMessage && (
-                            <span className="shrink-0 text-xs text-gray-400">
+                            <span className="shrink-0 text-xs text-charcoal-400 dark:text-charcoal-500">
                               {formatTime(conv.lastMessage.createdAt)}
                             </span>
                           )}
                         </div>
                         <div className="mt-0.5 flex items-center justify-between gap-2">
-                          <p className="truncate text-xs text-gray-500">
+                          <p className="truncate text-xs text-charcoal-500 dark:text-charcoal-400">
                             {conv.lastMessage?.content || "No messages"}
                           </p>
                           {conv.unreadCount > 0 && (
@@ -405,7 +405,7 @@ function MessagesContent() {
           <div className="flex flex-1 flex-col">
             {activeConv ? (
               <>
-                <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+                <div className="flex items-center justify-between border-b border-charcoal-200 dark:border-charcoal-800 px-4 py-3">
                   <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700">
                       {(activeConv.participants[0]?.firstName || "?").charAt(0).toUpperCase()}
@@ -416,7 +416,7 @@ function MessagesContent() {
                           ? `${activeConv.participants.map((p) => p.firstName).join(", ")}`
                           : displayName(activeConv.participants[0])}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-charcoal-500 dark:text-charcoal-400">
                         {activeConv.participantCount > 1
                           ? `${activeConv.participantCount + 1} participants`
                           : "Booking conversation"}
@@ -443,7 +443,7 @@ function MessagesContent() {
                 <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4">
                   <div className="space-y-3">
                     {messages.length === 0 && (
-                      <p className="py-10 text-center text-sm text-gray-500">
+                      <p className="py-10 text-center text-sm text-charcoal-500 dark:text-charcoal-400">
                         No messages yet — say hello!
                       </p>
                     )}
@@ -457,7 +457,7 @@ function MessagesContent() {
                         <div key={msg.id}>
                           {showDate && (
                             <div className="my-3 text-center">
-                              <span className="rounded-full bg-gray-100 px-3 py-1 text-[11px] text-gray-500 dark:bg-gray-800">
+                              <span className="rounded-full bg-sand dark:bg-charcoal-800 px-3 py-1 text-[11px] text-charcoal-500 dark:text-charcoal-400 ">
                                 {new Date(msg.createdAt).toLocaleDateString(undefined, {
                                   weekday: "short", month: "short", day: "numeric",
                                 })}
@@ -469,16 +469,16 @@ function MessagesContent() {
                               className={`max-w-[75%] rounded-lg px-4 py-2 text-sm ${
                                 isMine
                                   ? "bg-primary-600 text-white"
-                                  : "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100"
+                                  : "bg-sand dark:bg-charcoal-800 text-charcoal-900 dark:text-charcoal-100  "
                               }`}
                             >
                               {msg.type === "FILE" ? renderAttachment(msg) : <p className="whitespace-pre-wrap break-words">{msg.content}</p>}
-                              <p className={`mt-1 flex items-center gap-1 text-[11px] ${isMine ? "text-primary-200" : "text-gray-400"}`}>
+                              <p className={`mt-1 flex items-center gap-1 text-[11px] ${isMine ? "text-primary-200" : "text-charcoal-400 dark:text-charcoal-500"}`}>
                                 {msg.waStatus === "SENT" && (
                                   <MessageCircle className="h-3 w-3" aria-label="Delivered via WhatsApp" />
                                 )}
                                 {msg.waStatus === "FAILED" && (
-                                  <span className="text-red-400" title={msg.waError || "WhatsApp delivery failed"}>
+                                  <span className="text-terracotta-400" title={msg.waError || "WhatsApp delivery failed"}>
                                     (WhatsApp failed)
                                   </span>
                                 )}
@@ -492,7 +492,7 @@ function MessagesContent() {
                   </div>
                 </div>
 
-                <div className="border-t border-gray-200 p-4">
+                <div className="border-t border-charcoal-200 dark:border-charcoal-800 p-4">
                   <form onSubmit={handleSend} className="flex items-end gap-2">
                     <input
                       ref={fileInputRef}
@@ -512,7 +512,7 @@ function MessagesContent() {
                       aria-label="Attach file"
                     >
                       {uploading ? (
-                        <span className="flex h-4 w-4 animate-spin items-center justify-center rounded-full border-2 border-gray-300 border-t-primary-600" />
+                        <span className="flex h-4 w-4 animate-spin items-center justify-center rounded-full border-2 border-charcoal-300 dark:border-charcoal-700 border-t-primary-600" />
                       ) : (
                         <Paperclip className="h-4 w-4" />
                       )}
@@ -534,7 +534,7 @@ function MessagesContent() {
                       <Send className="h-4 w-4" />
                     </Button>
                   </form>
-                  <p className="mt-1.5 pl-1 text-[11px] text-gray-400">
+                  <p className="mt-1.5 pl-1 text-[11px] text-charcoal-400 dark:text-charcoal-500">
                     {totalUnread > 0 ? `${totalUnread} unread` : ""}
                   </p>
                 </div>
@@ -542,9 +542,9 @@ function MessagesContent() {
             ) : (
               <div className="flex flex-1 items-center justify-center">
                 <div className="text-center">
-                  <MessageSquare className="mx-auto mb-3 h-12 w-12 text-gray-300" />
-                  <p className="text-gray-500">Select a conversation</p>
-                  <p className="mt-1 text-sm text-gray-400">
+                  <MessageSquare className="mx-auto mb-3 h-12 w-12 text-charcoal-300 dark:text-charcoal-600" />
+                  <p className="text-charcoal-500 dark:text-charcoal-400">Select a conversation</p>
+                  <p className="mt-1 text-sm text-charcoal-400 dark:text-charcoal-500">
                     Or start one with a customer you&apos;ve booked
                   </p>
                 </div>
@@ -571,7 +571,7 @@ function MessagesContent() {
                     setSelectedReceiver("");
                     setNewMessage("");
                   }}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-charcoal-400 dark:text-charcoal-500 hover:text-charcoal-600 dark:text-charcoal-300"
                 >
                   <X className="h-4 w-4" />
                 </button>

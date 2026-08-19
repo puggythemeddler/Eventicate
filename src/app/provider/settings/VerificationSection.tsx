@@ -83,25 +83,25 @@ export function VerificationSection({
         <Badge variant={meta.variant}>{meta.label}</Badge>
       </div>
 
-      <p className="mb-4 text-sm text-gray-600 dark:text-gray-300">
+      <p className="mb-4 text-sm text-charcoal-600 dark:text-charcoal-300">
         Verified businesses appear with a badge and are prioritized by customers.
         {!isApproved && verificationStatus !== "VERIFIED" && " You must be approved to receive bookings."}
       </p>
 
       {verificationStatus === "VERIFIED" && (
-        <p className="text-sm font-medium text-green-700 dark:text-green-400">
+        <p className="text-sm font-medium text-olive-700 dark:text-olive-400">
           Your business is verified. Customers can see the verified badge on your profile.
         </p>
       )}
 
       {verificationStatus === "PENDING" && (
-        <p className="text-sm text-amber-700 dark:text-amber-400">
+        <p className="text-sm text-gold-700 dark:text-gold-400">
           Your verification request is under review by our team. This usually takes 1–2 business days.
         </p>
       )}
 
       {verificationStatus === "REJECTED" && (
-        <p className="mb-2 text-sm text-red-600">
+        <p className="mb-2 text-sm text-terracotta-700 dark:text-terracotta-400">
           Your request was not approved. {verificationNote ? `Reason: ${verificationNote}` : "Please review your documents and try again."}
         </p>
       )}
@@ -109,23 +109,23 @@ export function VerificationSection({
       {(verificationStatus === "NONE" || verificationStatus === "REJECTED") && (
         <div className="space-y-4">
           <div>
-            <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+            <p className="mb-2 text-sm font-medium text-charcoal-700 dark:text-charcoal-200">
               Supporting documents
             </p>
             <div className="space-y-2">
               {documents.map((url, i) => (
-                <div key={i} className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
-                  <span className="truncate text-gray-700 dark:text-gray-300">{url.split("/").pop()}</span>
-                  <button type="button" onClick={() => setDocuments((d) => d.filter((_, idx) => idx !== i))}>
-                    <X className="h-4 w-4 text-gray-400 hover:text-red-500" />
+                <div key={i} className="flex items-center justify-between rounded-lg border border-charcoal-200 px-3 py-2 text-sm dark:border-charcoal-700">
+                  <span className="truncate text-charcoal-700 dark:text-charcoal-200">{url.split("/").pop()}</span>
+                  <button type="button" onClick={() => setDocuments((d) => d.filter((_, idx) => idx !== i))} aria-label="Remove document">
+                    <X className="h-4 w-4 text-charcoal-400 hover:text-terracotta-600 dark:text-charcoal-500 dark:hover:text-terracotta-400" />
                   </button>
                 </div>
               ))}
               {documents.length === 0 && (
-                <p className="text-xs text-gray-400">No documents uploaded yet.</p>
+                <p className="text-xs text-charcoal-400 dark:text-charcoal-500">No documents uploaded yet.</p>
               )}
             </div>
-            <label className="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800">
+            <label className="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-charcoal-300 px-3 py-2 text-sm text-charcoal-700 hover:bg-sand dark:border-charcoal-600 dark:text-charcoal-200 dark:hover:bg-charcoal-800">
               <Upload className="h-4 w-4" />
               {uploading ? "Uploading..." : "Upload document"}
               <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden" onChange={handleUpload} disabled={uploading} />
@@ -138,7 +138,7 @@ export function VerificationSection({
             rows={2}
             placeholder="Anything the review team should know..."
           />
-          {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
+          {uploadError && <p className="text-sm text-terracotta-700 dark:text-terracotta-400">{uploadError}</p>}
           <Button onClick={submit} disabled={submitting || uploading}>
             {submitting ? "Submitting..." : "Submit for Verification"}
           </Button>

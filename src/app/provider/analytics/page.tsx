@@ -30,7 +30,7 @@ function MonthlyRevenueChart({ data, currency }: { data: AnalyticsData["monthlyR
       <div className="flex h-48 items-end gap-3">
         {data.map((d) => (
           <div key={d.month} className="flex flex-1 flex-col items-center gap-1">
-            <span className="text-[10px] text-gray-500 dark:text-gray-400">
+            <span className="text-[10px] text-charcoal-500 dark:text-charcoal-400 ">
               {d.revenue > 0 ? formatCurrency(d.revenue, currency) : ""}
             </span>
             <div
@@ -38,7 +38,7 @@ function MonthlyRevenueChart({ data, currency }: { data: AnalyticsData["monthlyR
               style={{ height: `${Math.max((d.revenue / max) * 100, 1)}%`, minHeight: d.revenue > 0 ? 8 : 2 }}
               title={`${d.month}: ${formatCurrency(d.revenue, currency)}`}
             />
-            <span className="text-[11px] text-gray-500 dark:text-gray-400">{d.month}</span>
+            <span className="text-[11px] text-charcoal-500 dark:text-charcoal-400 ">{d.month}</span>
           </div>
         ))}
       </div>
@@ -68,16 +68,16 @@ export default async function ProviderAnalyticsPage() {
       <PageContent>
         <div className="mb-8">
           <h1 className="text-2xl font-bold">Analytics</h1>
-          <p className="text-gray-500 dark:text-gray-400">Performance and revenue insights for your business</p>
+          <p className="text-charcoal-500 dark:text-charcoal-400 ">Performance and revenue insights for your business</p>
         </div>
 
         <div className="mb-8 grid gap-4 md:grid-cols-5">
           <Card>
             <div className="flex items-center gap-3">
-              <DollarSign className="h-8 w-8 text-green-600" />
+              <DollarSign className="h-8 w-8 text-olive-700 dark:text-olive-400" />
               <div>
                 <p className="text-xl font-bold">{formatCurrency(data.summary.totalRevenue, currency)}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Revenue</p>
+                <p className="text-xs text-charcoal-500 dark:text-charcoal-400 ">Revenue</p>
               </div>
             </div>
           </Card>
@@ -86,7 +86,7 @@ export default async function ProviderAnalyticsPage() {
               <Package className="h-8 w-8 text-primary-600" />
               <div>
                 <p className="text-xl font-bold">{data.summary.totalBookings}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Bookings</p>
+                <p className="text-xs text-charcoal-500 dark:text-charcoal-400 ">Bookings</p>
               </div>
             </div>
           </Card>
@@ -95,27 +95,27 @@ export default async function ProviderAnalyticsPage() {
               <CheckCircle2 className="h-8 w-8 text-emerald-600" />
               <div>
                 <p className="text-xl font-bold">{data.summary.completedBookings}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Completed</p>
+                <p className="text-xs text-charcoal-500 dark:text-charcoal-400 ">Completed</p>
               </div>
             </div>
           </Card>
           <Card>
             <div className="flex items-center gap-3">
-              <XCircle className="h-8 w-8 text-red-500" />
+              <XCircle className="h-8 w-8 text-terracotta-600 dark:text-terracotta-400" />
               <div>
                 <p className="text-xl font-bold">{data.summary.cancelledBookings}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Cancelled</p>
+                <p className="text-xs text-charcoal-500 dark:text-charcoal-400 ">Cancelled</p>
               </div>
             </div>
           </Card>
           <Card>
             <div className="flex items-center gap-3">
-              <Star className="h-8 w-8 text-yellow-500" />
+              <Star className="h-8 w-8 text-gold-500" />
               <div>
                 <p className="text-xl font-bold">
                   {data.summary.avgRating ? data.summary.avgRating.toFixed(1) : "—"}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{data.summary.totalReviews} Reviews</p>
+                <p className="text-xs text-charcoal-500 dark:text-charcoal-400 ">{data.summary.totalReviews} Reviews</p>
               </div>
             </div>
           </Card>
@@ -128,7 +128,7 @@ export default async function ProviderAnalyticsPage() {
               Revenue (last 6 months)
             </CardTitle>
             <MonthlyRevenueChart data={data.monthlyRevenue} currency={currency} />
-            <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+            <p className="mt-4 text-sm text-charcoal-500 dark:text-charcoal-400 ">
               Avg booking value: {formatCurrency(data.summary.avgBookingValue, currency)}
             </p>
           </Card>
@@ -136,11 +136,11 @@ export default async function ProviderAnalyticsPage() {
           <Card>
             <CardTitle className="mb-4">Bookings by Status</CardTitle>
             {data.bookingsByStatus.length === 0 ? (
-              <p className="text-sm text-gray-500 dark:text-gray-400">No bookings yet.</p>
+              <p className="text-sm text-charcoal-500 dark:text-charcoal-400 ">No bookings yet.</p>
             ) : (
               <div className="space-y-2">
                 {data.bookingsByStatus.map((s) => (
-                  <div key={s.status} className="flex items-center justify-between rounded-lg border border-gray-100 px-3 py-2 dark:border-gray-800">
+                  <div key={s.status} className="flex items-center justify-between rounded-lg border border-charcoal-100 dark:border-charcoal-800 px-3 py-2 ">
                     <StatusBadge status={s.status} />
                     <span className="text-sm font-semibold">{s.count}</span>
                   </div>
@@ -153,18 +153,18 @@ export default async function ProviderAnalyticsPage() {
         <Card>
           <CardTitle className="mb-4">Top Services</CardTitle>
           {data.topServices.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400">No service bookings yet.</p>
+            <p className="text-sm text-charcoal-500 dark:text-charcoal-400 ">No service bookings yet.</p>
           ) : (
             <div className="space-y-4">
               {data.topServices.map((s) => (
                 <div key={s.serviceId}>
                   <div className="mb-1 flex items-center justify-between text-sm">
                     <span className="font-medium">{s.name}</span>
-                    <span className="text-gray-500 dark:text-gray-400">
+                    <span className="text-charcoal-500 dark:text-charcoal-400 ">
                       {s.bookings} booking{s.bookings !== 1 ? "s" : ""} · {formatCurrency(s.revenue, currency)}
                     </span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+                  <div className="h-2 overflow-hidden rounded-full bg-sand dark:bg-charcoal-800 ">
                     <div
                       className="h-full rounded-full bg-primary-600"
                       style={{ width: `${(s.bookings / maxServiceBookings) * 100}%` }}

@@ -62,7 +62,7 @@ export function ServiceActions({ service }: ServiceActionsProps) {
         <div className="mb-2 flex items-start justify-between">
           <div>
             <h3 className="font-semibold">{service.name}</h3>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-charcoal-500 dark:text-charcoal-400">
               {SERVICE_CATEGORIES.find((c) => c.value === service.category)?.label || service.category}
             </p>
           </div>
@@ -81,12 +81,12 @@ export function ServiceActions({ service }: ServiceActionsProps) {
           </div>
         )}
         {service.description && (
-          <p className="mb-3 text-sm text-gray-600">{service.description}</p>
+          <p className="mb-3 text-sm text-charcoal-600 dark:text-charcoal-300">{service.description}</p>
         )}
         <div className="flex items-baseline gap-2">
           {hasDiscount ? (
             <>
-              <span className="text-sm text-gray-400 line-through">{formatCurrency(service.basePrice, currency)}</span>
+              <span className="text-sm text-charcoal-400 line-through dark:text-charcoal-500">{formatCurrency(service.basePrice, currency)}</span>
               <p className="text-lg font-bold text-primary-600">{formatCurrency(discountedPrice, currency)}</p>
             </>
           ) : (
@@ -97,7 +97,7 @@ export function ServiceActions({ service }: ServiceActionsProps) {
       <div className="mt-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <ToggleSwitch enabled={isActive} onClick={toggleActive} />
-          <span className={`text-xs font-medium ${isActive ? "text-green-600" : "text-gray-400"}`}>
+          <span className={`text-xs font-medium ${isActive ? "text-olive-700 dark:text-olive-400" : "text-charcoal-400 dark:text-charcoal-500"}`}>
             {isActive ? "Active" : "Inactive"}
           </span>
         </div>

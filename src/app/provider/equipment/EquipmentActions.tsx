@@ -58,7 +58,7 @@ export function EquipmentActions({ item }: EquipmentActionsProps) {
           <Package className="h-5 w-5 text-primary-600" />
           <div>
             <h3 className="font-semibold">{item.name}</h3>
-            <p className="text-xs text-gray-500">{item.subcategory} · {item.category}</p>
+            <p className="text-xs text-charcoal-500 dark:text-charcoal-400">{item.subcategory} · {item.category}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -76,19 +76,19 @@ export function EquipmentActions({ item }: EquipmentActionsProps) {
         </div>
       )}
       {item.description && (
-        <p className="mb-3 text-sm text-gray-600">{item.description}</p>
+        <p className="mb-3 text-sm text-charcoal-600 dark:text-charcoal-300">{item.description}</p>
       )}
       <div className="mb-3 grid grid-cols-2 gap-2 text-sm">
-        <span className="text-gray-500">Qty: <strong>{item.quantity}</strong></span>
-        <span className="text-gray-500">Condition: <strong>{item.condition}</strong></span>
+        <span className="text-charcoal-500 dark:text-charcoal-400">Qty: <strong>{item.quantity}</strong></span>
+        <span className="text-charcoal-500 dark:text-charcoal-400">Condition: <strong>{item.condition}</strong></span>
       </div>
       <div className="mb-4 space-y-1 text-sm">
         <div className="flex justify-between">
-          <span className="text-gray-500">Rental Price</span>
+          <span className="text-charcoal-500 dark:text-charcoal-400">Rental Price</span>
           <span className="font-medium">
             {hasDiscount ? (
               <span className="flex items-center gap-1">
-                <span className="text-sm text-gray-400 line-through">{formatCurrency(item.rentalPrice, currency)}</span>
+                <span className="text-sm text-charcoal-400 line-through dark:text-charcoal-500">{formatCurrency(item.rentalPrice, currency)}</span>
                 <span className="text-primary-600">{formatCurrency(discountedPrice, currency)}</span>
               </span>
             ) : (
@@ -99,19 +99,19 @@ export function EquipmentActions({ item }: EquipmentActionsProps) {
         {(item.setupCharge > 0 || item.transportCharge > 0 || item.operatorCharge > 0) && (
           <>
             {item.setupCharge > 0 && (
-              <div className="flex justify-between text-gray-500">
+              <div className="flex justify-between text-charcoal-500 dark:text-charcoal-400">
                 <span>Setup</span>
                 <span>{formatCurrency(item.setupCharge, currency)}</span>
               </div>
             )}
             {item.transportCharge > 0 && (
-              <div className="flex justify-between text-gray-500">
+              <div className="flex justify-between text-charcoal-500 dark:text-charcoal-400">
                 <span>Transport</span>
                 <span>{formatCurrency(item.transportCharge, currency)}</span>
               </div>
             )}
             {item.operatorCharge > 0 && (
-              <div className="flex justify-between text-gray-500">
+              <div className="flex justify-between text-charcoal-500 dark:text-charcoal-400">
                 <span>Operator</span>
                 <span>{formatCurrency(item.operatorCharge, currency)}</span>
               </div>
@@ -122,7 +122,7 @@ export function EquipmentActions({ item }: EquipmentActionsProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <ToggleSwitch enabled={isActive} onClick={toggleActive} />
-          <span className={`text-xs font-medium ${isActive ? "text-green-600" : "text-gray-400"}`}>
+          <span className={`text-xs font-medium ${isActive ? "text-olive-700 dark:text-olive-400" : "text-charcoal-400 dark:text-charcoal-500"}`}>
             {isActive ? "Active" : "Inactive"}
           </span>
         </div>

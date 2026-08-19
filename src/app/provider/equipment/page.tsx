@@ -39,8 +39,8 @@ export default async function EquipmentPage() {
       <PageContent>
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Equipment Inventory</h1>
-            <p className="text-sm text-gray-500">
+            <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Equipment Inventory</h1>
+            <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
               {equipment.length} items · {activeCount} active · {totalQty} total units
             </p>
           </div>
@@ -51,7 +51,7 @@ export default async function EquipmentPage() {
             {equipment.length === 0 ? (
               <Card>
                 <CardTitle>No equipment yet</CardTitle>
-                <p className="mt-2 text-sm text-gray-500">Add your first equipment item using the form.</p>
+                <p className="mt-2 text-sm text-charcoal-500 dark:text-charcoal-400">Add your first equipment item using the form.</p>
               </Card>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">

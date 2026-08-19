@@ -75,10 +75,10 @@ export default async function ReviewsPage() {
       <Sidebar role="PROVIDER" />
       <PageContent>
         <div className="mb-8">
-          <h1 className="text-2xl font-bold">Reviews & Ratings</h1>
+          <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Reviews & Ratings</h1>
           <div className="mt-2 flex items-center gap-2">
             <StarRating rating={averageRating} size="md" />
-            <span className="text-sm text-gray-500">({totalReviews} reviews)</span>
+            <span className="text-sm text-charcoal-500 dark:text-charcoal-400">({totalReviews} reviews)</span>
           </div>
         </div>
 
@@ -101,17 +101,17 @@ export default async function ReviewsPage() {
                         <p className="font-medium">
                           {review.customerReviewer?.user.firstName} {review.customerReviewer?.user.lastName || "Unknown"}
                         </p>
-                        <p className="text-xs text-gray-500">{review.booking?.event.title}</p>
+                        <p className="text-xs text-charcoal-500 dark:text-charcoal-400">{review.booking?.event.title}</p>
                       </div>
                     </div>
-                    <span className="text-xs text-gray-400">{formatDateTime(new Date(review.createdAt))}</span>
+                    <span className="text-xs text-charcoal-400 dark:text-charcoal-500">{formatDateTime(new Date(review.createdAt))}</span>
                   </div>
                   <div className="mb-3 grid grid-cols-5 gap-4">
                     {providerCriteria.map((c) => {
                       const val = review[c.key as keyof typeof review] as number | null | undefined;
                       return (
                         <div key={c.key} className="text-center">
-                          <p className="text-xs text-gray-500">{c.label}</p>
+                          <p className="text-xs text-charcoal-500 dark:text-charcoal-400">{c.label}</p>
                           <p className="text-lg font-bold">
                             {val ?? "—"}
                           </p>
@@ -120,7 +120,7 @@ export default async function ReviewsPage() {
                     })}
                   </div>
                   {review.comment && (
-                    <p className="text-sm text-gray-600 italic">&ldquo;{review.comment}&rdquo;</p>
+                    <p className="text-sm text-charcoal-600 dark:text-charcoal-300 italic">&ldquo;{review.comment}&rdquo;</p>
                   )}
                 </Card>
               ))}
@@ -145,17 +145,17 @@ export default async function ReviewsPage() {
                         <p className="font-medium">
                           {review.customer?.user.firstName} {review.customer?.user.lastName}
                         </p>
-                        <p className="text-xs text-gray-500">{review.booking?.event.title}</p>
+                        <p className="text-xs text-charcoal-500 dark:text-charcoal-400">{review.booking?.event.title}</p>
                       </div>
                     </div>
-                    <span className="text-xs text-gray-400">{formatDateTime(new Date(review.createdAt))}</span>
+                    <span className="text-xs text-charcoal-400 dark:text-charcoal-500">{formatDateTime(new Date(review.createdAt))}</span>
                   </div>
                   <div className="grid grid-cols-4 gap-4">
                     {REVIEW_CRITERIA.providerToCustomer.map((c) => {
                       const val = review[c.key as keyof typeof review] as number | null | undefined;
                       return (
                         <div key={c.key} className="text-center">
-                          <p className="text-xs text-gray-500">{c.label}</p>
+                          <p className="text-xs text-charcoal-500 dark:text-charcoal-400">{c.label}</p>
                           <p className="text-lg font-bold">
                             {val ?? "—"}
                           </p>
@@ -181,7 +181,7 @@ export default async function ReviewsPage() {
                       <p className="font-medium">
                         {booking.customer.user.firstName} {booking.customer.user.lastName}
                       </p>
-                      <p className="text-xs text-gray-500">{booking.event.title} · {formatDate(new Date(booking.event.eventDate))}</p>
+                      <p className="text-xs text-charcoal-500 dark:text-charcoal-400">{booking.event.title} · {formatDate(new Date(booking.event.eventDate))}</p>
                     </div>
                   </div>
                   <RateCustomerForm bookingId={booking.id} />

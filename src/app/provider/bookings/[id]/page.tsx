@@ -75,10 +75,10 @@ if (!booking) notFound();
         <div className="mb-8 flex items-start justify-between">
           <div>
             <div className="mb-2 flex items-center gap-3">
-              <h1 className="text-2xl font-bold">{booking.event.title}</h1>
+              <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">{booking.event.title}</h1>
               <StatusBadge status={booking.status} />
             </div>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
               {booking.customer.user.firstName} {booking.customer.user.lastName}
             </p>
           </div>
@@ -89,13 +89,13 @@ if (!booking) notFound();
             <div className="flex items-center gap-3">
               <User className="h-5 w-5 text-primary-600" />
               <div>
-                <p className="text-xs text-gray-500">Customer</p>
+                <p className="text-xs text-charcoal-500 dark:text-charcoal-400">Customer</p>
                 <p className="text-sm font-medium">
                   {booking.customer.user.firstName} {booking.customer.user.lastName}
                 </p>
-                <p className="text-xs text-gray-400">{booking.customer.user.email}</p>
+                <p className="text-xs text-charcoal-400 dark:text-charcoal-500">{booking.customer.user.email}</p>
                 {booking.customer.user.phone && (
-                  <p className="text-xs text-gray-400">{booking.customer.user.phone}</p>
+                  <p className="text-xs text-charcoal-400 dark:text-charcoal-500">{booking.customer.user.phone}</p>
                 )}
               </div>
             </div>
@@ -104,9 +104,9 @@ if (!booking) notFound();
             <div className="flex items-center gap-3">
               <Calendar className="h-5 w-5 text-primary-600" />
               <div>
-                <p className="text-xs text-gray-500">Event</p>
+                <p className="text-xs text-charcoal-500 dark:text-charcoal-400">Event</p>
                 <p className="text-sm font-medium">{booking.event.title}</p>
-                <p className="text-xs text-gray-400">{formatDate(new Date(booking.event.eventDate))}</p>
+                <p className="text-xs text-charcoal-400 dark:text-charcoal-500">{formatDate(new Date(booking.event.eventDate))}</p>
               </div>
             </div>
           </Card>
@@ -114,9 +114,9 @@ if (!booking) notFound();
             <div className="flex items-center gap-3">
               <DollarSign className="h-5 w-5 text-primary-600" />
               <div>
-                <p className="text-xs text-gray-500">Service</p>
+                <p className="text-xs text-charcoal-500 dark:text-charcoal-400">Service</p>
                 <p className="text-sm font-medium">{booking.service?.name || "General"}</p>
-                <p className="text-xs text-gray-400">{booking.event.guestCount} guests</p>
+                <p className="text-xs text-charcoal-400 dark:text-charcoal-500">{booking.event.guestCount} guests</p>
               </div>
             </div>
           </Card>
@@ -124,10 +124,10 @@ if (!booking) notFound();
             <div className="flex items-center gap-3">
               <Mail className="h-5 w-5 text-primary-600" />
               <div>
-                <p className="text-xs text-gray-500">Contact</p>
+                <p className="text-xs text-charcoal-500 dark:text-charcoal-400">Contact</p>
                 <p className="text-sm font-medium">{booking.customer.user.email}</p>
                 {booking.customer.user.phone && (
-                  <p className="text-xs text-gray-400">{booking.customer.user.phone}</p>
+                  <p className="text-xs text-charcoal-400 dark:text-charcoal-500">{booking.customer.user.phone}</p>
                 )}
               </div>
             </div>
@@ -158,7 +158,7 @@ if (!booking) notFound();
         {booking.customerNotes && (
           <Card className="mb-8">
             <CardTitle className="mb-2">Customer Notes</CardTitle>
-            <p className="text-sm text-gray-600">{booking.customerNotes}</p>
+            <p className="text-sm text-charcoal-600 dark:text-charcoal-300">{booking.customerNotes}</p>
           </Card>
         )}
 
@@ -185,11 +185,11 @@ if (!booking) notFound();
                 {booking.payments.map((payment) => (
                   <div
                     key={payment.id}
-                    className="flex items-center justify-between rounded-lg border border-gray-100 p-3"
+                    className="flex items-center justify-between rounded-lg border border-charcoal-100 dark:border-charcoal-800 p-3"
                   >
                     <div>
                       <p className="font-medium">{formatCurrency(payment.amount, currency)}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-charcoal-500 dark:text-charcoal-400">
                         {payment.method.replace(/_/g, " ")} · {formatDateTime(new Date(payment.createdAt))}
                       </p>
                     </div>
@@ -209,17 +209,17 @@ if (!booking) notFound();
                 {booking.messages.map((msg) => (
                   <div
                     key={msg.id}
-                    className="rounded-lg border border-gray-100 p-3"
+                    className="rounded-lg border border-charcoal-100 dark:border-charcoal-800 p-3"
                   >
                     <div className="mb-1 flex items-center justify-between">
                       <span className="text-sm font-medium">
                         {msg.sender.firstName} {msg.sender.lastName}
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-charcoal-400 dark:text-charcoal-500">
                         {formatDateTime(new Date(msg.createdAt))}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600">{msg.content}</p>
+                    <p className="text-sm text-charcoal-600 dark:text-charcoal-300">{msg.content}</p>
                   </div>
                 ))}
               </div>

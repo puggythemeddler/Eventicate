@@ -169,17 +169,17 @@ export function SettingsForm({
             />
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
+          <div className="rounded-lg border border-charcoal-200 bg-sand p-4 dark:border-charcoal-700 dark:bg-charcoal-800/50">
             <label className="flex cursor-pointer items-start gap-3">
               <input
                 type="checkbox"
                 name="travelOutsideArea"
                 defaultChecked={provider.travelOutsideArea}
-                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                className="mt-0.5 h-4 w-4 rounded border-charcoal-300 text-primary-600 focus:ring-primary-500 dark:border-charcoal-700"
               />
               <div>
-                <p className="font-medium text-gray-900 dark:text-gray-100">Willing to travel outside my area</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="font-medium text-charcoal-900 dark:text-charcoal-100">Willing to travel outside my area</p>
+                <p className="text-xs text-charcoal-500 dark:text-charcoal-400">
                   Customers can find you even if their event is outside your city.
                 </p>
               </div>
@@ -237,29 +237,29 @@ export function SettingsForm({
                 type="checkbox"
                 name="applyDiscountToAll"
                 defaultChecked={provider.applyDiscountToAll}
-                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                className="rounded border-charcoal-300 text-primary-600 focus:ring-primary-500 dark:border-charcoal-700"
               />
               <span>Apply discount to all active services</span>
             </label>
             <Button type="submit">Save Pricing Settings</Button>
           </form>
 
-          <hr className="border-gray-200 dark:border-gray-700" />
+          <hr className="border-charcoal-200 dark:border-charcoal-700" />
 
           <div>
-            <h3 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Pricing Tiers Summary</h3>
+            <h3 className="mb-2 text-sm font-medium text-charcoal-700 dark:text-charcoal-200">Pricing Tiers Summary</h3>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between rounded bg-gray-50 p-2 dark:bg-gray-800">
+              <div className="flex justify-between rounded bg-sand p-2 dark:bg-charcoal-800">
                 <span>Active services</span>
                 <span className="font-medium">{currentServices.length}</span>
               </div>
-              <div className="flex justify-between rounded bg-gray-50 p-2 dark:bg-gray-800">
+              <div className="flex justify-between rounded bg-sand p-2 dark:bg-charcoal-800">
                 <span>Services with discounts</span>
                 <span className="font-medium">{discountedServicesCount}</span>
               </div>
               {pricingRules.length > 0 && (
                 <>
-                  <h4 className="mt-3 text-xs font-medium uppercase text-gray-500">Dynamic Pricing Rules</h4>
+                  <h4 className="mt-3 text-xs font-medium uppercase text-charcoal-500 dark:text-charcoal-400">Dynamic Pricing Rules</h4>
                   {pricingRules.map((rule) => (
                     <div key={rule.id} className="flex items-center justify-between text-sm">
                       <span>
@@ -281,7 +281,7 @@ export function SettingsForm({
                 </>
               )}
               {pricingRules.length === 0 && (
-                <p className="text-xs text-gray-400">No dynamic pricing rules configured.</p>
+                <p className="text-xs text-charcoal-400 dark:text-charcoal-500">No dynamic pricing rules configured.</p>
               )}
             </div>
           </div>

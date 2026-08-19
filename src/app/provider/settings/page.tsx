@@ -83,8 +83,8 @@ export default async function ProviderSettingsPage() {
       <Sidebar role="PROVIDER" />
       <PageContent>
         <div className="mb-8">
-          <h1 className="text-2xl font-bold">Settings</h1>
-          <p className="text-gray-500">Manage your business profile</p>
+          <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Settings</h1>
+          <p className="text-charcoal-500 dark:text-charcoal-400">Manage your business profile</p>
         </div>
 
         <SettingsForm

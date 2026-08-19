@@ -24,18 +24,18 @@ export function BookingRow({ booking }: BookingRowProps) {
   return (
     <tr
       onClick={() => router.push(`/provider/bookings/${booking.id}`)}
-      className="cursor-pointer border-b border-gray-100 last:border-0 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"
+      className="cursor-pointer border-b border-charcoal-100 last:border-0 hover:bg-sand dark:border-charcoal-800 dark:hover:bg-charcoal-800"
     >
-      <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">
+      <td className="px-6 py-4 font-medium text-charcoal-900 dark:text-charcoal-100">
         {booking.customer.user.firstName} {booking.customer.user.lastName}
       </td>
-      <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+      <td className="px-6 py-4 text-sm text-charcoal-500 dark:text-charcoal-400">
         {booking.event.title}
       </td>
-      <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+      <td className="px-6 py-4 text-sm text-charcoal-500 dark:text-charcoal-400">
         {formatDate(booking.event.eventDate)}
       </td>
-      <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+      <td className="px-6 py-4 text-sm text-charcoal-500 dark:text-charcoal-400">
         {booking.service?.name || "—"}
       </td>
       <td className="px-6 py-4">
@@ -44,7 +44,7 @@ export function BookingRow({ booking }: BookingRowProps) {
       <td className="px-6 py-4 text-right text-sm font-medium">
         {booking.quotedPrice ? formatCurrency(booking.quotedPrice, currency) : "—"}
       </td>
-      <td className="px-6 py-4 text-right text-xs text-gray-400 dark:text-gray-500">
+      <td className="px-6 py-4 text-right text-xs text-charcoal-400 dark:text-charcoal-500">
         {formatDate(booking.createdAt)}
       </td>
     </tr>

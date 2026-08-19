@@ -55,9 +55,9 @@ export default async function ProviderBookingsPage({
       <Sidebar role="PROVIDER" />
       <PageContent>
         <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Bookings</h1>
+          <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Bookings</h1>
           {pendingCount > 0 && (
-            <span className="rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800">
+            <span className="rounded-full bg-gold-100 dark:bg-gold-900/50 px-3 py-1 text-sm font-medium text-gold-800">
               {pendingCount} pending
             </span>
           )}
@@ -79,7 +79,7 @@ export default async function ProviderBookingsPage({
         {bookings.length === 0 ? (
           <Card>
             <CardTitle>No bookings found</CardTitle>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-charcoal-500 dark:text-charcoal-400">
               {status && status !== "ALL"
                 ? "No bookings match the selected status."
                 : "You haven't received any bookings yet."}
@@ -89,7 +89,7 @@ export default async function ProviderBookingsPage({
           <Card className="overflow-hidden p-0">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200 text-left text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                <tr className="border-b border-charcoal-200 text-left text-sm text-charcoal-500 dark:border-charcoal-800 dark:text-charcoal-400  ">
                   <th className="px-6 py-3 font-medium">Customer</th>
                   <th className="px-6 py-3 font-medium">Event</th>
                   <th className="px-6 py-3 font-medium">Date</th>

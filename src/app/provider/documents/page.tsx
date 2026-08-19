@@ -93,7 +93,7 @@ export default async function ProviderDocumentsPage({
       <Sidebar role="PROVIDER" />
       <PageContent>
         <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Documents</h1>
+          <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Documents</h1>
           <CreateDocumentModal bookings={bookings} />
         </div>
 
@@ -120,7 +120,7 @@ export default async function ProviderDocumentsPage({
         {documents.length === 0 ? (
           <Card>
             <CardTitle>No documents found</CardTitle>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-charcoal-500 dark:text-charcoal-400">
               You haven&apos;t created any documents yet. They will appear here when you send quotes or invoices.
             </p>
           </Card>
@@ -128,7 +128,7 @@ export default async function ProviderDocumentsPage({
           <Card className="overflow-hidden p-0">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200 text-left text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                <tr className="border-b border-charcoal-200 dark:border-charcoal-800 text-left text-sm text-charcoal-500 dark:text-charcoal-400  ">
                   <th className="px-6 py-3 font-medium">Document #</th>
                   <th className="px-6 py-3 font-medium">Type</th>
                   <th className="px-6 py-3 font-medium">Recipient</th>
@@ -141,12 +141,12 @@ export default async function ProviderDocumentsPage({
                 {documents.map((doc) => (
                   <tr
                     key={doc.id}
-                    className="border-b border-gray-100 last:border-0 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"
+                    className="border-b border-charcoal-100 dark:border-charcoal-800 last:border-0 hover:bg-sand dark:hover:bg-charcoal-800  "
                   >
                     <td className="px-6 py-4">
                       <Link
                         href={`/provider/documents/${doc.id}`}
-                        className="font-medium text-gray-900 hover:text-primary-600 dark:text-gray-100"
+                        className="font-medium text-charcoal-900 dark:text-charcoal-100 hover:text-primary-600 "
                       >
                         {doc.documentNumber}
                       </Link>
@@ -156,7 +156,7 @@ export default async function ProviderDocumentsPage({
                         {doc.type}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    <td className="px-6 py-4 text-sm text-charcoal-500 dark:text-charcoal-400 ">
                       {doc.recipientName}
                     </td>
                     <td className="px-6 py-4">
@@ -167,7 +167,7 @@ export default async function ProviderDocumentsPage({
                     <td className="px-6 py-4 text-right text-sm font-medium">
                       {formatCurrency(doc.total, currency)}
                     </td>
-                    <td className="px-6 py-4 text-right text-xs text-gray-400 dark:text-gray-500">
+                    <td className="px-6 py-4 text-right text-xs text-charcoal-400 dark:text-charcoal-500 ">
                       {formatDate(doc.createdAt)}
                     </td>
                   </tr>
