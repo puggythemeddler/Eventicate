@@ -111,7 +111,10 @@ async function main() {
   // Customer
   const customer = await prisma.user.upsert({
     where: { email: "customer@eventicate.com" },
-    update: { phone: "+254700000002" },
+    update: {
+      phone: "+254700000002",
+      customerProfile: { update: { city: "Nairobi", country: "Kenya" } },
+    },
     create: {
       email: "customer@eventicate.com",
       passwordHash,
@@ -127,7 +130,10 @@ async function main() {
   // PA System Provider
   const paProvider = await prisma.user.upsert({
     where: { email: "pa@soundpro.com" },
-    update: { phone: "+254700000003" },
+    update: {
+      phone: "+254700000003",
+      providerProfile: { update: { city: "Nairobi", country: "Kenya" } },
+    },
     create: {
       email: "pa@soundpro.com",
       passwordHash,
@@ -155,7 +161,10 @@ async function main() {
   // Catering Provider
   const cateringProvider = await prisma.user.upsert({
     where: { email: "catering@delight.com" },
-    update: { phone: "+254700000004" },
+    update: {
+      phone: "+254700000004",
+      providerProfile: { update: { city: "Mombasa", country: "Kenya" } },
+    },
     create: {
       email: "catering@delight.com",
       passwordHash,
@@ -183,7 +192,10 @@ async function main() {
   // Venue Provider
   const venueProvider = await prisma.user.upsert({
     where: { email: "venue@grandhall.com" },
-    update: { phone: "+254700000005" },
+    update: {
+      phone: "+254700000005",
+      providerProfile: { update: { city: "Nairobi", country: "Kenya" } },
+    },
     create: {
       email: "venue@grandhall.com",
       passwordHash,
@@ -211,7 +223,10 @@ async function main() {
   // Tents Provider
   const tentsProvider = await prisma.user.upsert({
     where: { email: "tents@canopy.com" },
-    update: { phone: "+254700000006" },
+    update: {
+      phone: "+254700000006",
+      providerProfile: { update: { city: "Nairobi", country: "Kenya" } },
+    },
     create: {
       email: "tents@canopy.com",
       passwordHash,
