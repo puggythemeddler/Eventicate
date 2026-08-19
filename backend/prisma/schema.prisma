@@ -267,6 +267,8 @@ model Service {
   category      ServiceCategory
   basePrice     Decimal
   discountPercent Float          @default(0)
+  locationCity    String?
+  locationCountry String?
   images        String          // JSON array of image URLs
   isActive      Boolean         @default(true)
   bookings      Booking[]
@@ -314,6 +316,8 @@ model Equipment {
   setupCharge     Decimal         @default(0)
   transportCharge Decimal         @default(0)
   operatorCharge  Decimal         @default(0)
+  locationCity    String?
+  locationCountry String?
   cartItems       CartItem[]
   bookingItems    BookingItem[]
   isActive        Boolean         @default(true)

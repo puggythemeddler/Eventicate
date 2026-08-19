@@ -14,6 +14,8 @@ const createSchema = z.object({
   category: z.enum(categoryValues),
   basePrice: z.number().min(0),
   discountPercent: z.number().min(0).max(100).optional().default(0),
+  locationCity: z.string().optional(),
+  locationCountry: z.string().optional(),
   images: z.array(z.string()).optional(),
 });
 
@@ -24,6 +26,8 @@ const updateSchema = z.object({
   category: z.enum(categoryValues).optional(),
   basePrice: z.number().min(0).optional(),
   discountPercent: z.number().min(0).max(100).optional(),
+  locationCity: z.string().optional(),
+  locationCountry: z.string().optional(),
   isActive: z.boolean().optional(),
 });
 
@@ -71,6 +75,8 @@ router.post("/", async (req, res) => {
         category: data.category,
         basePrice: data.basePrice,
         discountPercent: data.discountPercent,
+        locationCity: data.locationCity,
+        locationCountry: data.locationCountry,
         images: JSON.stringify(data.images || []),
       },
     });
@@ -109,6 +115,8 @@ router.patch("/", async (req, res) => {
         ...(data.category !== undefined && { category: data.category }),
         ...(data.basePrice !== undefined && { basePrice: data.basePrice }),
         ...(data.discountPercent !== undefined && { discountPercent: data.discountPercent }),
+        ...(data.locationCity !== undefined && { locationCity: data.locationCity }),
+        ...(data.locationCountry !== undefined && { locationCountry: data.locationCountry }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
       },
     });

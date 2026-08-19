@@ -16,6 +16,8 @@ const createSchema = z.object({
   setupCharge: z.number().min(0).default(0),
   transportCharge: z.number().min(0).default(0),
   operatorCharge: z.number().min(0).default(0),
+  locationCity: z.string().optional(),
+  locationCountry: z.string().optional(),
   images: z.array(z.string()).optional(),
 });
 
@@ -32,6 +34,8 @@ const updateSchema = z.object({
   setupCharge: z.number().min(0).optional(),
   transportCharge: z.number().min(0).optional(),
   operatorCharge: z.number().min(0).optional(),
+  locationCity: z.string().optional(),
+  locationCountry: z.string().optional(),
   isActive: z.boolean().optional(),
 });
 
@@ -86,6 +90,8 @@ router.post("/", async (req, res) => {
         setupCharge: data.setupCharge,
         transportCharge: data.transportCharge,
         operatorCharge: data.operatorCharge,
+        locationCity: data.locationCity,
+        locationCountry: data.locationCountry,
       },
     });
 
@@ -129,6 +135,8 @@ router.patch("/", async (req, res) => {
         ...(data.setupCharge !== undefined && { setupCharge: data.setupCharge }),
         ...(data.transportCharge !== undefined && { transportCharge: data.transportCharge }),
         ...(data.operatorCharge !== undefined && { operatorCharge: data.operatorCharge }),
+        ...(data.locationCity !== undefined && { locationCity: data.locationCity }),
+        ...(data.locationCountry !== undefined && { locationCountry: data.locationCountry }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
       },
     });

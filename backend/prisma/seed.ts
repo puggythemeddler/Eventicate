@@ -280,16 +280,18 @@ async function main() {
       description: "Complete sound system with speakers, mixer, microphones, and operator",
       category: "PA_SYSTEM",
       basePrice: 35000,
+      locationCity: "Nairobi",
+      locationCountry: "Kenya",
       images: JSON.stringify([IMG.concertRig, IMG.djBooth]),
     },
   });
 
   await prisma.equipment.createMany({
     data: [
-      { providerId: paProfile.id, name: "JBL PRX Speakers", category: "audio", subcategory: "Speakers", quantity: 4, rentalPrice: 15000, setupCharge: 3000, operatorCharge: 5000, images: JSON.stringify([IMG.concertRig]) },
-      { providerId: paProfile.id, name: "Yamaha MG16 Mixer", category: "audio", subcategory: "Mixers", quantity: 2, rentalPrice: 8000, setupCharge: 2000, images: JSON.stringify([IMG.djBooth]) },
-      { providerId: paProfile.id, name: "Shure SM58 Microphones", category: "audio", subcategory: "Microphones", quantity: 6, rentalPrice: 2500, images: JSON.stringify([]) },
-      { providerId: paProfile.id, name: "Moving Head Lights", category: "lighting", subcategory: "Moving Heads", quantity: 8, rentalPrice: 6000, setupCharge: 3000, images: JSON.stringify([]) },
+      { providerId: paProfile.id, name: "JBL PRX Speakers", category: "audio", subcategory: "Speakers", quantity: 4, rentalPrice: 15000, setupCharge: 3000, operatorCharge: 5000, locationCity: "Nairobi", locationCountry: "Kenya", images: JSON.stringify([IMG.concertRig]) },
+      { providerId: paProfile.id, name: "Yamaha MG16 Mixer", category: "audio", subcategory: "Mixers", quantity: 2, rentalPrice: 8000, setupCharge: 2000, locationCity: "Nairobi", locationCountry: "Kenya", images: JSON.stringify([IMG.djBooth]) },
+      { providerId: paProfile.id, name: "Shure SM58 Microphones", category: "audio", subcategory: "Microphones", quantity: 6, rentalPrice: 2500, locationCity: "Nairobi", locationCountry: "Kenya", images: JSON.stringify([]) },
+      { providerId: paProfile.id, name: "Moving Head Lights", category: "lighting", subcategory: "Moving Heads", quantity: 8, rentalPrice: 6000, setupCharge: 3000, locationCity: "Nairobi", locationCountry: "Kenya", images: JSON.stringify([]) },
     ],
   });
 
@@ -380,10 +382,10 @@ async function main() {
   // Tents equipment (KES)
   await prisma.equipment.createMany({
     data: [
-      { providerId: tentsProfile.id, name: "10x20 Marquee Tent", category: "tents", subcategory: "Marquees", quantity: 4, rentalPrice: 25000, setupCharge: 5000, transportCharge: 3000, images: JSON.stringify([IMG.marqueeTent]) },
-      { providerId: tentsProfile.id, name: "15x30 Wedding Marquee", category: "tents", subcategory: "Marquees", quantity: 2, rentalPrice: 45000, setupCharge: 8000, transportCharge: 4000, images: JSON.stringify([IMG.marqueeTent]) },
-      { providerId: tentsProfile.id, name: "20x20 Canopy Tent", category: "tents", subcategory: "Canopies", quantity: 6, rentalPrice: 20000, setupCharge: 4000, transportCharge: 3000, images: JSON.stringify([]) },
-      { providerId: tentsProfile.id, name: "Side Walls (Full Set)", category: "tents", subcategory: "Accessories", quantity: 20, rentalPrice: 3000, images: JSON.stringify([]) },
+      { providerId: tentsProfile.id, name: "10x20 Marquee Tent", category: "tents", subcategory: "Marquees", quantity: 4, rentalPrice: 25000, setupCharge: 5000, transportCharge: 3000, locationCity: "Nairobi", locationCountry: "Kenya", images: JSON.stringify([IMG.marqueeTent]) },
+      { providerId: tentsProfile.id, name: "15x30 Wedding Marquee", category: "tents", subcategory: "Marquees", quantity: 2, rentalPrice: 45000, setupCharge: 8000, transportCharge: 4000, locationCity: "Nairobi", locationCountry: "Kenya", images: JSON.stringify([IMG.marqueeTent]) },
+      { providerId: tentsProfile.id, name: "20x20 Canopy Tent", category: "tents", subcategory: "Canopies", quantity: 6, rentalPrice: 20000, setupCharge: 4000, transportCharge: 3000, locationCity: "Nairobi", locationCountry: "Kenya", images: JSON.stringify([]) },
+      { providerId: tentsProfile.id, name: "Side Walls (Full Set)", category: "tents", subcategory: "Accessories", quantity: 20, rentalPrice: 3000, locationCity: "Nairobi", locationCountry: "Kenya", images: JSON.stringify([]) },
     ],
   });
 
