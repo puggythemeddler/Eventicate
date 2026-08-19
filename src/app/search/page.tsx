@@ -6,16 +6,12 @@ import Link from "next/link";
 import { PublicHeader } from "@/components/layout/Navigation";
 import { Input, Select } from "@/components/ui/Input";
 import { Autocomplete } from "@/components/ui/Autocomplete";
-import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { StarRating } from "@/components/ui/Badge";
-import { CategoryIcon } from "@/components/layout/Navigation";
+import { ListingCard } from "@/components/ui/ListingCard";
 import { SERVICE_CATEGORIES } from "@/lib/constants";
-import { formatCurrency, getCurrencyForCountry } from "@/lib/utils";
-import { Search, MapPin } from "lucide-react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { fetchCountries, COUNTRIES, type CountryData } from "@/lib/locations";
 import { useDetectedLocation, LocationBanner } from "@/components/location/LocationDetector";
-import { StaggerGroup, StaggerItem } from "@/components/motion/animations";
 
 interface Provider {
   id: string;
@@ -28,6 +24,9 @@ interface Provider {
   travelRadius: number | null;
   averageRating: number;
   totalReviews: number;
+  verificationStatus: string;
+  images: string[];
+  coverImageUrl: string | null;
   services: { name: string; basePrice: number }[];
 }
 
@@ -40,6 +39,7 @@ function SearchContent() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(() => Math.max(parseInt(searchParams.get("page") || "1", 10), 1));
   const [dbCountries, setDbCountries] = useState<CountryData[]>([]);
@@ -65,6 +65,8 @@ function SearchContent() {
   const subdivisions = filters.country
     ? (countries.find((c) => c.name === filters.country)?.subdivisions ?? [])
     : [];
+
+  const activeCategory = SERVICE_CATEGORIES.find((c) => c.value === filters.category);
 
   // Sync filter state to the URL (shareable / back-button friendly)
   useEffect(() => {
@@ -112,6 +114,7 @@ function SearchContent() {
         })
         .then((data) => {
           setProviders(data.providers || []);
+          setTotal(data.total || 0);
           setTotalPages(data.totalPages || 1);
           if (page > (data.totalPages || 1)) setPage(1);
         })
@@ -127,206 +130,287 @@ function SearchContent() {
     };
   }, [filters, page]);
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <PublicHeader />
-      <div className="mx-auto max-w-7xl px-4 py-8">
-        <h1 className="mb-6 text-3xl font-bold">Find Event Services</h1>
+  const clearFilters = () => {
+    setPage(1);
+    setFilters({ search: "", category: "", city: "", country: "", travelOutside: "", minPrice: "", maxPrice: "", minRating: "" });
+  };
 
-        {detected && !dismissed && !filters.country && (
+  const hasFilters = Object.values(filters).some(Boolean);
+
+  return (
+    <div className="min-h-screen bg-cream dark:bg-charcoal-950">
+      <PublicHeader />
+
+      {/* Marketplace header */}
+      <div className="border-b border-charcoal-200 bg-sand dark:border-charcoal-800 dark:bg-charcoal-900/50">
+        <div className="mx-auto max-w-7xl px-4 py-8">
+          <h1 className="font-display text-3xl font-semibold text-charcoal-900 dark:text-charcoal-100">
+            {activeCategory ? activeCategory.label : "Explore the marketplace"}
+          </h1>
+          <p className="mt-1 text-sm text-charcoal-500 dark:text-charcoal-400">
+            Verified venues, services and rentals from local providers.
+          </p>
+
+          <div className="mt-6 grid gap-3 md:grid-cols-[1fr_220px_220px]">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-400" />
+              <Input
+                aria-label="Search providers"
+                placeholder="Search providers, services..."
+                value={filters.search}
+                onChange={(e) => {
+                  setPage(1);
+                  setFilters({ ...filters, search: e.target.value });
+                }}
+                className="pl-9"
+              />
+            </div>
+            <Autocomplete
+              label=""
+              value={filters.country}
+              onChange={(val) => {
+                setPage(1);
+                setFilters({ ...filters, country: val, city: "" });
+              }}
+              options={countries.map((c) => ({ value: c.name, label: c.name }))}
+              placeholder="All countries"
+              emptyLabel="No countries found"
+            />
+            <Autocomplete
+              label=""
+              value={filters.city}
+              onChange={(val) => {
+                setPage(1);
+                setFilters({ ...filters, city: val });
+              }}
+              options={subdivisions}
+              placeholder={subdivisions.length === 0 ? "All areas" : "Select an area"}
+              emptyLabel="No matches found"
+            />
+          </div>
+        </div>
+      </div>
+
+      {detected && !dismissed && !filters.country && (
+        <div className="mx-auto max-w-7xl px-4 pt-6">
           <LocationBanner
             detected={detected}
-            onUse={() => setFilters((f) => ({ ...f, country: detected.country, city: "" }))}
+            onUse={() => {
+              setPage(1);
+              setFilters((f) => ({ ...f, country: detected.country, city: "" }));
+            }}
             onDismiss={dismiss}
           />
-        )}
-
-        <div className="mb-4 grid gap-4 md:grid-cols-4">
-          <Input
-            label="Search"
-            placeholder="Search providers..."
-            value={filters.search}
-            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-          />
-          <Select
-            label="Category"
-            value={filters.category}
-            onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-            options={[
-              { value: "", label: "All Categories" },
-              ...SERVICE_CATEGORIES.map((c) => ({ value: c.value, label: c.label })),
-            ]}
-          />
-          <Autocomplete
-            label="Country"
-            value={filters.country}
-            onChange={(val) => setFilters({ ...filters, country: val, city: "" })}
-            options={countries.map((c) => ({ value: c.name, label: c.name }))}
-            placeholder="All Countries"
-            emptyLabel="No countries found"
-          />
-          <Autocomplete
-            label="County / Region"
-            value={filters.city}
-            onChange={(val) => setFilters({ ...filters, city: val })}
-            options={subdivisions}
-            placeholder={subdivisions.length === 0 ? "Select a country first" : "All areas"}
-            emptyLabel={subdivisions.length === 0 ? "Select a country first" : "No matches found"}
-          />
         </div>
-        <div className="mb-8 flex flex-wrap items-center gap-4">
-          <label className="flex cursor-pointer items-center gap-2">
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-              checked={filters.travelOutside === "true"}
-              onChange={(e) => {
-                setPage(1);
-                setFilters({ ...filters, travelOutside: e.target.checked ? "true" : "" });
-              }}
-            />
-            <span className="text-sm text-gray-600 dark:text-gray-300">
-              Only show providers willing to travel outside their area
-            </span>
-          </label>
-          <div className="h-5 w-px bg-gray-300 dark:bg-gray-700" />
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600 dark:text-gray-300">Price</label>
-            <Input
-              aria-label="Minimum price"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="Min"
-              value={filters.minPrice}
-              onChange={(e) => {
-                setPage(1);
-                setFilters({ ...filters, minPrice: e.target.value });
-              }}
-              className="w-24"
-            />
-            <span className="text-gray-400">–</span>
-            <Input
-              aria-label="Maximum price"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="Max"
-              value={filters.maxPrice}
-              onChange={(e) => {
-                setPage(1);
-                setFilters({ ...filters, maxPrice: e.target.value });
-              }}
-              className="w-24"
-            />
+      )}
+
+      <div className="mx-auto max-w-7xl gap-10 px-4 py-8 lg:grid lg:grid-cols-[260px_1fr]">
+        {/* Filters */}
+        <aside className="mb-8 lg:mb-0">
+          <div className="lg:sticky lg:top-8">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-charcoal-700 dark:text-charcoal-200">
+                <SlidersHorizontal className="h-4 w-4" />
+                Filters
+              </h2>
+              {hasFilters && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-primary-700 hover:underline dark:text-primary-400"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Clear all
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-7">
+              {/* Category */}
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-charcoal-500 dark:text-charcoal-400">
+                  Category
+                </p>
+                <div className="space-y-0.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPage(1);
+                      setFilters({ ...filters, category: "" });
+                    }}
+                    className={`block w-full rounded-md px-3 py-1.5 text-left text-sm transition-colors ${
+                      !filters.category
+                        ? "bg-primary-50 font-medium text-primary-800 dark:bg-primary-900/30 dark:text-primary-200"
+                        : "text-charcoal-600 hover:bg-sand dark:text-charcoal-300 dark:hover:bg-charcoal-800"
+                    }`}
+                  >
+                    All categories
+                  </button>
+                  {SERVICE_CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.value}
+                      type="button"
+                      onClick={() => {
+                        setPage(1);
+                        setFilters({ ...filters, category: cat.value });
+                      }}
+                      className={`flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-left text-sm transition-colors ${
+                        filters.category === cat.value
+                          ? "bg-primary-50 font-medium text-primary-800 dark:bg-primary-900/30 dark:text-primary-200"
+                          : "text-charcoal-600 hover:bg-sand dark:text-charcoal-300 dark:hover:bg-charcoal-800"
+                      }`}
+                    >
+                      <cat.icon className="h-4 w-4 text-charcoal-400 dark:text-charcoal-500" />
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Price */}
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-charcoal-500 dark:text-charcoal-400">
+                  Price
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    aria-label="Minimum price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="Min"
+                    value={filters.minPrice}
+                    onChange={(e) => {
+                      setPage(1);
+                      setFilters({ ...filters, minPrice: e.target.value });
+                    }}
+                  />
+                  <span className="text-charcoal-400">–</span>
+                  <Input
+                    aria-label="Maximum price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="Max"
+                    value={filters.maxPrice}
+                    onChange={(e) => {
+                      setPage(1);
+                      setFilters({ ...filters, maxPrice: e.target.value });
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Rating */}
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-charcoal-500 dark:text-charcoal-400">
+                  Minimum rating
+                </p>
+                <Select
+                  aria-label="Minimum rating"
+                  value={filters.minRating}
+                  onChange={(e) => {
+                    setPage(1);
+                    setFilters({ ...filters, minRating: e.target.value });
+                  }}
+                  options={[
+                    { value: "", label: "Any rating" },
+                    { value: "4.5", label: "4.5 & up" },
+                    { value: "4", label: "4.0 & up" },
+                    { value: "3", label: "3.0 & up" },
+                  ]}
+                />
+              </div>
+
+              {/* Travel */}
+              <label className="flex cursor-pointer items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 rounded border-charcoal-300 text-primary-600 focus:ring-primary-500"
+                  checked={filters.travelOutside === "true"}
+                  onChange={(e) => {
+                    setPage(1);
+                    setFilters({ ...filters, travelOutside: e.target.checked ? "true" : "" });
+                  }}
+                />
+                <span className="text-sm text-charcoal-600 dark:text-charcoal-300">
+                  Only show providers willing to travel outside their area
+                </span>
+              </label>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600 dark:text-gray-300">Min rating</label>
-            <Select
-              aria-label="Minimum rating"
-              value={filters.minRating}
-              onChange={(e) => {
-                setPage(1);
-                setFilters({ ...filters, minRating: e.target.value });
-              }}
-              options={[
-                { value: "", label: "Any" },
-                { value: "4.5", label: "4.5+" },
-                { value: "4", label: "4.0+" },
-                { value: "3", label: "3.0+" },
-              ]}
-              className="w-28"
-            />
-          </div>
+        </aside>
+
+        {/* Results */}
+        <div>
+          <p className="mb-4 text-sm text-charcoal-500 dark:text-charcoal-400">
+            {loading ? "Searching..." : `${total} provider${total === 1 ? "" : "s"} found`}
+          </p>
+
+          {loading ? (
+            <div className="py-16 text-center text-charcoal-500 dark:text-charcoal-400">
+              <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-charcoal-300 border-t-primary-600 dark:border-charcoal-700 dark:border-t-primary-400" />
+              Loading providers...
+            </div>
+          ) : error ? (
+            <div className="py-16 text-center">
+              <p className="text-terracotta-600">{error}</p>
+              <button
+                type="button"
+                onClick={() => setFilters({ ...filters })}
+                className="mt-3 text-sm font-medium text-primary-700 hover:underline dark:text-primary-400"
+              >
+                Retry
+              </button>
+            </div>
+          ) : providers.length === 0 ? (
+            <div className="rounded-xl border border-charcoal-200 bg-white py-16 text-center dark:border-charcoal-800 dark:bg-charcoal-900">
+              <Search className="mx-auto mb-4 h-10 w-10 text-charcoal-300 dark:text-charcoal-700" />
+              <p className="font-medium text-charcoal-700 dark:text-charcoal-200">No providers found</p>
+              <p className="mt-1 text-sm text-charcoal-500 dark:text-charcoal-400">
+                Try adjusting your filters or exploring a different category.
+              </p>
+              <Link href="/search" className="mt-4 inline-block">
+                <Button variant="outline">Reset search</Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {providers.map((provider) => (
+                <ListingCard
+                  key={provider.id}
+                  provider={{
+                    ...provider,
+                    totalReviews: provider.totalReviews,
+                    coverImageUrl: provider.coverImageUrl ?? provider.images?.[0] ?? null,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <div className="mt-10 flex items-center justify-center gap-4">
+              <Button
+                variant="outline"
+                disabled={page <= 1 || loading}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                ← Previous
+              </Button>
+              <span className="text-sm text-charcoal-600 dark:text-charcoal-300">
+                Page {page} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                disabled={page >= totalPages || loading}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                Next →
+              </Button>
+            </div>
+          )}
         </div>
-
-        {loading ? (
-          <div className="py-12 text-center text-gray-500 dark:text-gray-400">Loading providers...</div>
-        ) : error ? (
-          <div className="py-12 text-center">
-            <p className="text-red-500">{error}</p>
-            <button
-              type="button"
-              onClick={() => setFilters({ ...filters })}
-              className="mt-3 text-sm font-medium text-primary-600 hover:underline"
-            >
-              Retry
-            </button>
-          </div>
-        ) : providers.length === 0 ? (
-          <div className="py-12 text-center text-gray-500 dark:text-gray-400">
-            <Search className="mx-auto mb-4 h-12 w-12 text-gray-300 dark:text-gray-600" />
-            No providers found. Try adjusting your filters.
-          </div>
-        ) : (
-          <StaggerGroup
-            key={JSON.stringify(filters)}
-            className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
-          >
-            {providers.map((provider) => (
-              <StaggerItem key={provider.id} className="h-full">
-                <Link href={`/providers/${provider.id}`}>
-                  <Card hover className="h-full">
-                  <div className="mb-3 flex items-center gap-2">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100 text-primary-700">
-                      <CategoryIcon category={provider.category} />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">{provider.businessName}</h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {SERVICE_CATEGORIES.find((c) => c.value === provider.category)?.label}
-                        {provider.city && ` · ${provider.city}`}
-                        {provider.country && `, ${provider.country}`}
-                      </p>
-                    </div>
-                  </div>
-                  {provider.description && (
-                    <p className="mb-3 line-clamp-2 text-sm text-gray-600 dark:text-gray-300">
-                      {provider.description}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <StarRating rating={provider.averageRating} />
-                    {provider.travelOutsideArea && (
-                      <span className="flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-                        <MapPin className="h-3 w-3" />
-                        Travels{provider.travelRadius ? ` ${provider.travelRadius}km` : ""}
-                      </span>
-                    )}
-                  </div>
-                  {provider.services.length > 0 && (
-                    <p className="mt-2 text-sm text-primary-600">
-                      From {formatCurrency(provider.services[0].basePrice, getCurrencyForCountry(provider.country))}
-                    </p>
-                  )}
-                </Card>
-                </Link>
-              </StaggerItem>
-            ))}
-          </StaggerGroup>
-        )}
-
-        {totalPages > 1 && (
-          <div className="mt-10 flex items-center justify-center gap-4">
-            <Button
-              variant="outline"
-              disabled={page <= 1 || loading}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              ← Previous
-            </Button>
-            <span className="text-sm text-gray-600 dark:text-gray-300">
-              Page {page} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              disabled={page >= totalPages || loading}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            >
-              Next →
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   );
