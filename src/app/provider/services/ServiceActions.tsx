@@ -8,8 +8,9 @@ import { Toggle } from "@/components/ui/Toggle";
 import { formatCurrency, parseJsonArray } from "@/lib/utils";
 import { useCurrency } from "@/hooks/useCurrency";
 import { SERVICE_CATEGORIES } from "@/lib/constants";
-import { Trash2 } from "lucide-react";
+import { Pencil, MapPin, Trash2 } from "lucide-react";
 import Image from "next/image";
+import { EditServiceModal } from "@/components/providers/EditServiceModal";
 
 interface ServiceActionsProps {
   service: {
@@ -19,6 +20,8 @@ interface ServiceActionsProps {
     category: string;
     basePrice: number;
     discountPercent: number;
+    locationCity: string | null;
+    locationCountry: string | null;
     isActive: boolean;
     images: string;
   };
@@ -32,6 +35,7 @@ export function ServiceActions({ service }: ServiceActionsProps) {
   const currency = useCurrency();
   const [isActive, setIsActive] = useState(service.isActive);
   const [deleting, setDeleting] = useState(false);
+  const [editing, setEditing] = useState(false);
   const router = useRouter();
   const images = parseJsonArray<string>(service.images);
   const hasDiscount = service.discountPercent > 0;
@@ -65,6 +69,12 @@ export function ServiceActions({ service }: ServiceActionsProps) {
             <p className="text-xs text-charcoal-500 dark:text-charcoal-400">
               {SERVICE_CATEGORIES.find((c) => c.value === service.category)?.label || service.category}
             </p>
+            {(service.locationCity || service.locationCountry) && (
+              <p className="mt-0.5 flex items-center text-xs text-charcoal-500 dark:text-charcoal-400">
+                <MapPin className="mr-1 inline h-3 w-3" />
+                {[service.locationCity, service.locationCountry].filter(Boolean).join(", ")}
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-2">
             {hasDiscount && <Badge variant="warning">{service.discountPercent}% OFF</Badge>}
@@ -101,10 +111,22 @@ export function ServiceActions({ service }: ServiceActionsProps) {
             {isActive ? "Active" : "Inactive"}
           </span>
         </div>
-        <Button onClick={deleteService} variant="danger" size="sm" disabled={deleting}>
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setEditing(true)} variant="outline" size="sm">
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button onClick={deleteService} variant="danger" size="sm" disabled={deleting}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
+      {editing && (
+        <EditServiceModal
+          service={service}
+          onClose={() => setEditing(false)}
+          onSaved={() => router.refresh()}
+        />
+      )}
     </div>
   );
 }

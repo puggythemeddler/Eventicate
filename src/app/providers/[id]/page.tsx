@@ -44,6 +44,8 @@ interface ProviderData {
     images: string;
     basePrice: number;
     discountPercent: number;
+    locationCity: string | null;
+    locationCountry: string | null;
   }>;
   venues: Array<{
     id: string;
@@ -72,6 +74,8 @@ interface ProviderData {
     images: string[];
     rentalPrice: number;
     discountPercent: number;
+    locationCity: string | null;
+    locationCountry: string | null;
   }>;
   pricingRules: Array<{
     id: string;
@@ -232,6 +236,18 @@ export default async function ProviderProfilePage({
                               {service.description && (
                                 <p className="text-sm text-charcoal-500 dark:text-charcoal-400">{service.description}</p>
                               )}
+                              {(() => {
+                                const loc = service.locationCity || service.locationCountry
+                                  ? [service.locationCity || provider.city, service.locationCountry || provider.country]
+                                  : [provider.city, provider.country];
+                                const label = loc.filter(Boolean).join(", ");
+                                return label ? (
+                                  <p className="mt-1 flex items-center text-xs text-charcoal-500 dark:text-charcoal-400">
+                                    <MapPin className="mr-1 inline h-3 w-3" />
+                                    {label}
+                                  </p>
+                                ) : null;
+                              })()}
                             </div>
                             <div className="flex items-center gap-3">
                               {hasDiscount && <Badge variant="warning">{service.discountPercent}% OFF</Badge>}
@@ -348,6 +364,18 @@ export default async function ProviderProfilePage({
                           <div>
                             <p className="font-medium">{item.name}</p>
                             <p className="text-xs text-charcoal-500 dark:text-charcoal-400">{item.subcategory} · Qty: {item.quantity}</p>
+                            {(() => {
+                              const loc = item.locationCity || item.locationCountry
+                                ? [item.locationCity || provider.city, item.locationCountry || provider.country]
+                                : [provider.city, provider.country];
+                              const label = loc.filter(Boolean).join(", ");
+                              return label ? (
+                                <p className="mt-1 flex items-center text-xs text-charcoal-500 dark:text-charcoal-400">
+                                  <MapPin className="mr-1 inline h-3 w-3" />
+                                  {label}
+                                </p>
+                              ) : null;
+                            })()}
                           </div>
                           <div className="flex items-center gap-3">
                             {hasDiscount && <Badge variant="warning">{item.discountPercent}% OFF</Badge>}

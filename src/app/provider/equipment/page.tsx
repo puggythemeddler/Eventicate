@@ -20,6 +20,8 @@ interface EquipmentItem {
   setupCharge: number;
   transportCharge: number;
   operatorCharge: number;
+  locationCity: string | null;
+  locationCountry: string | null;
   isActive: boolean;
   images: string;
 }
@@ -29,6 +31,15 @@ export default async function EquipmentPage() {
   if (!session || session.role !== "PROVIDER") redirect("/auth/login");
 
   const { equipment } = await serverApi<{ equipment: EquipmentItem[] }>("/api/equipment");
+
+  let providerSettings: { provider: { city: string | null; country: string | null } } | null = null;
+  try {
+    providerSettings = await serverApi<{ provider: { city: string | null; country: string | null } }>("/api/provider/settings");
+  } catch {
+    // location defaults just stay empty
+  }
+  const defaultCity = providerSettings?.provider?.city || "";
+  const defaultCountry = providerSettings?.provider?.country || "";
 
   const activeCount = equipment.filter((e) => e.isActive).length;
   const totalQty = equipment.reduce((sum, e) => sum + e.quantity, 0);
@@ -67,7 +78,7 @@ export default async function EquipmentPage() {
           <div>
             <Card>
               <CardTitle className="mb-4">Add Equipment</CardTitle>
-              <AddEquipmentForm />
+              <AddEquipmentForm defaultCity={defaultCity} defaultCountry={defaultCountry} />
             </Card>
           </div>
         </div>

@@ -8,6 +8,7 @@ import { formatCurrency } from "@/lib/utils";
 import { useCurrency } from "@/hooks/useCurrency";
 import { Plus, X } from "lucide-react";
 import Image from "next/image";
+import { ProductLocationFields } from "./ProductLocationFields";
 
 const categoryOptions = [
   { value: "", label: "Select category..." },
@@ -17,13 +18,15 @@ const categoryOptions = [
   })),
 ];
 
-export function AddEquipmentForm() {
+export function AddEquipmentForm({ defaultCity = "", defaultCountry = "" }: { defaultCity?: string; defaultCountry?: string }) {
   const currency = useCurrency();
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [rentalPrice, setRentalPrice] = useState(0);
+  const [locationCountry, setLocationCountry] = useState(defaultCountry);
+  const [locationCity, setLocationCity] = useState(defaultCity);
 
   const discountedPrice = rentalPrice * (100 - discountPercent) / 100;
 
@@ -77,6 +80,8 @@ export function AddEquipmentForm() {
         setupCharge: Number(formData.get("setupCharge")) || 0,
         transportCharge: Number(formData.get("transportCharge")) || 0,
         operatorCharge: Number(formData.get("operatorCharge")) || 0,
+        locationCity: locationCity || undefined,
+        locationCountry: locationCountry || undefined,
         images: imageUrls,
       }),
     });
@@ -89,6 +94,14 @@ export function AddEquipmentForm() {
       <Input label="Equipment Name" name="name" required placeholder="e.g. JBL SRX835" />
       <Select label="Category" name="category" options={categoryOptions} required />
       <Input label="Subcategory" name="subcategory" required placeholder="e.g. Speakers" />
+      <ProductLocationFields
+        country={locationCountry}
+        city={locationCity}
+        onChange={(l) => {
+          setLocationCountry(l.country);
+          setLocationCity(l.city);
+        }}
+      />
       <div className="grid grid-cols-2 gap-3">
         <Input label="Quantity" name="quantity" type="number" min="1" defaultValue="1" />
         <Input label="Condition" name="condition" defaultValue="good" placeholder="good, excellent, fair" />

@@ -8,16 +8,19 @@ import { formatCurrency } from "@/lib/utils";
 import { useCurrency } from "@/hooks/useCurrency";
 import { Plus, X } from "lucide-react";
 import Image from "next/image";
+import { ProductLocationFields } from "./ProductLocationFields";
 
 const categoryOptions = SERVICE_CATEGORIES.map((c) => ({ value: c.value, label: c.label }));
 
-export function AddServiceForm() {
+export function AddServiceForm({ defaultCity = "", defaultCountry = "" }: { defaultCity?: string; defaultCountry?: string }) {
   const currency = useCurrency();
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [basePrice, setBasePrice] = useState(0);
+  const [locationCountry, setLocationCountry] = useState(defaultCountry);
+  const [locationCity, setLocationCity] = useState(defaultCity);
 
   const discountedPrice = basePrice * (100 - discountPercent) / 100;
 
@@ -65,6 +68,8 @@ export function AddServiceForm() {
         category: formData.get("category"),
         basePrice: Number(formData.get("basePrice")),
         discountPercent: Number(formData.get("discountPercent")) || 0,
+        locationCity: locationCity || undefined,
+        locationCountry: locationCountry || undefined,
         images: imageUrls,
       }),
     });
@@ -77,6 +82,14 @@ export function AddServiceForm() {
       <Input label="Service Name" name="name" required placeholder="e.g. Premium Sound System" />
       <Textarea label="Description" name="description" rows={2} placeholder="Describe what this service includes..." />
       <Select label="Category" name="category" options={categoryOptions} required />
+      <ProductLocationFields
+        country={locationCountry}
+        city={locationCity}
+        onChange={(l) => {
+          setLocationCountry(l.country);
+          setLocationCity(l.city);
+        }}
+      />
       <Input label="Base Price" name="basePrice" type="number" step="0.01" min="0" required onChange={(e) => setBasePrice(Number(e.target.value) || 0)} />
       <Input label="Discount (%)" name="discountPercent" type="number" min="0" max="100" value={discountPercent} onChange={(e) => setDiscountPercent(Math.min(100, Math.max(0, Number(e.target.value) || 0)))} />
       {discountPercent > 0 && (

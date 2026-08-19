@@ -7,15 +7,17 @@ import { Badge } from "@/components/ui/Badge";
 import { Toggle } from "@/components/ui/Toggle";
 import { formatCurrency, parseJsonArray } from "@/lib/utils";
 import { useCurrency } from "@/hooks/useCurrency";
-import { Trash2, Package } from "lucide-react";
+import { Pencil, MapPin, Trash2, Package } from "lucide-react";
 import Image from "next/image";
+import { EditEquipmentModal } from "@/components/providers/EditEquipmentModal";
 
 interface EquipmentActionsProps {
   item: {
     id: string; name: string; category: string; subcategory: string;
     quantity: number; condition: string; description: string | null;
     rentalPrice: number; discountPercent: number; setupCharge: number; transportCharge: number;
-    operatorCharge: number; isActive: boolean; images: string;
+    operatorCharge: number; locationCity: string | null; locationCountry: string | null;
+    isActive: boolean; images: string;
   };
 }
 
@@ -27,6 +29,7 @@ export function EquipmentActions({ item }: EquipmentActionsProps) {
   const currency = useCurrency();
   const [isActive, setIsActive] = useState(item.isActive);
   const [deleting, setDeleting] = useState(false);
+  const [editing, setEditing] = useState(false);
   const router = useRouter();
   const images = parseJsonArray<string>(item.images);
   const hasDiscount = item.discountPercent > 0;
@@ -59,6 +62,12 @@ export function EquipmentActions({ item }: EquipmentActionsProps) {
           <div>
             <h3 className="font-semibold">{item.name}</h3>
             <p className="text-xs text-charcoal-500 dark:text-charcoal-400">{item.subcategory} · {item.category}</p>
+            {(item.locationCity || item.locationCountry) && (
+              <p className="mt-0.5 flex items-center text-xs text-charcoal-500 dark:text-charcoal-400">
+                <MapPin className="mr-1 inline h-3 w-3" />
+                {[item.locationCity, item.locationCountry].filter(Boolean).join(", ")}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -126,10 +135,22 @@ export function EquipmentActions({ item }: EquipmentActionsProps) {
             {isActive ? "Active" : "Inactive"}
           </span>
         </div>
-        <Button onClick={deleteItem} variant="danger" size="sm" disabled={deleting}>
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setEditing(true)} variant="outline" size="sm">
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button onClick={deleteItem} variant="danger" size="sm" disabled={deleting}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
+      {editing && (
+        <EditEquipmentModal
+          item={item}
+          onClose={() => setEditing(false)}
+          onSaved={() => router.refresh()}
+        />
+      )}
     </div>
   );
 }

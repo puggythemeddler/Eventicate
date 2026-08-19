@@ -14,6 +14,8 @@ interface ServiceItem {
   category: string;
   basePrice: number;
   discountPercent: number;
+  locationCity: string | null;
+  locationCountry: string | null;
   isActive: boolean;
   images: string;
 }
@@ -23,6 +25,15 @@ export default async function ServicesPage() {
   if (!session || session.role !== "PROVIDER") redirect("/auth/login");
 
   const { services } = await serverApi<{ services: ServiceItem[] }>("/api/services");
+
+  let providerSettings: { provider: { city: string | null; country: string | null } } | null = null;
+  try {
+    providerSettings = await serverApi<{ provider: { city: string | null; country: string | null } }>("/api/provider/settings");
+  } catch {
+    // location defaults just stay empty
+  }
+  const defaultCity = providerSettings?.provider?.city || "";
+  const defaultCountry = providerSettings?.provider?.country || "";
 
   const activeCount = services.filter((s) => s.isActive).length;
 
@@ -60,7 +71,7 @@ export default async function ServicesPage() {
           <div>
             <Card>
               <CardTitle className="mb-4">Add New Service</CardTitle>
-              <AddServiceForm />
+              <AddServiceForm defaultCity={defaultCity} defaultCountry={defaultCountry} />
             </Card>
           </div>
         </div>
