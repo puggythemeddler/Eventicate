@@ -3,98 +3,124 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-primary-50: #fdf6f1;
-  --color-primary-100: #faeadd;
-  --color-primary-200: #f4d4bc;
-  --color-primary-300: #ecb592;
-  --color-primary-400: #e28e62;
-  --color-primary-500: #d76f3f;
-  --color-primary-600: #c04a1f;
-  --color-primary-700: #a03a1a;
-  --color-primary-800: #83301a;
-  --color-primary-900: #6b2918;
-  --color-primary-950: #3a1209;
+  /* ─── Brand: Deep Charcoal ─────────────────────────────────────────── */
+  --color-charcoal-50: #f7f6f5;
+  --color-charcoal-100: #ebe9e7;
+  --color-charcoal-200: #d8d4d1;
+  --color-charcoal-300: #bcb6b1;
+  --color-charcoal-400: #99918b;
+  --color-charcoal-500: #7e7671;
+  --color-charcoal-600: #6b6360;
+  --color-charcoal-700: #574f4d;
+  --color-charcoal-800: #3d3836;
+  --color-charcoal-900: #292624;
+  --color-charcoal-950: #181615;
+
+  /* ─── Brand: Earth Brown (primary warmth) ──────────────────────────── */
+  --color-primary-50: #f7f2ed;
+  --color-primary-100: #eee1d6;
+  --color-primary-200: #ddc2ac;
+  --color-primary-300: #c89c7c;
+  --color-primary-400: #b27a55;
+  --color-primary-500: #9c6340;
+  --color-primary-600: #855033;
+  --color-primary-700: #6c3f2b;
+  --color-primary-800: #573426;
+  --color-primary-900: #472d22;
+  --color-primary-950: #261611;
+
+  /* ─── Accent: Muted Gold / Warm Amber ──────────────────────────────── */
+  --color-gold-50: #faf6ec;
+  --color-gold-100: #f4ecd3;
+  --color-gold-200: #e9d8a5;
+  --color-gold-300: #dcbf74;
+  --color-gold-400: #cfa64e;
+  --color-gold-500: #bb8b33;
+  --color-gold-600: #a06f29;
+  --color-gold-700: #815625;
+  --color-gold-800: #6a4724;
+  --color-gold-900: #5b3d23;
+  --color-gold-950: #342010;
+
+  /* ─── Supporting: Muted Olive ──────────────────────────────────────── */
+  --color-olive-50: #f6f7f1;
+  --color-olive-100: #e9ebdc;
+  --color-olive-200: #d3d7ba;
+  --color-olive-300: #b6bd92;
+  --color-olive-400: #9aa16f;
+  --color-olive-500: #7d8453;
+  --color-olive-600: #62683f;
+  --color-olive-700: #4c5034;
+  --color-olive-800: #3e412d;
+  --color-olive-900: #363827;
+  --color-olive-950: #1d1e14;
+
+  /* ─── Supporting: Soft Terracotta (danger) ─────────────────────────── */
+  --color-terracotta-50: #fbf0ee;
+  --color-terracotta-100: #f5ddd8;
+  --color-terracotta-200: #eac0b8;
+  --color-terracotta-300: #dd9a8f;
+  --color-terracotta-400: #cd7266;
+  --color-terracotta-500: #bc5347;
+  --color-terracotta-600: #a94337;
+  --color-terracotta-700: #8e352c;
+  --color-terracotta-800: #762e28;
+  --color-terracotta-900: #632a26;
+  --color-terracotta-950: #361312;
+
+  /* ─── Warm backgrounds / text ──────────────────────────────────────── */
+  --color-cream: #faf7f2;
+  --color-sand: #f3ede3;
+  --color-ink: #201d1b;
+
+  /* ─── Typography ───────────────────────────────────────────────────── */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+
+  /* ─── Radius: medium, pills reserved for badges/tags ──────────────── */
+  --radius-sm: 0.1875rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.625rem;
+  --radius-2xl: 0.75rem;
+  --radius-3xl: 1rem;
+
+  /* ─── Shadows: subtle, warm ────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px 0 rgb(41 38 36 / 0.06);
+  --shadow-md: 0 2px 6px -1px rgb(41 38 36 / 0.08), 0 1px 3px -1px rgb(41 38 36 / 0.06);
+  --shadow-lg: 0 10px 24px -6px rgb(41 38 36 / 0.12), 0 4px 8px -4px rgb(41 38 36 / 0.06);
+  --shadow-xl: 0 20px 36px -8px rgb(41 38 36 / 0.16), 0 8px 16px -6px rgb(41 38 36 / 0.08);
 }
 
 html {
-  transition: background-color 0.3s, color 0.3s;
+  scroll-behavior: smooth;
 }
 
 body {
   font-family: var(--font-sans);
-  @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100;
+  @apply bg-cream text-charcoal-800 antialiased dark:bg-charcoal-950 dark:text-charcoal-100;
 }
 
-.gradient-hero {
-  background: linear-gradient(135deg, #6b2918 0%, #c04a1f 50%, #e28e62 100%);
+/* Serif display for editorial headings */
+.font-display {
+  letter-spacing: -0.01em;
 }
 
-.gradient-hero-sombre {
-  background: linear-gradient(135deg, #374151 0%, #6b7280 55%, #9ca3af 100%);
+/* Hero image overlay: keeps copy legible over photography */
+.hero-image-overlay {
+  background: linear-gradient(
+    180deg,
+    rgb(24 22 21 / 0.25) 0%,
+    rgb(24 22 21 / 0.35) 40%,
+    rgb(24 22 21 / 0.88) 100%
+  );
 }
 
+/* Subtle hover lift for marketplace cards: border + shadow, no floating */
 .card-hover {
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 .card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 40px rgba(192, 74, 31, 0.15);
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes float-slow {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-16px);
-  }
-}
-
-@keyframes pulse-glow {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-@keyframes gradient-shift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-.animate-float {
-  animation: float 5s ease-in-out infinite;
-}
-
-.animate-float-slow {
-  animation: float-slow 7s ease-in-out infinite;
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 3.5s ease-in-out infinite;
-}
-
-.gradient-shift {
-  background-size: 200% 200%;
-  animation: gradient-shift 12s ease infinite;
+  box-shadow: var(--shadow-lg);
 }

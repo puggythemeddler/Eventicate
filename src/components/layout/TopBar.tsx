@@ -13,10 +13,10 @@ export function TopBar() {
   };
 
   return (
-    <div className="flex items-center justify-end border-b border-gray-200 bg-white px-6 py-3 dark:border-gray-800 dark:bg-gray-900">
+    <div className="flex items-center justify-end border-b border-charcoal-200 bg-white px-6 py-3 dark:border-charcoal-800 dark:bg-charcoal-900">
       <button
         onClick={handleLogout}
-        className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-red-600 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-red-400"
+        className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-charcoal-600 transition-colors hover:bg-sand hover:text-terracotta-600 dark:text-charcoal-300 dark:hover:bg-charcoal-800 dark:hover:text-terracotta-400"
       >
         <LogOut className="h-4 w-4" />
         Sign Out

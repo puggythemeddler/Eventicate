@@ -106,12 +106,12 @@ export function Autocomplete({
   return (
     <div ref={wrapperRef} className="relative space-y-1">
       {label && (
-        <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label htmlFor={inputId} className="block text-sm font-medium text-charcoal-700 dark:text-charcoal-200">
           {label}
         </label>
       )}
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-400" />
         <input
           ref={inputRef}
           id={inputId}
@@ -133,8 +133,8 @@ export function Autocomplete({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className={cn(
-            "w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-8 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100",
-            "focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            "w-full rounded-lg border border-charcoal-300 bg-white py-2 pl-9 pr-8 text-sm text-charcoal-900 shadow-sm dark:border-charcoal-700 dark:bg-charcoal-900 dark:text-charcoal-100",
+            "focus:border-primary-600 focus:outline-none focus:ring-1 focus:ring-primary-600"
           )}
         />
         {clearable && value && (
@@ -153,10 +153,10 @@ export function Autocomplete({
           id={listboxId}
           role="listbox"
           aria-label={label ?? "Options"}
-          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
+          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-charcoal-200 bg-white shadow-lg dark:border-charcoal-700 dark:bg-charcoal-900"
         >
           {filtered.length === 0 ? (
-            <div className="px-3 py-2 text-sm text-gray-400">{emptyLabel}</div>
+            <div className="px-3 py-2 text-sm text-charcoal-400">{emptyLabel}</div>
           ) : (
             filtered.map((opt, i) => (
               <button
@@ -173,8 +173,8 @@ export function Autocomplete({
                 className={cn(
                   "flex w-full items-center px-3 py-2 text-left text-sm transition-colors",
                   focusedIndex === i
-                    ? "bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
-                    : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700/50",
+                    ? "bg-primary-50 text-primary-800 dark:bg-primary-900/30 dark:text-primary-200"
+                    : "text-charcoal-700 hover:bg-sand dark:text-charcoal-300 dark:hover:bg-charcoal-800",
                   opt.value === value && "font-medium"
                 )}
               >
