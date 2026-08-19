@@ -148,7 +148,7 @@ export default function NewEventPage() {
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
-                    {cat.icon} {cat.label}
+                    {cat.icon ? <cat.icon className="mr-1 inline h-4 w-4" /> : null} {cat.label}
                   </button>
                 ))}
               </div>

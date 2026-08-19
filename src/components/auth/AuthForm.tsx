@@ -71,11 +71,11 @@ export function AuthForm({ mode, defaultRole = "customer", googleError }: AuthFo
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-cream dark:bg-charcoal-950">
       <PublicHeader />
       <div className="mx-auto flex max-w-md flex-col items-center px-4 py-16">
         <Card className="w-full">
-          <h1 className="mb-2 text-2xl font-bold">
+          <h1 className="mb-2 font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">
             {isRegister ? "Create Account" : "Sign In"}
           </h1>
           <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">

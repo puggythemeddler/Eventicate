@@ -3,10 +3,10 @@ import { PublicHeader } from "@/components/layout/Navigation";
 
 export default function HowItWorksPage() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-cream dark:bg-charcoal-950">
       <PublicHeader />
       <div className="mx-auto max-w-3xl px-4 py-16">
-        <h1 className="mb-8 text-4xl font-bold">How Eventicate Works</h1>
+        <h1 className="mb-8 font-display text-4xl font-semibold text-charcoal-900 dark:text-charcoal-100">How Eventicate Works</h1>
         <div className="space-y-8">
           {[
             { n: 1, title: "Create Your Event", body: "Sign up, create an event with type, date, location, guest count, and budget. Select the services you need." },

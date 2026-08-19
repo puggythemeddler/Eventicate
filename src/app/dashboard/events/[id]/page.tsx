@@ -171,8 +171,9 @@ export default async function EventDetailPage({
               {requiredServices.map((svc) => {
                 const cat = SERVICE_CATEGORIES.find((c) => c.value === svc);
                 return (
-                  <Badge key={svc}>
-                    {cat ? `${cat.icon} ${cat.label}` : svc}
+<Badge key={svc} className="gap-1">
+                    {cat ? <cat.icon className="h-3.5 w-3.5" /> : null}
+                    {cat ? cat.label : svc}
                   </Badge>
                 );
               })}

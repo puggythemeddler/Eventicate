@@ -157,10 +157,10 @@ export default async function ProviderDashboard() {
       <Sidebar role="PROVIDER" />
       <PageContent>
         <div className="mb-8">
-          <h1 className="text-2xl font-bold">{dashboard.businessName}</h1>
-          <p className="text-gray-500 dark:text-gray-400">Provider Dashboard</p>
+          <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">{dashboard.businessName}</h1>
+          <p className="text-charcoal-500 dark:text-charcoal-400">Provider Dashboard</p>
           {!dashboard.isApproved && (
-            <div className="mt-2 rounded-lg bg-yellow-50 p-3 text-sm text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+            <div className="mt-2 rounded-lg bg-gold-50 p-3 text-sm text-gold-800 dark:bg-gold-900/30 dark:text-gold-300">
               Your profile is pending admin approval.
             </div>
           )}

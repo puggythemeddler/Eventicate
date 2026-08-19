@@ -127,7 +127,7 @@ export default function BudgetPage() {
                         <div key={cat}>
                           <div className="mb-1 flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
-                              <span>{catInfo?.icon}</span>
+                              {catInfo?.icon ? <catInfo.icon className="h-4 w-4 text-primary-600" /> : null}
                               <span className="font-medium">{catInfo?.label || cat}</span>
                             </div>
                             <span className="text-primary-600 font-medium">{formatCurrency(est.avg, currency)}</span>

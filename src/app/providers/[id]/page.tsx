@@ -8,11 +8,11 @@ import { PublicAvailabilityCalendar } from "./PublicAvailabilityCalendar";
 import { serverApi } from "@/lib/server-api";
 import { formatCurrency, parseJsonArray, getCurrencyForCountry } from "@/lib/utils";
 import { MapPin, ShieldCheck } from "lucide-react";
-import { SERVICE_CATEGORIES, EVENT_TYPES } from "@/lib/constants";
+import { SERVICE_CATEGORIES, EVENT_TYPES, CATEGORY_IMAGES } from "@/lib/constants";
 import { CategoryIcon } from "@/components/layout/Navigation";
 import { AddToCartButton } from "./AddToCartButton";
 import Image from "next/image";
-import { FadeIn, FadeUp } from "@/components/motion/animations";
+import { FadeUp } from "@/components/motion/animations";
 
 interface ProviderReview {
   id: string;
@@ -34,6 +34,9 @@ interface ProviderData {
   travelRadius: number | null;
   description: string | null;
   verificationStatus: string;
+  coverImageUrl: string | null;
+  logoUrl: string | null;
+  totalReviews: number;
   services: Array<{
     id: string;
     name: string;
@@ -117,39 +120,80 @@ export default async function ProviderProfilePage({
   }
 
   const categoryLabel = SERVICE_CATEGORIES.find((c) => c.value === provider.category)?.label;
+  const coverImage = provider.coverImageUrl || CATEGORY_IMAGES[provider.category as keyof typeof CATEGORY_IMAGES] || CATEGORY_IMAGES.OTHER;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <div className="gradient-hero px-4 py-12 text-white">
-        <div className="mx-auto max-w-5xl">
-          <FadeIn>
-            <div className="flex items-start gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-white/20">
-                <CategoryIcon category={provider.category} />
-              </div>
-              <div>
-                <h1 className="flex items-center gap-2 text-3xl font-bold">
-                  {provider.businessName}
-                  {provider.verificationStatus === "VERIFIED" && (
-                    <Badge variant="success" className="flex items-center gap-1">
-                      <ShieldCheck className="h-3.5 w-3.5" />
-                      Verified
-                    </Badge>
-                  )}
-                </h1>
-                <p className="text-primary-100">{categoryLabel}{provider.city && ` · ${provider.city}`}{provider.country && `, ${provider.country}`}</p>
-                <div className="flex items-center gap-2">
-                  <StarRating rating={provider.averageRating} size="md" />
-                  {provider.travelOutsideArea && (
-                    <Badge variant="success" className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      Travels{provider.travelRadius ? ` ${provider.travelRadius}km` : ""}
-                    </Badge>
-                  )}
+    <div className="min-h-screen bg-cream dark:bg-charcoal-950">
+      {/* Provider banner */}
+      <div className="relative h-64 w-full bg-charcoal-900 md:h-72">
+        <Image
+          src={coverImage}
+          alt={provider.businessName}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover opacity-80"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950/90 via-charcoal-950/40 to-charcoal-950/20" />
+      </div>
+
+      <div className="mx-auto max-w-5xl px-4">
+        <div className="-mt-16 relative z-10">
+          <div className="rounded-xl border border-charcoal-200 bg-white p-6 shadow-lg dark:border-charcoal-800 dark:bg-charcoal-900">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
+                  <CategoryIcon category={provider.category} />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100 md:text-3xl">
+                      {provider.businessName}
+                    </h1>
+                    {provider.verificationStatus === "VERIFIED" && (
+                      <Badge variant="success" className="flex items-center gap-1">
+                        <ShieldCheck className="h-3.5 w-3.5" />
+                        Verified
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="mt-1 text-sm text-charcoal-500 dark:text-charcoal-400">
+                    {categoryLabel}
+                    {provider.city && ` · ${provider.city}`}
+                    {provider.country && `, ${provider.country}`}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-3">
+                    <StarRating rating={provider.averageRating} size="md" />
+                    <span className="text-sm text-charcoal-500 dark:text-charcoal-400">
+                      {provider.totalReviews} review{provider.totalReviews === 1 ? "" : "s"}
+                    </span>
+                    {provider.travelOutsideArea && (
+                      <Badge variant="default" className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        Travels{provider.travelRadius ? ` ${provider.travelRadius}km` : ""}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
+
+              <div className="w-full sm:w-auto">
+                {session ? (
+                  <Link href={`/dashboard/bookings/new?providerId=${id}`}>
+                    <Button className="w-full sm:w-auto">Get a Quote</Button>
+                  </Link>
+                ) : (
+                  <Link href="/auth/login">
+                    <Button className="w-full sm:w-auto">Sign In to Book</Button>
+                  </Link>
+                )}
+                <p className="mt-2 max-w-xs text-xs text-charcoal-500 dark:text-charcoal-400">
+                  Prefer to compare first? Use <span className="font-medium">Add to Cart</span> on any
+                  service and combine quotes from your cart.
+                </p>
+              </div>
             </div>
-          </FadeIn>
+          </div>
         </div>
       </div>
 
@@ -395,20 +439,6 @@ export default async function ProviderProfilePage({
                 status: a.status as "AVAILABLE" | "PENDING" | "CONFIRMED" | "UNAVAILABLE",
               }))}
             />
-
-            {session ? (
-              <Link href={`/dashboard/bookings/new?providerId=${id}`}>
-                <Button className="w-full">Get a Quote</Button>
-              </Link>
-            ) : (
-              <Link href="/auth/login">
-                <Button className="w-full">Sign In to Book</Button>
-              </Link>
-            )}
-            <p className="px-2 text-center text-xs text-gray-500">
-              Prefer to compare providers first? Use <span className="font-medium">Add to Cart</span> on any
-              service and combine quotes from your cart.
-            </p>
           </div>
         </div>
       </div>
