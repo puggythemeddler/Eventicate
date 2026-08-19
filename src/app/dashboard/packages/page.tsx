@@ -50,7 +50,7 @@ export default function PackageBuilderPage() {
         <div className="flex min-h-screen">
           <Sidebar role="CUSTOMER" />
           <PageContent>
-            <div className="flex items-center justify-center py-20 text-sm text-charcoal-500">
+            <div className="flex items-center justify-center py-20 text-sm text-charcoal-500 dark:text-charcoal-400">
               Loading package builder...
             </div>
           </PageContent>

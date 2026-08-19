@@ -412,7 +412,7 @@ export default function ProviderSubscriptionPage() {
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
                   selectedBilling === "MONTHLY"
                     ? "bg-primary-600 text-white"
-                    : "bg-white text-charcoal-700 hover:bg-sand dark:text-charcoal-200 dark:hover:bg-charcoal-800"
+                    : "bg-white text-charcoal-700 hover:bg-sand dark:bg-charcoal-900 dark:text-charcoal-200 dark:hover:bg-charcoal-800"
                 }`}
                 onClick={() => setSelectedBilling("MONTHLY")}
               >
@@ -423,7 +423,7 @@ export default function ProviderSubscriptionPage() {
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
                   selectedBilling === "ANNUAL"
                     ? "bg-primary-600 text-white"
-                    : "bg-white text-charcoal-700 hover:bg-sand dark:text-charcoal-200 dark:hover:bg-charcoal-800"
+                    : "bg-white text-charcoal-700 hover:bg-sand dark:bg-charcoal-900 dark:text-charcoal-200 dark:hover:bg-charcoal-800"
                 }`}
                 onClick={() => setSelectedBilling("ANNUAL")}
               >

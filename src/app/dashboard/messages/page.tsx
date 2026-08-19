@@ -64,7 +64,7 @@ function whatsappLink(phone?: string | null, text?: string): string | null {
 
 export default function MessagesPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen"><Sidebar role="CUSTOMER" /><div className="flex-1 p-8 text-sm text-charcoal-500">Loading...</div></div>}>
+    <Suspense fallback={<div className="flex min-h-screen"><Sidebar role="CUSTOMER" /><div className="flex-1 p-8 text-sm text-charcoal-500 dark:text-charcoal-400">Loading...</div></div>}>
       <MessagesContent />
     </Suspense>
   );
@@ -405,7 +405,7 @@ function MessagesContent() {
               <>
                 <div className="flex items-center justify-between border-b border-charcoal-200 px-4 py-3 dark:border-charcoal-800">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
                       {(activeConv.participants[0]?.firstName || "?").charAt(0).toUpperCase()}
                     </div>
                     <div>

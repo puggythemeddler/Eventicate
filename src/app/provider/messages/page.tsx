@@ -305,7 +305,7 @@ function MessagesContent() {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={msg.fileUrl} alt={msg.content} className="max-h-48 rounded-lg" />
         ) : (
-          <span className="flex items-center gap-2 rounded-lg border border-charcoal-200 dark:border-charcoal-800 bg-white px-3 py-2 text-xs  ">
+          <span className="flex items-center gap-2 rounded-lg border border-charcoal-200 dark:border-charcoal-800 bg-white px-3 py-2 text-xs dark:bg-charcoal-900">
             <FileText className="h-4 w-4 text-primary-600" />
             <span className="truncate">{msg.content || "Attachment"}</span>
           </span>
@@ -407,7 +407,7 @@ function MessagesContent() {
               <>
                 <div className="flex items-center justify-between border-b border-charcoal-200 dark:border-charcoal-800 px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
                       {(activeConv.participants[0]?.firstName || "?").charAt(0).toUpperCase()}
                     </div>
                     <div>

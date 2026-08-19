@@ -94,7 +94,7 @@ export default async function ReviewsPage() {
                 <Card key={review.id}>
                   <div className="mb-3 flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
                         {review.customerReviewer?.user.firstName?.charAt(0) || "?"}
                       </div>
                       <div>

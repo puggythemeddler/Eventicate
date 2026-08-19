@@ -317,7 +317,7 @@ export function ListingsManager() {
                 </div>
                 <span className={cn(
                   "rounded-full px-2 py-0.5 text-xs font-medium",
-                  row.isActive ? "bg-olive-100 text-olive-800" : "bg-charcoal-100 text-charcoal-600"
+                  row.isActive ? "bg-olive-100 text-olive-800 dark:bg-olive-900/40 dark:text-olive-300" : "bg-charcoal-100 text-charcoal-600 dark:bg-charcoal-800 dark:text-charcoal-300"
                 )}>
                   {row.isActive ? "Active" : "Inactive"}
                 </span>
