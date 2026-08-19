@@ -45,7 +45,7 @@ export function EventActions({ eventId, status }: { eventId: string; status: str
         <Trash2 className="mr-2 h-4 w-4" />
         {deleting ? "Deleting..." : "Delete"}
       </Button>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-terracotta-700 dark:text-terracotta-400">{error}</p>}
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Input";
-import { Clock, Plus, Trash2, ArrowUp, ArrowDown, Save } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown, Save, CalendarClock } from "lucide-react";
 
 interface TimelineEntry {
   id: string;
@@ -31,7 +31,18 @@ interface ProviderOption {
 
 export default function TimelinePage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen">
+          <Sidebar role="CUSTOMER" />
+          <PageContent>
+            <div className="flex items-center justify-center py-20 text-sm text-charcoal-500">
+              Loading timeline...
+            </div>
+          </PageContent>
+        </div>
+      }
+    >
       <TimelineContent />
     </Suspense>
   );
@@ -134,11 +145,13 @@ function TimelineContent() {
     <div className="flex min-h-screen">
       <Sidebar role="CUSTOMER" />
       <PageContent>
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Timeline Planner</h1>
-            <p className="text-sm text-gray-500">Plan your event schedule</p>
-          </div>
+        <div className="mb-8">
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-charcoal-900 dark:text-charcoal-100">
+            Timeline Planner
+          </h1>
+          <p className="mt-1 text-sm text-charcoal-500 dark:text-charcoal-400">
+            Map out the run of show with time markers and assigned providers.
+          </p>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
@@ -202,31 +215,39 @@ function TimelineContent() {
           <div className="lg:col-span-2">
             {!selectedEventId && (
               <Card>
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <Clock className="mb-4 h-12 w-12 text-gray-300" />
-                  <CardTitle>Select an event to plan</CardTitle>
-                  <p className="mt-2 text-sm text-gray-500">
-                    Create a detailed timeline with time markers and assigned providers.
-                  </p>
+                <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+                  <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-sand text-primary-700 dark:bg-charcoal-800 dark:text-primary-300">
+                    <CalendarClock className="h-7 w-7" />
+                  </span>
+                  <div>
+                    <CardTitle className="text-center">Select an event to plan</CardTitle>
+                    <p className="mt-2 text-sm text-charcoal-500 dark:text-charcoal-400">
+                      Create a detailed run of show with time markers and assigned providers.
+                    </p>
+                  </div>
                 </div>
               </Card>
             )}
 
             {selectedEventId && loading && (
               <Card>
-                <p className="text-center text-sm text-gray-500">Loading timeline...</p>
+                <p className="py-12 text-center text-sm text-charcoal-500 dark:text-charcoal-400">
+                  Loading timeline...
+                </p>
               </Card>
             )}
 
             {selectedEventId && !loading && (
               <Card>
-                <div className="mb-4 flex items-center justify-between">
+                <div className="mb-4 flex items-center justify-between gap-3">
                   <CardTitle>
                     {selectedEvent?.title || "Event"} Timeline
-                    <span className="ml-2 text-sm font-normal text-gray-500">({entries.length} entries)</span>
+                    <span className="ml-2 text-sm font-normal text-charcoal-400 dark:text-charcoal-500">
+                      ({entries.length} entries)
+                    </span>
                   </CardTitle>
                   {entries.length > 0 && (
-                    <Button onClick={saveTimeline} disabled={saving} size="sm">
+                    <Button onClick={saveTimeline} disabled={saving} size="sm" variant="dark">
                       <Save className="mr-1 h-4 w-4" />
                       {saving ? "Saving..." : "Save"}
                     </Button>
@@ -234,25 +255,27 @@ function TimelineContent() {
                 </div>
 
                 {entries.length === 0 ? (
-                  <p className="text-sm text-gray-400">
+                  <p className="py-10 text-center text-sm text-charcoal-500 dark:text-charcoal-400">
                     No timeline entries yet. Add your first entry on the left.
                   </p>
                 ) : (
                   <div className="relative">
-                    <div className="absolute left-8 top-0 h-full w-0.5 bg-primary-200" />
+                    <div className="absolute left-8 top-2 bottom-2 w-0.5 bg-charcoal-200 dark:bg-charcoal-700" />
                     <div className="space-y-4">
                       {entries.map((entry, index) => (
                         <div key={entry.id} className="relative flex gap-4">
                           <div className="flex flex-col items-center">
-                            <div className="z-10 flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700">
+                            <div className="z-10 flex h-8 w-8 items-center justify-center rounded-full bg-gold-500 text-xs font-bold text-charcoal-950">
                               {index + 1}
                             </div>
                           </div>
-                          <div className="flex-1 rounded-lg border border-gray-100 bg-white p-4">
-                            <div className="flex items-start justify-between">
+                          <div className="flex-1 rounded-xl border border-charcoal-200 bg-white p-4 dark:border-charcoal-800 dark:bg-charcoal-900">
+                            <div className="flex items-start justify-between gap-3">
                               <div className="flex-1">
                                 <div className="mb-1 flex items-center gap-2">
-                                  <span className="text-xs font-medium text-primary-600">{entry.time}</span>
+                                  <span className="rounded bg-sand px-1.5 py-0.5 text-xs font-semibold text-primary-700 dark:bg-charcoal-800 dark:text-primary-300">
+                                    {entry.time}
+                                  </span>
                                   {editingId === entry.id ? (
                                     <Input
                                       value={entry.title}
@@ -260,7 +283,9 @@ function TimelineContent() {
                                       className="!py-0 !text-sm"
                                     />
                                   ) : (
-                                    <span className="font-medium">{entry.title}</span>
+                                    <span className="font-medium text-charcoal-900 dark:text-charcoal-100">
+                                      {entry.title}
+                                    </span>
                                   )}
                                 </div>
                                 {editingId === entry.id ? (
@@ -272,41 +297,47 @@ function TimelineContent() {
                                   />
                                 ) : (
                                   entry.description && (
-                                    <p className="mt-1 text-sm text-gray-500">{entry.description}</p>
+                                    <p className="mt-1 text-sm text-charcoal-500 dark:text-charcoal-400">
+                                      {entry.description}
+                                    </p>
                                   )
                                 )}
                                 {entry.providerId && (
-                                  <p className="mt-1 text-xs text-gray-400">
+                                  <p className="mt-1 text-xs text-charcoal-400 dark:text-charcoal-500">
                                     Provider: {providers.find((p) => p.id === entry.providerId)?.businessName || "Unknown"}
                                   </p>
                                 )}
                               </div>
-                              <div className="ml-2 flex items-center gap-1">
+                              <div className="flex shrink-0 items-center gap-1">
                                 <button
                                   onClick={() => moveEntry(index, "up")}
                                   disabled={index === 0}
-                                  className="rounded p-1 text-gray-400 hover:bg-gray-100 disabled:opacity-30"
+                                  aria-label="Move entry up"
+                                  className="rounded-lg p-1.5 text-charcoal-400 transition-colors hover:bg-sand hover:text-charcoal-700 disabled:opacity-30 dark:hover:bg-charcoal-800 dark:hover:text-charcoal-200"
                                 >
-                                  <ArrowUp className="h-3 w-3" />
+                                  <ArrowUp className="h-3.5 w-3.5" />
                                 </button>
                                 <button
                                   onClick={() => moveEntry(index, "down")}
                                   disabled={index === entries.length - 1}
-                                  className="rounded p-1 text-gray-400 hover:bg-gray-100 disabled:opacity-30"
+                                  aria-label="Move entry down"
+                                  className="rounded-lg p-1.5 text-charcoal-400 transition-colors hover:bg-sand hover:text-charcoal-700 disabled:opacity-30 dark:hover:bg-charcoal-800 dark:hover:text-charcoal-200"
                                 >
-                                  <ArrowDown className="h-3 w-3" />
+                                  <ArrowDown className="h-3.5 w-3.5" />
                                 </button>
                                 <button
                                   onClick={() => setEditingId(editingId === entry.id ? null : entry.id)}
-                                  className="rounded p-1 text-gray-400 hover:bg-gray-100"
+                                  aria-label={editingId === entry.id ? "Done editing" : "Edit entry"}
+                                  className="rounded-lg p-1.5 text-charcoal-400 transition-colors hover:bg-sand hover:text-charcoal-700 dark:hover:bg-charcoal-800 dark:hover:text-charcoal-200"
                                 >
                                   <span className="text-xs">{editingId === entry.id ? "Done" : "Edit"}</span>
                                 </button>
                                 <button
                                   onClick={() => removeEntry(entry.id)}
-                                  className="rounded p-1 text-gray-400 hover:text-red-500"
+                                  aria-label="Delete entry"
+                                  className="rounded-lg p-1.5 text-charcoal-400 transition-colors hover:bg-terracotta-50 hover:text-terracotta-600 dark:hover:bg-terracotta-900/30 dark:hover:text-terracotta-400"
                                 >
-                                  <Trash2 className="h-3 w-3" />
+                                  <Trash2 className="h-3.5 w-3.5" />
                                 </button>
                               </div>
                             </div>

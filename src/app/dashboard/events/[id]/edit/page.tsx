@@ -123,7 +123,7 @@ export default function EditEventPage() {
       <div className="flex min-h-screen">
         <Sidebar role="CUSTOMER" />
         <PageContent>
-          <p className="text-sm text-gray-500">Loading...</p>
+          <p className="text-sm text-charcoal-500 dark:text-charcoal-400">Loading...</p>
         </PageContent>
       </div>
     );
@@ -209,7 +209,7 @@ export default function EditEventPage() {
               rows={3}
             />
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-medium text-charcoal-700 dark:text-charcoal-200">
                 Required Services
               </label>
               <div className="flex flex-wrap gap-2">
@@ -221,7 +221,7 @@ export default function EditEventPage() {
                     className={`rounded-full px-3 py-1 text-sm ${
                       form.requiredServices.includes(cat.value)
                         ? "bg-primary-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        : "bg-sand dark:bg-charcoal-800 text-charcoal-700 dark:text-charcoal-200 hover:bg-charcoal-100 dark:hover:bg-charcoal-800"
                     }`}
                   >
                     {cat.icon ? <cat.icon className="mr-1 inline h-4 w-4" /> : null} {cat.label}

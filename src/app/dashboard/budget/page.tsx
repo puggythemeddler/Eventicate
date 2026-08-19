@@ -9,7 +9,7 @@ import { Input, Select } from "@/components/ui/Input";
 import { formatCurrency } from "@/lib/utils";
 import { useCurrency } from "@/hooks/useCurrency";
 import { EVENT_TYPES, SERVICE_CATEGORIES } from "@/lib/constants";
-import { Calculator, BarChart3 } from "lucide-react";
+import { Calculator, BarChart3, TrendingUp, PiggyBank, Crown } from "lucide-react";
 
 interface CategoryEstimate {
   avg: number;
@@ -56,22 +56,22 @@ export default function BudgetPage() {
     <div className="flex min-h-screen">
       <Sidebar role="CUSTOMER" />
       <PageContent>
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Budget Calculator</h1>
-            <p className="text-sm text-gray-500">Estimate costs based on real provider data</p>
-          </div>
+        <div className="mb-8">
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-charcoal-900 dark:text-charcoal-100">
+            Budget Calculator
+          </h1>
+          <p className="mt-1 text-sm text-charcoal-500 dark:text-charcoal-400">
+            Estimate what your event will cost based on real provider pricing.
+          </p>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-6">
             <Card>
-              <CardTitle className="mb-4">
-                <div className="flex items-center gap-2">
-                  <Calculator className="h-4 w-4" />
-                  Event Details
-                </div>
-              </CardTitle>
+              <div className="mb-4 flex items-center gap-2">
+                <Calculator className="h-4 w-4 text-primary-700 dark:text-primary-300" />
+                <CardTitle>Event Details</CardTitle>
+              </div>
               <form onSubmit={handleEstimate} className="space-y-4">
                 <Select
                   label="Event Type"
@@ -91,9 +91,9 @@ export default function BudgetPage() {
                   label="Location (optional)"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g. Lagos"
+                  placeholder="e.g. Kampala"
                 />
-                <Button type="submit" disabled={loading} className="w-full">
+                <Button type="submit" disabled={loading} className="w-full" size="lg">
                   {loading ? "Calculating..." : "Get Estimate"}
                 </Button>
               </form>
@@ -103,12 +103,16 @@ export default function BudgetPage() {
           <div className="lg:col-span-2 space-y-6">
             {!result && (
               <Card>
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <BarChart3 className="mb-4 h-12 w-12 text-gray-300" />
-                  <CardTitle>Enter event details to see estimates</CardTitle>
-                  <p className="mt-2 text-sm text-gray-500">
-                    Get cost breakdowns based on real provider pricing in the system.
-                  </p>
+                <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+                  <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-sand text-primary-700 dark:bg-charcoal-800 dark:text-primary-300">
+                    <BarChart3 className="h-7 w-7" />
+                  </span>
+                  <div>
+                    <CardTitle className="text-center">Enter event details to see estimates</CardTitle>
+                    <p className="mx-auto mt-2 max-w-sm text-sm text-charcoal-500 dark:text-charcoal-400">
+                      Get cost breakdowns based on real provider pricing in the system.
+                    </p>
+                  </div>
                 </div>
               </Card>
             )}
@@ -127,18 +131,22 @@ export default function BudgetPage() {
                         <div key={cat}>
                           <div className="mb-1 flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
-                              {catInfo?.icon ? <catInfo.icon className="h-4 w-4 text-primary-600" /> : null}
-                              <span className="font-medium">{catInfo?.label || cat}</span>
+                              {catInfo?.icon ? <catInfo.icon className="h-4 w-4 text-primary-700 dark:text-primary-300" /> : null}
+                              <span className="font-medium text-charcoal-900 dark:text-charcoal-100">
+                                {catInfo?.label || cat}
+                              </span>
                             </div>
-                            <span className="text-primary-600 font-medium">{formatCurrency(est.avg, currency)}</span>
+                            <span className="font-semibold text-primary-700 dark:text-primary-400">
+                              {formatCurrency(est.avg, currency)}
+                            </span>
                           </div>
-                          <div className="mb-1 h-2 w-full rounded-full bg-gray-100">
+                          <div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-charcoal-100 dark:bg-charcoal-800">
                             <div
-                              className="h-2 rounded-full bg-primary-500"
+                              className="h-2 rounded-full bg-gold-500"
                               style={{ width: `${barWidth}%` }}
                             />
                           </div>
-                          <div className="flex justify-between text-xs text-gray-400">
+                          <div className="flex justify-between text-xs text-charcoal-400 dark:text-charcoal-500">
                             <span>Min: {formatCurrency(est.min, currency)}</span>
                             <span>Max: {formatCurrency(est.max, currency)}</span>
                           </div>
@@ -150,16 +158,31 @@ export default function BudgetPage() {
 
                 <div className="grid gap-4 md:grid-cols-3">
                   <Card>
-                    <p className="text-xs text-gray-500">Estimated Total (Avg)</p>
-                    <p className="text-2xl font-bold text-primary-600">{formatCurrency(result.total.avg, currency)}</p>
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-primary-700 dark:text-primary-300" />
+                      <p className="text-xs text-charcoal-500 dark:text-charcoal-400">Estimated Total (Avg)</p>
+                    </div>
+                    <p className="mt-2 font-display text-2xl font-semibold text-primary-700 dark:text-primary-400">
+                      {formatCurrency(result.total.avg, currency)}
+                    </p>
                   </Card>
                   <Card>
-                    <p className="text-xs text-gray-500">Budget Friendly</p>
-                    <p className="text-2xl font-bold text-green-600">{formatCurrency(result.total.min, currency)}</p>
+                    <div className="flex items-center gap-2">
+                      <PiggyBank className="h-4 w-4 text-olive-700 dark:text-olive-400" />
+                      <p className="text-xs text-charcoal-500 dark:text-charcoal-400">Budget Friendly</p>
+                    </div>
+                    <p className="mt-2 font-display text-2xl font-semibold text-olive-700 dark:text-olive-400">
+                      {formatCurrency(result.total.min, currency)}
+                    </p>
                   </Card>
                   <Card>
-                    <p className="text-xs text-gray-500">Premium Options</p>
-                    <p className="text-2xl font-bold text-amber-600">{formatCurrency(result.total.max, currency)}</p>
+                    <div className="flex items-center gap-2">
+                      <Crown className="h-4 w-4 text-gold-600 dark:text-gold-400" />
+                      <p className="text-xs text-charcoal-500 dark:text-charcoal-400">Premium Options</p>
+                    </div>
+                    <p className="mt-2 font-display text-2xl font-semibold text-gold-600 dark:text-gold-400">
+                      {formatCurrency(result.total.max, currency)}
+                    </p>
                   </Card>
                 </div>
               </>
