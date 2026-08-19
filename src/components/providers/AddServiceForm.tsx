@@ -77,7 +77,7 @@ export function AddServiceForm() {
       <Input label="Service Name" name="name" required placeholder="e.g. Premium Sound System" />
       <Textarea label="Description" name="description" rows={2} placeholder="Describe what this service includes..." />
       <Select label="Category" name="category" options={categoryOptions} required />
-      <Input label="Base Price ($)" name="basePrice" type="number" step="0.01" min="0" required onChange={(e) => setBasePrice(Number(e.target.value) || 0)} />
+      <Input label="Base Price" name="basePrice" type="number" step="0.01" min="0" required onChange={(e) => setBasePrice(Number(e.target.value) || 0)} />
       <Input label="Discount (%)" name="discountPercent" type="number" min="0" max="100" value={discountPercent} onChange={(e) => setDiscountPercent(Math.min(100, Math.max(0, Number(e.target.value) || 0)))} />
       {discountPercent > 0 && (
         <p className="text-sm text-charcoal-500 dark:text-charcoal-400">

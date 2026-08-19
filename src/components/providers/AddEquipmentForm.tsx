@@ -94,7 +94,7 @@ export function AddEquipmentForm() {
         <Input label="Condition" name="condition" defaultValue="good" placeholder="good, excellent, fair" />
       </div>
       <Textarea label="Description" name="description" rows={2} />
-      <Input label="Rental Price ($)" name="rentalPrice" type="number" step="0.01" min="0" required onChange={(e) => setRentalPrice(Number(e.target.value) || 0)} />
+      <Input label="Rental Price" name="rentalPrice" type="number" step="0.01" min="0" required onChange={(e) => setRentalPrice(Number(e.target.value) || 0)} />
       <Input label="Discount (%)" name="discountPercent" type="number" min="0" max="100" value={discountPercent} onChange={(e) => setDiscountPercent(Math.min(100, Math.max(0, Number(e.target.value) || 0)))} />
       {discountPercent > 0 && (
         <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
@@ -103,9 +103,9 @@ export function AddEquipmentForm() {
         </p>
       )}
       <div className="grid grid-cols-3 gap-3">
-        <Input label="Setup ($)" name="setupCharge" type="number" step="0.01" min="0" defaultValue="0" />
-        <Input label="Transport ($)" name="transportCharge" type="number" step="0.01" min="0" defaultValue="0" />
-        <Input label="Operator ($)" name="operatorCharge" type="number" step="0.01" min="0" defaultValue="0" />
+        <Input label="Setup" name="setupCharge" type="number" step="0.01" min="0" defaultValue="0" />
+        <Input label="Transport" name="transportCharge" type="number" step="0.01" min="0" defaultValue="0" />
+        <Input label="Operator" name="operatorCharge" type="number" step="0.01" min="0" defaultValue="0" />
       </div>
 
       <div>

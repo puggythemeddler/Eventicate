@@ -164,7 +164,7 @@ export default function SubscriptionPlansPage() {
               <CardTitle>Create New Plan</CardTitle>
               <div className="grid gap-4 md:grid-cols-2">
                 <Input label="Plan Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-                <Input label="Price ($/month)" type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) || 0 })} />
+                <Input label="Price (per month)" type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) || 0 })} />
                 <Input label="Trial Days" type="number" min="0" value={form.trialDays} onChange={(e) => setForm({ ...form, trialDays: parseInt(e.target.value) || 0 })} />
                 <Input label="Sort Order" type="number" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: parseInt(e.target.value) || 0 })} />
                 <Input label="Max Services (-1 = unlimited)" type="number" min="-1" value={form.maxServices} onChange={(e) => setForm({ ...form, maxServices: parseInt(e.target.value) || 0 })} />

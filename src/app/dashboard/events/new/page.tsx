@@ -114,13 +114,13 @@ export default function NewEventPage() {
             />
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="Budget Min ($)"
+                label="Budget Min"
                 type="number"
                 value={form.budgetMin}
                 onChange={(e) => setForm({ ...form, budgetMin: e.target.value })}
               />
               <Input
-                label="Budget Max ($)"
+                label="Budget Max"
                 type="number"
                 value={form.budgetMax}
                 onChange={(e) => setForm({ ...form, budgetMax: e.target.value })}
