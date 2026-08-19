@@ -80,20 +80,20 @@ export function AddServiceForm() {
       <Input label="Base Price ($)" name="basePrice" type="number" step="0.01" min="0" required onChange={(e) => setBasePrice(Number(e.target.value) || 0)} />
       <Input label="Discount (%)" name="discountPercent" type="number" min="0" max="100" value={discountPercent} onChange={(e) => setDiscountPercent(Math.min(100, Math.max(0, Number(e.target.value) || 0)))} />
       {discountPercent > 0 && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
           Discounted price: <span className="font-semibold text-primary-600">{formatCurrency(discountedPrice, currency)}</span>
-          <span className="ml-2 text-xs text-green-600">({discountPercent}% off)</span>
+          <span className="ml-2 text-xs text-olive-600 dark:text-olive-400">({discountPercent}% off)</span>
         </p>
       )}
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Images</label>
+        <label className="mb-1 block text-sm font-medium text-charcoal-700 dark:text-charcoal-200">Images</label>
         <input
           type="file"
           accept="image/*"
           multiple
           onChange={handleFiles}
-          className="block w-full text-sm text-gray-500 file:mr-2 file:rounded file:border-0 file:bg-primary-50 file:px-2 file:py-1 file:text-sm file:font-medium file:text-primary-700 dark:file:bg-primary-900/30 dark:file:text-primary-300"
+          className="block w-full text-sm text-charcoal-500 dark:text-charcoal-400 file:mr-2 file:rounded file:border-0 file:bg-primary-50 file:px-2 file:py-1 file:text-sm file:font-medium file:text-primary-700 dark:file:bg-primary-900/30 dark:file:text-primary-300"
         />
         {previews.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
@@ -109,7 +109,7 @@ export function AddServiceForm() {
                 <button
                   type="button"
                   onClick={() => removeFile(i)}
-                  className="absolute -right-1 -top-1 rounded-full bg-red-500 p-0.5 text-white"
+                  className="absolute -right-1 -top-1 rounded-full bg-terracotta-600 p-0.5 text-white"
                 >
                   <X className="h-3 w-3" />
                 </button>

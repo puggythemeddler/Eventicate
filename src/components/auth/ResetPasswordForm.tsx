@@ -55,18 +55,18 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       <div className="mx-auto flex max-w-md flex-col items-center px-4 py-16">
         <Card className="w-full">
           <h1 className="mb-2 font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Set a New Password</h1>
-          <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mb-6 text-sm text-charcoal-500 dark:text-charcoal-400">
             Choose a new password for your account.
           </p>
 
           {!token && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/30 dark:text-red-400">
+            <div className="rounded-lg bg-terracotta-50 p-3 text-sm text-terracotta-700 dark:bg-terracotta-900/30 dark:text-terracotta-400">
               Missing reset token. Request a new reset link.
             </div>
           )}
 
           {error && (
-            <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/30 dark:text-red-400">{error}</div>
+            <div className="mb-4 rounded-lg bg-terracotta-50 p-3 text-sm text-terracotta-700 dark:bg-terracotta-900/30 dark:text-terracotta-400">{error}</div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -91,7 +91,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
             </Button>
           </form>
 
-          <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-4 text-center text-sm text-charcoal-500 dark:text-charcoal-400">
             <Link href="/auth/login" className="text-primary-600 hover:underline">
               Back to Sign In
             </Link>

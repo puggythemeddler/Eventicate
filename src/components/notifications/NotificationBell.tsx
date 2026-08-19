@@ -94,7 +94,7 @@ export function NotificationBell() {
         type="button"
         onClick={toggle}
         aria-label={`Notifications (${unreadCount} unread)`}
-        className="relative rounded-lg p-2 text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
+        className="relative rounded-lg p-2 text-charcoal-600 hover:bg-sand dark:text-charcoal-300 dark:hover:bg-charcoal-800"
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
@@ -105,8 +105,8 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-80 max-w-[90vw] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
-          <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-800">
+        <div className="absolute right-0 z-50 mt-2 w-80 max-w-[90vw] overflow-hidden rounded-xl border border-charcoal-200 bg-white shadow-lg dark:border-charcoal-700 dark:bg-charcoal-900">
+          <div className="flex items-center justify-between border-b border-charcoal-100 px-4 py-3 dark:border-charcoal-800">
             <p className="text-sm font-semibold">Notifications</p>
             <div className="flex items-center gap-1">
               <button
@@ -119,7 +119,7 @@ export function NotificationBell() {
               <Link
                 href="/notifications"
                 onClick={() => setOpen(false)}
-                className="rounded-lg px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                className="rounded-lg px-2 py-1 text-xs text-charcoal-500 hover:bg-sand dark:text-charcoal-400 dark:hover:bg-charcoal-800"
               >
                 View all
               </Link>
@@ -128,9 +128,9 @@ export function NotificationBell() {
 
           <div className="max-h-96 overflow-y-auto">
             {loading ? (
-              <p className="p-6 text-center text-sm text-gray-400">Loading...</p>
+              <p className="p-6 text-center text-sm text-charcoal-400 dark:text-charcoal-500">Loading...</p>
             ) : notifications.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 p-8 text-gray-400">
+              <div className="flex flex-col items-center gap-2 p-8 text-charcoal-400 dark:text-charcoal-500">
                 <Inbox className="h-8 w-8" />
                 <p className="text-sm">No notifications yet</p>
               </div>
@@ -141,24 +141,24 @@ export function NotificationBell() {
                   type="button"
                   onClick={() => handleClick(n)}
                   className={cn(
-                    "flex w-full flex-col gap-0.5 border-b border-gray-50 px-4 py-3 text-left hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/60",
+                    "flex w-full flex-col gap-0.5 border-b border-charcoal-50 px-4 py-3 text-left hover:bg-sand dark:border-charcoal-800 dark:hover:bg-charcoal-800/60",
                     !n.isRead && "bg-primary-50/60 dark:bg-primary-900/20"
                   )}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-medium">{n.title}</span>
-                    <span className="shrink-0 text-[11px] text-gray-400">
+                    <span className="shrink-0 text-[11px] text-charcoal-400 dark:text-charcoal-500">
                       {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
                     </span>
                   </div>
-                  <p className="line-clamp-2 text-xs text-gray-500 dark:text-gray-400">{n.message}</p>
+                  <p className="line-clamp-2 text-xs text-charcoal-500 dark:text-charcoal-400">{n.message}</p>
                 </button>
               ))
             )}
           </div>
 
           {unreadCount > 0 && (
-            <div className="flex items-center gap-1 border-t border-gray-100 px-4 py-2 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
+            <div className="flex items-center gap-1 border-t border-charcoal-100 px-4 py-2 text-xs text-charcoal-500 dark:border-charcoal-800 dark:text-charcoal-400">
               <CheckCheck className="h-3.5 w-3.5" />
               {unreadCount} unread
             </div>

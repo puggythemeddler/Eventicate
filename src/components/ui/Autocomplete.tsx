@@ -142,7 +142,7 @@ export function Autocomplete({
             type="button"
             onClick={handleClear}
             aria-label={`Clear ${label ?? "selection"}`}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-charcoal-400 hover:text-charcoal-600 dark:hover:text-charcoal-300"
           >
             <X className="h-4 w-4" />
           </button>

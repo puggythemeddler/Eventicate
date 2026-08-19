@@ -78,14 +78,14 @@ export function AuthForm({ mode, defaultRole = "customer", googleError }: AuthFo
           <h1 className="mb-2 font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">
             {isRegister ? "Create Account" : "Sign In"}
           </h1>
-          <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mb-6 text-sm text-charcoal-500 dark:text-charcoal-400">
             {isRegister
               ? "Join Eventicate to plan events or list your services"
               : "Welcome back to Eventicate"}
           </p>
 
           {displayError && (
-            <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/30 dark:text-red-400">{displayError}</div>
+            <div className="mb-4 rounded-lg bg-terracotta-50 p-3 text-sm text-terracotta-700 dark:bg-terracotta-900/30 dark:text-terracotta-400">{displayError}</div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -174,13 +174,13 @@ export function AuthForm({ mode, defaultRole = "customer", googleError }: AuthFo
           {!isRegister && (
             <>
               <div className="my-4 flex items-center gap-2">
-                <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
-                <span className="text-xs text-gray-400">OR</span>
-                <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+                <div className="h-px flex-1 bg-charcoal-200 dark:bg-charcoal-700" />
+                <span className="text-xs text-charcoal-400 dark:text-charcoal-500">OR</span>
+                <div className="h-px flex-1 bg-charcoal-200 dark:bg-charcoal-700" />
               </div>
               <a
                 href="/api/auth/google"
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-charcoal-300 bg-white px-4 py-2 text-sm font-medium text-charcoal-700 hover:bg-sand dark:border-charcoal-600 dark:bg-charcoal-800 dark:text-charcoal-200 dark:hover:bg-charcoal-700"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -192,7 +192,7 @@ export function AuthForm({ mode, defaultRole = "customer", googleError }: AuthFo
               </a>
             </>
           )}
-          <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-4 text-center text-sm text-charcoal-500 dark:text-charcoal-400">
             {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
             <Link
               href={isRegister ? "/auth/login" : "/auth/register"}

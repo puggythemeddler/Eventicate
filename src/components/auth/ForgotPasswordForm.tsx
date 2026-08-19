@@ -40,18 +40,18 @@ export function ForgotPasswordForm() {
       <div className="mx-auto flex max-w-md flex-col items-center px-4 py-16">
         <Card className="w-full">
           <h1 className="mb-2 font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Forgot Password</h1>
-          <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mb-6 text-sm text-charcoal-500 dark:text-charcoal-400">
             Enter your account email and we will send you a reset link.
           </p>
 
           {sent ? (
-            <div className="rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-400">
+            <div className="rounded-lg bg-olive-50 p-4 text-sm text-olive-700 dark:bg-olive-900/30 dark:text-olive-400">
               If an account exists for that email, a reset link has been sent. Check your inbox.
             </div>
           ) : (
             <>
               {error && (
-                <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/30 dark:text-red-400">{error}</div>
+                <div className="mb-4 rounded-lg bg-terracotta-50 p-3 text-sm text-terracotta-700 dark:bg-terracotta-900/30 dark:text-terracotta-400">{error}</div>
               )}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <Input
@@ -68,7 +68,7 @@ export function ForgotPasswordForm() {
             </>
           )}
 
-          <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-4 text-center text-sm text-charcoal-500 dark:text-charcoal-400">
             Remembered your password?{" "}
             <Link href="/auth/login" className="text-primary-600 hover:underline">
               Sign In

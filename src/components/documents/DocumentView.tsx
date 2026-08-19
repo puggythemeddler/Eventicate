@@ -92,13 +92,13 @@ export function DocumentView({ document, role, logoUrl }: DocumentViewProps) {
           &larr; Back
         </Link>
         <div className="ml-auto flex items-center gap-2">
-          <div className="flex overflow-hidden rounded-lg border border-gray-300 dark:border-gray-600">
+          <div className="flex overflow-hidden rounded-lg border border-charcoal-300 dark:border-charcoal-600">
             <button
               onClick={() => setFormat("a4")}
               className={`px-3 py-1.5 text-sm font-medium ${
                 format === "a4"
                   ? "bg-primary-600 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                  : "bg-white text-charcoal-700 hover:bg-sand dark:bg-charcoal-800 dark:text-charcoal-200 dark:hover:bg-charcoal-700"
               }`}
             >
               A4
@@ -108,7 +108,7 @@ export function DocumentView({ document, role, logoUrl }: DocumentViewProps) {
               className={`px-3 py-1.5 text-sm font-medium ${
                 format === "thermal"
                   ? "bg-primary-600 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                  : "bg-white text-charcoal-700 hover:bg-sand dark:bg-charcoal-800 dark:text-charcoal-200 dark:hover:bg-charcoal-700"
               }`}
             >
               Thermal 80mm
@@ -120,7 +120,7 @@ export function DocumentView({ document, role, logoUrl }: DocumentViewProps) {
           <Badge variant={statusBadgeVariant[document.status] || "default"}>
             {document.status.replace(/_/g, " ")}
           </Badge>
-          <span className="text-sm text-gray-500">{document.type}</span>
+          <span className="text-sm text-charcoal-500 dark:text-charcoal-400">{document.type}</span>
         </div>
       </div>
 
@@ -135,16 +135,16 @@ export function DocumentView({ document, role, logoUrl }: DocumentViewProps) {
         )}
 
         {/* Header */}
-        <div className="mb-4 flex items-start justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
+        <div className="mb-4 flex items-start justify-between border-b border-charcoal-200 pb-4 dark:border-charcoal-700">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{document.documentNumber}</h1>
-            <p className="mt-1 text-sm text-gray-500">Issued: {formatDate(document.issuedAt)}</p>
+            <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">{document.documentNumber}</h1>
+            <p className="mt-1 text-sm text-charcoal-500 dark:text-charcoal-400">Issued: {formatDate(document.issuedAt)}</p>
             {document.dueAt && (
-              <p className="text-sm text-gray-500">Due: {formatDate(document.dueAt)}</p>
+              <p className="text-sm text-charcoal-500 dark:text-charcoal-400">Due: {formatDate(document.dueAt)}</p>
             )}
           </div>
           <div className="text-right">
-            <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+            <p className="text-lg font-bold text-charcoal-900 dark:text-charcoal-100">
               {formatCurrency(document.total, currency)}
             </p>
           </div>
@@ -153,25 +153,25 @@ export function DocumentView({ document, role, logoUrl }: DocumentViewProps) {
         {/* From / To */}
         <div className="mb-4 grid grid-cols-2 gap-4">
           <div>
-            <h3 className="text-xs font-medium text-gray-500">From</h3>
-            <p className="mt-1 font-medium text-gray-900 dark:text-gray-100">{document.senderName}</p>
+            <h3 className="text-xs font-medium text-charcoal-500 dark:text-charcoal-400">From</h3>
+            <p className="mt-1 font-medium text-charcoal-900 dark:text-charcoal-100">{document.senderName}</p>
           </div>
           <div>
-            <h3 className="text-xs font-medium text-gray-500">To</h3>
-            <p className="mt-1 font-medium text-gray-900 dark:text-gray-100">{document.recipientName}</p>
-            <p className="text-sm text-gray-500">{document.recipientEmail}</p>
+            <h3 className="text-xs font-medium text-charcoal-500 dark:text-charcoal-400">To</h3>
+            <p className="mt-1 font-medium text-charcoal-900 dark:text-charcoal-100">{document.recipientName}</p>
+            <p className="text-sm text-charcoal-500 dark:text-charcoal-400">{document.recipientEmail}</p>
             {document.recipientPhone && (
-              <p className="text-sm text-gray-500">{document.recipientPhone}</p>
+              <p className="text-sm text-charcoal-500 dark:text-charcoal-400">{document.recipientPhone}</p>
             )}
             {document.recipientAddress && (
-              <p className="text-sm text-gray-500">{document.recipientAddress}</p>
+              <p className="text-sm text-charcoal-500 dark:text-charcoal-400">{document.recipientAddress}</p>
             )}
           </div>
         </div>
 
         {/* Event info */}
         {document.booking && (
-          <div className="mb-4 rounded-lg bg-gray-50 p-3 text-sm dark:bg-gray-800">
+          <div className="mb-4 rounded-lg bg-sand p-3 text-sm dark:bg-charcoal-800">
             Event: <span className="font-medium">{document.booking.event.title}</span>
             &nbsp;&middot;&nbsp;
             Date: <span className="font-medium">{formatDate(document.booking.event.eventDate)}</span>
@@ -181,7 +181,7 @@ export function DocumentView({ document, role, logoUrl }: DocumentViewProps) {
         {/* Line items */}
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-200 text-left text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
+            <tr className="border-b border-charcoal-200 text-left text-sm text-charcoal-500 dark:border-charcoal-700 dark:text-charcoal-400">
               <th className="pb-2 font-medium">Description</th>
               <th className="pb-2 text-right font-medium">Qty</th>
               <th className="pb-2 text-right font-medium">Price</th>
@@ -190,11 +190,11 @@ export function DocumentView({ document, role, logoUrl }: DocumentViewProps) {
           </thead>
           <tbody>
             {document.lineItems.map((item, i) => (
-              <tr key={i} className="border-b border-gray-100 dark:border-gray-800">
-                <td className="py-2 text-sm text-gray-900 dark:text-gray-100">{item.description}</td>
-                <td className="py-2 text-right text-sm text-gray-500">{item.quantity}</td>
-                <td className="py-2 text-right text-sm text-gray-500">{formatCurrency(item.unitPrice, currency)}</td>
-                <td className="py-2 text-right text-sm font-medium text-gray-900 dark:text-gray-100">
+              <tr key={i} className="border-b border-charcoal-100 dark:border-charcoal-800">
+                <td className="py-2 text-sm text-charcoal-900 dark:text-charcoal-100">{item.description}</td>
+                <td className="py-2 text-right text-sm text-charcoal-500 dark:text-charcoal-400">{item.quantity}</td>
+                <td className="py-2 text-right text-sm text-charcoal-500 dark:text-charcoal-400">{formatCurrency(item.unitPrice, currency)}</td>
+                <td className="py-2 text-right text-sm font-medium text-charcoal-900 dark:text-charcoal-100">
                   {formatCurrency(item.total, currency)}
                 </td>
               </tr>
@@ -203,31 +203,31 @@ export function DocumentView({ document, role, logoUrl }: DocumentViewProps) {
         </table>
 
         {/* Totals */}
-        <div className="mt-3 space-y-1 border-t border-gray-200 pt-3 dark:border-gray-700">
-          <div className="flex justify-between text-sm text-gray-500">
+        <div className="mt-3 space-y-1 border-t border-charcoal-200 pt-3 dark:border-charcoal-700">
+          <div className="flex justify-between text-sm text-charcoal-500 dark:text-charcoal-400">
             <span>Subtotal</span>
             <span>{formatCurrency(document.subtotal, currency)}</span>
           </div>
           {document.discountAmount > 0 && (
-            <div className="flex justify-between text-sm text-gray-500">
+            <div className="flex justify-between text-sm text-charcoal-500 dark:text-charcoal-400">
               <span>Discount ({document.discountRate}%)</span>
               <span>-{formatCurrency(document.discountAmount, currency)}</span>
             </div>
           )}
           {document.taxAmount > 0 && (
-            <div className="flex justify-between text-sm text-gray-500">
+            <div className="flex justify-between text-sm text-charcoal-500 dark:text-charcoal-400">
               <span>Tax ({document.taxRate}%)</span>
               <span>{formatCurrency(document.taxAmount, currency)}</span>
             </div>
           )}
-          <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-gray-100">
+          <div className="flex justify-between text-lg font-bold text-charcoal-900 dark:text-charcoal-100">
             <span>Total</span>
             <span>{formatCurrency(document.total, currency)}</span>
           </div>
         </div>
 
         {document.depositRequired != null && document.type === "QUOTE" && (
-          <div className="mt-3 rounded-lg bg-yellow-50 p-3 text-sm text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+          <div className="mt-3 rounded-lg bg-gold-50 p-3 text-sm text-gold-800 dark:bg-gold-900/30 dark:text-gold-300">
             Deposit Required: {formatCurrency(document.depositRequired, currency)}
             {document.depositPaid && " (Paid)"}
           </div>
@@ -236,17 +236,17 @@ export function DocumentView({ document, role, logoUrl }: DocumentViewProps) {
         {document.notes && (
           <div className="mt-4">
             <h3 className="text-sm font-semibold">Notes</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{document.notes}</p>
+            <p className="text-sm text-charcoal-600 dark:text-charcoal-400">{document.notes}</p>
           </div>
         )}
         {document.terms && (
           <div className="mt-3">
             <h3 className="text-sm font-semibold">Terms</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{document.terms}</p>
+            <p className="text-sm text-charcoal-600 dark:text-charcoal-400">{document.terms}</p>
           </div>
         )}
         {document.validUntil && (
-          <p className="mt-3 text-sm text-gray-500">Valid until: {formatDate(document.validUntil)}</p>
+          <p className="mt-3 text-sm text-charcoal-500 dark:text-charcoal-400">Valid until: {formatDate(document.validUntil)}</p>
         )}
       </div>
 

@@ -21,10 +21,10 @@ interface AvailabilityCalendarProps {
 }
 
 const STATUS_COLORS = {
-  AVAILABLE: "bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300 dark:hover:bg-green-900/60",
-  PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300",
-  CONFIRMED: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
-  UNAVAILABLE: "bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400",
+  AVAILABLE: "bg-olive-100 text-olive-800 hover:bg-olive-200 dark:bg-olive-900/40 dark:text-olive-300 dark:hover:bg-olive-900/60",
+  PENDING: "bg-gold-100 text-gold-800 dark:bg-gold-900/40 dark:text-gold-300",
+  CONFIRMED: "bg-terracotta-100 text-terracotta-800 dark:bg-terracotta-900/40 dark:text-terracotta-300",
+  UNAVAILABLE: "bg-charcoal-100 text-charcoal-500 dark:bg-charcoal-700 dark:text-charcoal-400",
 };
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -109,8 +109,8 @@ export function AvailabilityCalendar({
         onClick={() => handleDateClick(day)}
         className={cn(
           "aspect-square rounded-lg text-sm font-medium transition-colors",
-          isPast ? "text-gray-300 dark:text-gray-600 cursor-not-allowed" : STATUS_COLORS[status],
-          isSelected && "ring-2 ring-primary-500 ring-offset-1 dark:ring-offset-gray-900",
+          isPast ? "text-charcoal-300 dark:text-charcoal-600 cursor-not-allowed" : STATUS_COLORS[status],
+          isSelected && "ring-2 ring-primary-500 ring-offset-1 dark:ring-offset-charcoal-900",
           toggling === day && "animate-pulse"
         )}
       >
@@ -120,18 +120,18 @@ export function AvailabilityCalendar({
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+    <div className="rounded-xl border border-charcoal-200 bg-white p-4 dark:border-charcoal-800 dark:bg-charcoal-900">
       <div className="mb-4 flex items-center justify-between">
-        <button onClick={prevMonth} className="rounded-lg p-1 hover:bg-gray-100 dark:hover:bg-gray-800">
+        <button onClick={prevMonth} className="rounded-lg p-1 hover:bg-sand dark:hover:bg-charcoal-800">
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h3 className="font-semibold dark:text-gray-100">{MONTHS[month]} {year}</h3>
-        <button onClick={nextMonth} className="rounded-lg p-1 hover:bg-gray-100 dark:hover:bg-gray-800">
+        <h3 className="font-semibold text-charcoal-900 dark:text-charcoal-100">{MONTHS[month]} {year}</h3>
+        <button onClick={nextMonth} className="rounded-lg p-1 hover:bg-sand dark:hover:bg-charcoal-800">
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>
 
-      <div className="mb-2 grid grid-cols-7 gap-1 text-center text-xs font-medium text-gray-500 dark:text-gray-400">
+      <div className="mb-2 grid grid-cols-7 gap-1 text-center text-xs font-medium text-charcoal-500 dark:text-charcoal-400">
         {DAYS.map((d) => (
           <div key={d}>{d}</div>
         ))}
