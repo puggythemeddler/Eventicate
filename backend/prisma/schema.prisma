@@ -194,6 +194,7 @@ model ProviderProfile {
   latitude        Float?
   longitude       Float?
   phone           String?
+  whatsapp        String?
   website         String?
   isApproved      Boolean         @default(false)
   verificationStatus String        @default("NONE") // NONE | PENDING | VERIFIED | REJECTED

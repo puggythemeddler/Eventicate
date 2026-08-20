@@ -16,6 +16,7 @@ const updateSchema = z.object({
   city: z.string().optional(),
   country: z.string().optional(),
   phone: z.string().optional(),
+  whatsapp: z.string().optional(),
   website: z.string().optional(),
   logoUrl: z.string().optional(),
   coverImageUrl: z.string().optional(),

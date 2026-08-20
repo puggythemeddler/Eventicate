@@ -8,7 +8,7 @@ import { AutoScrollGallery } from "@/components/ui/AutoScrollGallery";
 import { PublicAvailabilityCalendar } from "./PublicAvailabilityCalendar";
 import { serverApi } from "@/lib/server-api";
 import { formatCurrency, parseJsonArray, getCurrencyForCountry } from "@/lib/utils";
-import { MapPin, ShieldCheck, ArrowLeft } from "lucide-react";
+import { MapPin, ShieldCheck, ArrowLeft, MessageCircle } from "lucide-react";
 import { SERVICE_CATEGORIES, EVENT_TYPES, CATEGORY_IMAGES } from "@/lib/constants";
 import { CategoryIcon } from "@/components/layout/Navigation";
 import { AddToCartButton } from "./AddToCartButton";
@@ -38,6 +38,8 @@ interface ProviderData {
   coverImageUrl: string | null;
   logoUrl: string | null;
   totalReviews: number;
+  phone: string | null;
+  whatsapp: string | null;
   services: Array<{
     id: string;
     name: string;
@@ -163,6 +165,11 @@ export default async function ProviderProfilePage({
   const categoryLabel = SERVICE_CATEGORIES.find((c) => c.value === provider.category)?.label;
   const coverImage = provider.coverImageUrl || CATEGORY_IMAGES[provider.category as keyof typeof CATEGORY_IMAGES] || CATEGORY_IMAGES.OTHER;
 
+  const whatsappNumber = (provider.whatsapp || provider.phone || "").replace(/[^0-9]/g, "");
+  const whatsappHref = whatsappNumber
+    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Hello ${provider.businessName}, I found you on Eventicate and I'd like to make an enquiry.`)}`
+    : null;
+
   return (
     <div className="min-h-screen bg-cream dark:bg-charcoal-950">
       {/* Contextual navigation */}
@@ -242,7 +249,19 @@ export default async function ProviderProfilePage({
                 </div>
               </div>
 
-              <div className="w-full sm:w-auto">
+              <div className="flex w-full flex-col gap-2 sm:w-auto">
+                {whatsappHref && (
+                  <a
+                    href={whatsappHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Chat with ${provider.businessName} on WhatsApp`}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    Chat on WhatsApp
+                  </a>
+                )}
                 {session ? (
                   <Link href={`/dashboard/bookings/new?providerId=${id}`}>
                     <Button className="w-full sm:w-auto">Get a Quote</Button>

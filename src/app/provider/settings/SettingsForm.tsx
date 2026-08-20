@@ -21,6 +21,7 @@ interface SettingsFormProps {
     city: string | null;
     country: string | null;
     phone: string | null;
+    whatsapp: string | null;
     website: string | null;
     logoUrl: string | null;
     coverImageUrl: string | null;
@@ -66,6 +67,7 @@ export function SettingsForm({
         city: formData.get("city") || undefined,
         country: formData.get("country") || undefined,
         phone: formData.get("phone") || undefined,
+        whatsapp: formData.get("whatsapp") || undefined,
         website: formData.get("website") || undefined,
         logoUrl: formData.get("logoUrl") || undefined,
         coverImageUrl: formData.get("coverImageUrl") || undefined,
@@ -178,13 +180,20 @@ export function SettingsForm({
               type="tel"
             />
             <Input
-              label="Website"
-              name="website"
-              defaultValue={provider.website || ""}
-              type="url"
-              placeholder="https://..."
+              label="WhatsApp Number"
+              name="whatsapp"
+              defaultValue={provider.whatsapp || ""}
+              type="tel"
+              placeholder="e.g. +254712345678"
             />
           </div>
+          <Input
+            label="Website"
+            name="website"
+            defaultValue={provider.website || ""}
+            type="url"
+            placeholder="https://..."
+          />
 
           <div className="rounded-lg border border-charcoal-200 bg-sand p-4 dark:border-charcoal-700 dark:bg-charcoal-800/50">
             <label className="flex cursor-pointer items-start gap-3">

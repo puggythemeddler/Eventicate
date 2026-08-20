@@ -36,6 +36,7 @@ interface SettingsData {
     city: string | null;
     country: string | null;
     phone: string | null;
+    whatsapp: string | null;
     website: string | null;
     logoUrl: string | null;
     coverImageUrl: string | null;
