@@ -48,7 +48,7 @@ export default function EditEventPage() {
         setForm({
           title: event.title,
           eventType: event.eventType,
-          status: event.status || "PLANNING",
+          status: (event.status || "PLANNING").toUpperCase(),
           eventDate: event.eventDate.slice(0, 16),
           eventEndDate: event.eventEndDate ? event.eventEndDate.slice(0, 16) : "",
           location: event.location,
