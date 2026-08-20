@@ -396,6 +396,7 @@ async function main() {
         customerId: customerProfile.id,
         title: "Sarah & John's Wedding",
         eventType: "WEDDING",
+        status: "PLANNING",
         eventDate: new Date("2026-09-15T16:00:00"),
         location: "Grand Hall Events, Nairobi",
         guestCount: 200,

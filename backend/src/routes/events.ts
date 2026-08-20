@@ -19,7 +19,10 @@ const eventSchema = z.object({
   budgetMax: z.number().optional(),
   description: z.string().optional(),
   requiredServices: z.array(z.string()).optional(),
-  status: z.enum(EVENT_STATUSES).optional(),
+  status: z.preprocess(
+    (v) => (typeof v === "string" ? v.toUpperCase() : v),
+    z.enum(EVENT_STATUSES).optional()
+  ),
 });
 
 const router = Router();
@@ -53,7 +56,9 @@ router.get("/", async (req, res) => {
     orderBy: { eventDate: "asc" },
   });
 
-  return res.status(200).json({ events });
+  return res.status(200).json({
+    events: events.map((e) => ({ ...e, status: e.status.toUpperCase() })),
+  });
 });
 
 router.post("/", async (req, res) => {
@@ -81,7 +86,7 @@ router.post("/", async (req, res) => {
         budgetMax: data.budgetMax,
         description: data.description,
         requiredServices: JSON.stringify(data.requiredServices || []),
-        status: data.status || "PLANNING",
+        status: (data.status || "PLANNING").toUpperCase(),
       },
     });
 

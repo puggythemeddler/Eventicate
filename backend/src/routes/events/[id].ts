@@ -19,7 +19,10 @@ const updateSchema = z.object({
   budgetMax: z.number().nullable().optional(),
   description: z.string().nullable().optional(),
   requiredServices: z.array(z.string()).optional(),
-  status: z.enum(EVENT_STATUSES).optional(),
+  status: z.preprocess(
+    (v) => (typeof v === "string" ? v.toUpperCase() : v),
+    z.enum(EVENT_STATUSES).optional()
+  ),
 });
 
 const router = Router({ mergeParams: true });
@@ -59,7 +62,7 @@ router.get("/", async (req, res) => {
 
   if (!event) return res.status(404).json({ error: "Event not found" });
 
-  return res.status(200).json({ event });
+  return res.status(200).json({ event: { ...event, status: event.status.toUpperCase() } });
 });
 
 router.patch("/", async (req, res) => {
@@ -75,7 +78,7 @@ router.patch("/", async (req, res) => {
     if (!event) return res.status(404).json({ error: "Event not found" });
 
     // A completed event is immutable to edits.
-    if (event.status === "COMPLETED") {
+    if (event.status.toUpperCase() === "COMPLETED") {
       return res.status(400).json({ error: "A completed event cannot be edited" });
     }
 
