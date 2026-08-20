@@ -7,13 +7,15 @@ import { Input, Select, Textarea } from "@/components/ui/Input";
 import { formatCurrency, parseJsonArray } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { Pencil, Trash2, Plus, X } from "lucide-react";
+import Image from "next/image";
+import { ImageUploader } from "@/components/providers/ImageUploader";
 
 type ListingType = "venue" | "vehicle" | "menuPackage" | "photoPackage";
 
 interface Field {
   name: string;
   label: string;
-  type: "text" | "number" | "textarea" | "select" | "checkbox";
+  type: "text" | "number" | "textarea" | "select" | "checkbox" | "images";
   required?: boolean;
   min?: number;
   step?: string;
@@ -35,6 +37,7 @@ const FIELDS: Record<ListingType, Field[]> = {
     { name: "capacity", label: "Capacity", type: "number", required: true, min: 1 },
     { name: "basePrice", label: "Base Price", type: "number", required: true, min: 0, step: "0.01" },
     { name: "facilities", label: "Facilities (comma separated)", type: "text" },
+    { name: "images", label: "Images", type: "images" },
   ],
   vehicle: [
     { name: "name", label: "Vehicle Name", type: "text", required: true },
@@ -52,6 +55,7 @@ const FIELDS: Record<ListingType, Field[]> = {
     { name: "driverName", label: "Driver Name", type: "text" },
     { name: "driverPhone", label: "Driver Phone", type: "text" },
     { name: "description", label: "Description", type: "textarea" },
+    { name: "images", label: "Images", type: "images" },
   ],
   menuPackage: [
     { name: "name", label: "Package Name", type: "text", required: true },
@@ -68,6 +72,7 @@ const FIELDS: Record<ListingType, Field[]> = {
     { name: "description", label: "Description", type: "textarea" },
     { name: "includesDrinks", label: "Includes Drinks", type: "checkbox" },
     { name: "includesDessert", label: "Includes Dessert", type: "checkbox" },
+    { name: "images", label: "Images", type: "images" },
   ],
   photoPackage: [
     { name: "name", label: "Package Name", type: "text", required: true },
@@ -84,6 +89,7 @@ const FIELDS: Record<ListingType, Field[]> = {
     { name: "includesEditing", label: "Includes Editing", type: "checkbox" },
     { name: "includesAlbum", label: "Includes Album", type: "checkbox" },
     { name: "includesDrone", label: "Includes Drone", type: "checkbox" },
+    { name: "images", label: "Images", type: "images" },
   ],
 };
 
@@ -101,6 +107,13 @@ const COLLECTION_KEY: Record<ListingType, string> = {
   photoPackage: "photoPackages",
 };
 
+const UPLOAD_TYPE: Record<ListingType, string> = {
+  venue: "venues",
+  vehicle: "vehicles",
+  menuPackage: "menuPackages",
+  photoPackage: "photoPackages",
+};
+
 type Row = Record<string, unknown> & { id: string; isActive: boolean };
 
 function commaToArray(value: string): string[] {
@@ -109,7 +122,7 @@ function commaToArray(value: string): string[] {
 
 function listValue(row: Row, field: Field): string {
   const v = row[field.name];
-  if (field.type === "checkbox") return "";
+  if (field.type === "checkbox" || field.type === "images") return "";
   if (field.name === "facilities") return parseJsonArray<string>(v as string).join(", ");
   if (field.name === "menuItems") return parseJsonArray<string>(v as string).join(", ");
   if (field.name === "dietaryOptions") return parseJsonArray<string>(v as string).join(", ");
@@ -123,12 +136,13 @@ export function ListingsManager() {
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState<Record<string, string | boolean>>({});
+  const [form, setForm] = useState<Record<string, string | boolean | string[]>>({});
   const [saving, setSaving] = useState(false);
 
   const fields = FIELDS[tab];
   const apiPath = API_PATH[tab];
   const collectionKey = COLLECTION_KEY[tab];
+  const uploadType = UPLOAD_TYPE[tab];
 
   async function load() {
     setLoading(true);
@@ -150,9 +164,9 @@ export function ListingsManager() {
   }, [tab]);
 
   function resetForm() {
-    const initial: Record<string, string | boolean> = {};
+    const initial: Record<string, string | boolean | string[]> = {};
     for (const f of fields) {
-      initial[f.name] = f.type === "checkbox" ? false : "";
+      initial[f.name] = f.type === "checkbox" ? false : f.type === "images" ? [] : "";
     }
     setForm(initial);
   }
@@ -164,11 +178,13 @@ export function ListingsManager() {
   }
 
   function startEdit(row: Row) {
-    const initial: Record<string, string | boolean> = {};
+    const initial: Record<string, string | boolean | string[]> = {};
     for (const f of fields) {
       initial[f.name] =
         f.type === "checkbox"
           ? Boolean(row[f.name])
+          : f.type === "images"
+          ? parseJsonArray<string>(row[f.name] as string)
           : listValue(row, f);
     }
     setForm(initial);
@@ -185,6 +201,8 @@ export function ListingsManager() {
       const v = form[f.name];
       if (f.type === "checkbox") {
         body[f.name] = Boolean(v);
+      } else if (f.type === "images") {
+        body[f.name] = Array.isArray(v) ? v : [];
       } else if (f.type === "number") {
         body[f.name] = v === "" || v == null ? undefined : Number(v);
       } else if (f.name === "facilities" || f.name === "menuItems" || f.name === "dietaryOptions") {
@@ -285,14 +303,14 @@ export function ListingsManager() {
       {adding && (
         <Card>
           <CardTitle className="mb-4">Add New</CardTitle>
-          <ListingForm fields={fields} form={form} setForm={setForm} onCancel={() => setAdding(false)} onSubmit={submit} saving={saving} />
+          <ListingForm fields={fields} form={form} setForm={setForm} uploadType={uploadType} onCancel={() => setAdding(false)} onSubmit={submit} saving={saving} />
         </Card>
       )}
 
       {editingId && (
         <Card>
           <CardTitle className="mb-4">Edit</CardTitle>
-          <ListingForm fields={fields} form={form} setForm={setForm} onCancel={() => setEditingId(null)} onSubmit={submit} saving={saving} />
+          <ListingForm fields={fields} form={form} setForm={setForm} uploadType={uploadType} onCancel={() => setEditingId(null)} onSubmit={submit} saving={saving} />
         </Card>
       )}
 
@@ -305,8 +323,19 @@ export function ListingsManager() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {rows.map((row) => (
+          {rows.map((row) => {
+            const thumbnails = parseJsonArray<string>(row.images as string);
+            return (
             <Card key={row.id}>
+              {thumbnails.length > 0 && (
+                <Image
+                  src={thumbnails[0]}
+                  alt={`${String(row.name)} thumbnail`}
+                  width={320}
+                  height={180}
+                  className="mb-3 h-36 w-full rounded-lg object-cover"
+                />
+              )}
               <div className="mb-2 flex items-start justify-between gap-2">
                 <div>
                   <h3 className="font-semibold">{String(row.name)}</h3>
@@ -340,7 +369,8 @@ export function ListingsManager() {
                 </Button>
               </div>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -351,13 +381,15 @@ function ListingForm({
   fields,
   form,
   setForm,
+  uploadType,
   onCancel,
   onSubmit,
   saving,
 }: {
   fields: Field[];
-  form: Record<string, string | boolean>;
-  setForm: (f: Record<string, string | boolean>) => void;
+  form: Record<string, string | boolean | string[]>;
+  setForm: (f: Record<string, string | boolean | string[]>) => void;
+  uploadType: string;
   onCancel: () => void;
   onSubmit: (e: React.FormEvent) => void;
   saving: boolean;
@@ -366,6 +398,17 @@ function ListingForm({
     <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
       {fields.map((f) => {
         const value = form[f.name];
+        if (f.type === "images") {
+          return (
+            <ImageUploader
+              key={f.name}
+              type={uploadType}
+              label={f.label}
+              value={Array.isArray(value) ? value : []}
+              onChange={(urls) => setForm({ ...form, [f.name]: urls })}
+            />
+          );
+        }
         if (f.type === "checkbox") {
           return (
             <label key={f.name} className="flex cursor-pointer items-center gap-2 sm:col-span-2">

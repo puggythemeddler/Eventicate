@@ -53,10 +53,19 @@ router.get("/", async (req, res) => {
         images: parseJsonArray(v.images),
         facilities: parseJsonArray(v.facilities),
       })),
+      vehicles: provider.vehicles.map((v) => ({
+        ...v,
+        images: parseJsonArray(v.images),
+      })),
       menuPackages: provider.menuPackages.map((m) => ({
         ...m,
+        images: parseJsonArray(m.images),
         menuItems: parseJsonArray(m.menuItems),
         dietaryOptions: parseJsonArray(m.dietaryOptions),
+      })),
+      photoPackages: provider.photoPackages.map((p) => ({
+        ...p,
+        images: parseJsonArray(p.images),
       })),
     },
     availability,

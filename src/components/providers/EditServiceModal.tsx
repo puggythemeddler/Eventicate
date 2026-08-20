@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { SERVICE_CATEGORIES } from "@/lib/constants";
+import { parseJsonArray } from "@/lib/utils";
 import { X } from "lucide-react";
 import { ProductLocationFields } from "./ProductLocationFields";
+import { ImageUploader } from "./ImageUploader";
 
 const categoryOptions = SERVICE_CATEGORIES.map((c) => ({ value: c.value, label: c.label }));
 
@@ -19,6 +21,7 @@ interface EditServiceModalProps {
     discountPercent: number;
     locationCity: string | null;
     locationCountry: string | null;
+    images: string;
   };
   onClose: () => void;
   onSaved: () => void;
@@ -32,6 +35,7 @@ export function EditServiceModal({ service, onClose, onSaved }: EditServiceModal
   const [discountPercent, setDiscountPercent] = useState(service.discountPercent);
   const [locationCountry, setLocationCountry] = useState(service.locationCountry || "");
   const [locationCity, setLocationCity] = useState(service.locationCity || "");
+  const [images, setImages] = useState<string[]>(() => parseJsonArray<string>(service.images));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,6 +64,7 @@ export function EditServiceModal({ service, onClose, onSaved }: EditServiceModal
           discountPercent: Number(discountPercent) || 0,
           locationCity: locationCity || undefined,
           locationCountry: locationCountry || undefined,
+          images,
         }),
       });
       const data = await res.json();
@@ -121,6 +126,7 @@ export function EditServiceModal({ service, onClose, onSaved }: EditServiceModal
             value={discountPercent}
             onChange={(e) => setDiscountPercent(Math.min(100, Math.max(0, Number(e.target.value) || 0)))}
           />
+          <ImageUploader type="services" label="Images" value={images} onChange={setImages} />
           {error && <p className="text-sm text-terracotta-600">{error}</p>}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>

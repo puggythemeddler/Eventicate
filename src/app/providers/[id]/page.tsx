@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge, StarRating } from "@/components/ui/Badge";
+import { AutoScrollGallery } from "@/components/ui/AutoScrollGallery";
 import { PublicAvailabilityCalendar } from "./PublicAvailabilityCalendar";
 import { serverApi } from "@/lib/server-api";
 import { formatCurrency, parseJsonArray, getCurrencyForCountry } from "@/lib/utils";
@@ -65,6 +66,27 @@ interface ProviderData {
     servingStyle: string;
     includesDrinks: boolean;
     includesDessert: boolean;
+    description: string | null;
+    images: string[];
+  }>;
+  vehicles: Array<{
+    id: string;
+    name: string;
+    type: string;
+    capacity: number;
+    description: string | null;
+    images: string[];
+    pricePerKm: number;
+    basePrice: number;
+  }>;
+  photoPackages: Array<{
+    id: string;
+    name: string;
+    type: string;
+    description: string | null;
+    coverageHours: number | null;
+    images: string[];
+    basePrice: number;
   }>;
   equipment: Array<{
     id: string;
@@ -261,15 +283,16 @@ export default async function ProviderProfilePage({
                     const hasDiscount = service.discountPercent > 0;
                     const discountedPrice = service.basePrice * (100 - service.discountPercent) / 100;
                     return (
-                      <div key={service.id} className="rounded-lg border border-charcoal-200 p-3 dark:border-charcoal-800">
+<div key={service.id} className="rounded-lg border border-charcoal-200 p-3 dark:border-charcoal-800">
                         {serviceImages.length > 0 && (
-                          <div className="mb-2 flex gap-2 overflow-x-auto">
-                            {serviceImages.map((url, i) => (
-                              <Image key={i} src={url} alt="" width={64} height={48} className="h-12 w-16 flex-shrink-0 rounded object-cover" />
-                            ))}
-                          </div>
+                          <AutoScrollGallery
+                            images={serviceImages}
+                            alt={`${service.name} photo`}
+                            aspectClass="h-36 w-full"
+                            className="mb-2"
+                          />
                         )}
-                          <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between">
                             <div>
                               <p className="font-medium">{service.name}</p>
                               {service.description && (
@@ -317,11 +340,12 @@ export default async function ProviderProfilePage({
                   {provider.venues.map((venue) => (
                     <div key={venue.id} className="rounded-lg border border-charcoal-200 p-4 dark:border-charcoal-800">
                       {venue.images.length > 0 && (
-                        <div className="mb-3 flex gap-2 overflow-x-auto">
-                          {venue.images.map((url, i) => (
-                            <Image key={i} src={url} alt="" width={128} height={96} className="h-24 w-32 flex-shrink-0 rounded object-cover" />
-                          ))}
-                        </div>
+                        <AutoScrollGallery
+                          images={venue.images}
+                          alt={`${venue.name} photo`}
+                          aspectClass="h-44 w-full"
+                          className="mb-3"
+                        />
                       )}
                       <div className="flex items-start justify-between gap-4">
                         <div>
@@ -365,6 +389,14 @@ export default async function ProviderProfilePage({
                 <div className="space-y-3">
                   {provider.menuPackages.map((pkg) => (
                     <div key={pkg.id} className="rounded-lg border border-charcoal-200 p-4 dark:border-charcoal-800">
+                      {pkg.images.length > 0 && (
+                        <AutoScrollGallery
+                          images={pkg.images}
+                          alt={`${pkg.name} photo`}
+                          aspectClass="h-32 w-full"
+                          className="mb-3"
+                        />
+                      )}
                       <div className="flex items-center justify-between">
                         <h4 className="font-medium">{pkg.name}</h4>
                         <span className="font-semibold text-primary-600">
@@ -393,11 +425,12 @@ export default async function ProviderProfilePage({
                     return (
                       <div key={item.id} className="rounded-lg border border-charcoal-200 p-3 dark:border-charcoal-800">
                         {equipImages.length > 0 && (
-                          <div className="mb-2 flex gap-2 overflow-x-auto">
-                            {equipImages.map((url, i) => (
-                              <Image key={i} src={url} alt="" width={64} height={48} className="h-12 w-16 flex-shrink-0 rounded object-cover" />
-                            ))}
-                          </div>
+                          <AutoScrollGallery
+                            images={equipImages}
+                            alt={`${item.name} photo`}
+                            aspectClass="h-32 w-full"
+                            className="mb-2"
+                          />
                         )}
                         <div className="flex items-center justify-between">
                           <div>
@@ -434,6 +467,77 @@ export default async function ProviderProfilePage({
                       </div>
                     );
                   })}
+                </div>
+              </Card>
+            )}
+
+            {provider.vehicles.length > 0 && (
+              <Card>
+                <CardTitle className="mb-4">Vehicles</CardTitle>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {provider.vehicles.map((vehicle) => {
+                    const vehicleImages = vehicle.images;
+                    return (
+                      <div key={vehicle.id} className="rounded-lg border border-charcoal-200 p-3 dark:border-charcoal-800">
+                        {vehicleImages.length > 0 && (
+                          <AutoScrollGallery
+                            images={vehicleImages}
+                            alt={`${vehicle.name} photo`}
+                            aspectClass="h-32 w-full"
+                            className="mb-2"
+                          />
+                        )}
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">{vehicle.name}</p>
+                            <p className="text-xs text-charcoal-500 dark:text-charcoal-400">
+                              {vehicle.type} · Capacity: {vehicle.capacity}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="text-right">
+                              <p className="text-sm text-primary-600">{formatCurrency(vehicle.basePrice, currency)}/day</p>
+                            </div>
+                            <Link href={session ? `/dashboard/bookings/new?providerId=${id}` : "/auth/login"}>
+                              <Button size="sm" variant="outline">Get a Quote</Button>
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            )}
+
+            {provider.photoPackages.length > 0 && (
+              <Card>
+                <CardTitle className="mb-4">Photo & Video Packages</CardTitle>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {provider.photoPackages.map((pkg) => (
+                    <div key={pkg.id} className="rounded-lg border border-charcoal-200 p-3 dark:border-charcoal-800">
+                      {pkg.images.length > 0 && (
+                        <AutoScrollGallery
+                          images={pkg.images}
+                          alt={`${pkg.name} photo`}
+                          aspectClass="h-32 w-full"
+                          className="mb-2"
+                        />
+                      )}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{pkg.name}</p>
+                          <p className="text-xs text-charcoal-500 dark:text-charcoal-400">
+                            {pkg.type}
+                            {pkg.coverageHours ? ` · ${pkg.coverageHours}h coverage` : ""}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-primary-600">{formatCurrency(pkg.basePrice, currency)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </Card>
             )}

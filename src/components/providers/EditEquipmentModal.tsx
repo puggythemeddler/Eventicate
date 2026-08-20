@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { EQUIPMENT_CATEGORIES } from "@/lib/constants";
+import { parseJsonArray } from "@/lib/utils";
 import { X } from "lucide-react";
 import { ProductLocationFields } from "./ProductLocationFields";
+import { ImageUploader } from "./ImageUploader";
 
 const categoryOptions = [
   { value: "", label: "Select category..." },
@@ -31,6 +33,7 @@ interface EditEquipmentModalProps {
     operatorCharge: number;
     locationCity: string | null;
     locationCountry: string | null;
+    images: string;
   };
   onClose: () => void;
   onSaved: () => void;
@@ -50,6 +53,7 @@ export function EditEquipmentModal({ item, onClose, onSaved }: EditEquipmentModa
   const [operatorCharge, setOperatorCharge] = useState(item.operatorCharge);
   const [locationCountry, setLocationCountry] = useState(item.locationCountry || "");
   const [locationCity, setLocationCity] = useState(item.locationCity || "");
+  const [images, setImages] = useState<string[]>(() => parseJsonArray<string>(item.images));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -84,6 +88,7 @@ export function EditEquipmentModal({ item, onClose, onSaved }: EditEquipmentModa
           operatorCharge: Number(operatorCharge) || 0,
           locationCity: locationCity || undefined,
           locationCountry: locationCountry || undefined,
+          images,
         }),
       });
       const data = await res.json();
@@ -155,6 +160,7 @@ export function EditEquipmentModal({ item, onClose, onSaved }: EditEquipmentModa
             <Input label="Transport" type="number" step="0.01" min="0" value={transportCharge} onChange={(e) => setTransportCharge(Number(e.target.value) || 0)} />
             <Input label="Operator" type="number" step="0.01" min="0" value={operatorCharge} onChange={(e) => setOperatorCharge(Number(e.target.value) || 0)} />
           </div>
+          <ImageUploader type="equipment" label="Images" value={images} onChange={setImages} />
           {error && <p className="text-sm text-terracotta-600">{error}</p>}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
