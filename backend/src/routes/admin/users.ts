@@ -149,4 +149,38 @@ router.patch("/", async (req, res) => {
   return res.status(200).json({ user });
 });
 
+// Permanently delete a user account. Guards against self-deletion and reports
+// a clear message if the user has related records that can't be removed.
+router.delete("/:id", async (req, res) => {
+  const session = await getSession(req);
+  if (!session || session.role !== "ADMIN") {
+    return res.status(403).json({ error: "Unauthorized" });
+  }
+
+  const { id } = req.params;
+  if (id === session.id) {
+    return res.status(400).json({ error: "You cannot delete your own account" });
+  }
+
+  const target = await prisma.user.findUnique({ where: { id } });
+  if (!target) return res.status(404).json({ error: "User not found" });
+
+  try {
+    // Delete the non-cascading child records first so the user row can go.
+    await prisma.$transaction([
+      prisma.localSyncLog.deleteMany({ where: { userId: id } }),
+      prisma.complaint.deleteMany({ where: { reporterId: id } }),
+      prisma.message.deleteMany({ where: { OR: [{ senderId: id }, { receiverId: id }] } }),
+      prisma.user.delete({ where: { id } }),
+    ]);
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("Failed to delete user:", err);
+    return res.status(500).json({
+      error:
+        "Could not delete this user because they have related records (e.g. bookings, reviews, or documents). Deactivate the account instead.",
+    });
+  }
+});
+
 export default router;
