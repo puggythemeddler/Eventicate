@@ -135,6 +135,7 @@ model User {
   avatarUrl     String?
   isVerified    Boolean   @default(false)
   isActive      Boolean   @default(true)
+  termsAcceptedAt DateTime?
   lastActiveAt  DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

@@ -73,6 +73,7 @@ router.post("/", authLimiter, async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       country: user.customerProfile?.country ?? user.providerProfile?.country ?? null,
+      termsAcceptedAt: user.termsAcceptedAt?.toISOString() ?? null,
     });
 
     setSessionCookie(res, token);

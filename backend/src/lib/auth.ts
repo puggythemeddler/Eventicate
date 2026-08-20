@@ -24,6 +24,7 @@ export interface SessionUser {
   firstName: string;
   lastName: string;
   country?: string | null;
+  termsAcceptedAt?: string | null;
 }
 
 export async function hashPassword(password: string) {
@@ -73,7 +74,7 @@ export async function getSession(req: Request): Promise<SessionUser | null> {
   try {
     const user = await prisma.user.findUnique({
       where: { id: session.id },
-      select: { id: true, isActive: true, role: true },
+      select: { id: true, isActive: true, role: true, termsAcceptedAt: true },
     });
     if (!user || !user.isActive) return null;
     // Track activity so inactive accounts can be auto-deactivated. Only write
@@ -88,7 +89,7 @@ export async function getSession(req: Request): Promise<SessionUser | null> {
       },
       data: { lastActiveAt: new Date() },
     });
-    return session;
+    return { ...session, termsAcceptedAt: user.termsAcceptedAt?.toISOString() ?? null };
   } catch {
     return null;
   }

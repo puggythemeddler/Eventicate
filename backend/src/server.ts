@@ -12,6 +12,7 @@ import googleRouter from "./routes/auth/google";
 import googleCallbackRouter from "./routes/auth/google-callback";
 import forgotPasswordRouter from "./routes/auth/forgot-password";
 import resetPasswordRouter from "./routes/auth/reset-password";
+import acceptTermsRouter from "./routes/auth/accept-terms";
 import notificationsRouter from "./routes/notifications";
 
 // uploads
@@ -157,6 +158,7 @@ app.use("/api/auth/google", googleRouter);
 app.use("/api/auth/google/callback", googleCallbackRouter);
 app.use("/api/auth/forgot-password", forgotPasswordRouter);
 app.use("/api/auth/reset-password", resetPasswordRouter);
+app.use("/api/auth/accept-terms", acceptTermsRouter);
 
 // notifications
 app.use("/api/notifications", notificationsRouter);

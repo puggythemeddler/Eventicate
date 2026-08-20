@@ -23,6 +23,7 @@ export interface SessionUser {
   firstName: string;
   lastName: string;
   country?: string | null;
+  termsAcceptedAt?: string | null;
 }
 
 export async function createToken(user: SessionUser) {
