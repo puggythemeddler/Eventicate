@@ -27,6 +27,7 @@ import adminComplaintsRouter from "./routes/admin/complaints";
 import adminLogosRouter from "./routes/admin/logos";
 import adminPaymentsRouter from "./routes/admin/payments";
 import adminWhatsAppRouter from "./routes/admin/whatsapp";
+import adminActivityRouter from "./routes/admin/activity";
 import complaintsRouter from "./routes/complaints";
 
 // bookings / events / services / equipment / packages / availability / timeline / budget
@@ -175,6 +176,7 @@ app.use("/api/admin/complaints", adminComplaintsRouter);
 app.use("/api/admin/logos", adminLogosRouter);
 app.use("/api/admin/payments", adminPaymentsRouter);
 app.use("/api/admin/whatsapp", adminWhatsAppRouter);
+app.use("/api/admin/activity", adminActivityRouter);
 
 // bookings / events / services / equipment / packages / availability / timeline / budget
 app.use("/api/bookings", bookingsRouter);

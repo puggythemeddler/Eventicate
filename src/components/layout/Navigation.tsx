@@ -13,7 +13,7 @@ import {
   LayoutDashboard, Package, Settings, Truck, Music,
   Camera, UtensilsCrossed, Building2, RefreshCw, BarChart3,
   CreditCard, FileText, MapPin, ShoppingCart, Menu, X, Palette,
-  MessageCircle, Layers, MessageSquareWarning, Plus,
+  MessageCircle, Layers, MessageSquareWarning, Plus, ClipboardList,
 } from "lucide-react";
 
 interface NavItem {
@@ -72,11 +72,12 @@ const adminSubscriptionsItem: NavItem = { href: "/admin/subscription-plans", lab
 const adminBrandingItem: NavItem = { href: "/admin/branding", label: "Branding", icon: <Palette className="h-4 w-4" /> };
 const adminPaymentsItem: NavItem = { href: "/admin/payments", label: "Payments", icon: <CreditCard className="h-4 w-4" /> };
 const adminWhatsAppItem: NavItem = { href: "/admin/whatsapp", label: "WhatsApp", icon: <MessageCircle className="h-4 w-4" /> };
+const adminReportsItem: NavItem = { href: "/admin/reports", label: "Reports", icon: <ClipboardList className="h-4 w-4" /> };
 
 const adminGroups: NavGroup[] = [
   { label: "Overview", items: [adminOverviewItem] },
   { label: "People", items: [adminUsersItem, adminProvidersItem, adminComplaintsItem] },
-  { label: "Platform", items: [adminLocationsItem, adminSubscriptionsItem, adminBrandingItem, adminPaymentsItem, adminWhatsAppItem] },
+  { label: "Platform", items: [adminLocationsItem, adminSubscriptionsItem, adminBrandingItem, adminPaymentsItem, adminWhatsAppItem, adminReportsItem] },
 ];
 
 const groupByRole: Record<"CUSTOMER" | "PROVIDER" | "ADMIN", NavGroup[]> = {
