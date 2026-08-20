@@ -49,7 +49,7 @@ services:
       - key: GOOGLE_CLIENT_SECRET
         sync: false
       - key: GOOGLE_REDIRECT_URI
-        value: https://eventicate-api.onrender.com/api/auth/google/callback
+        value: https://eventicate-qk86.vercel.app/api/auth/google/callback
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
