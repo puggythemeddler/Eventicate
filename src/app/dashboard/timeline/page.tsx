@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardTitle } from "@/components/ui/Card";
@@ -145,6 +146,12 @@ function TimelineContent() {
     <div className="flex min-h-screen">
       <Sidebar role="CUSTOMER" />
       <PageContent>
+        <Link
+          href={preselectedEventId ? `/dashboard/events/${preselectedEventId}` : "/dashboard/events"}
+          className="mb-4 inline-block text-sm text-primary-600 hover:underline"
+        >
+          ← {preselectedEventId ? "Back to Event" : "Back to My Events"}
+        </Link>
         <div className="mb-8">
           <h1 className="font-display text-2xl font-semibold tracking-tight text-charcoal-900 dark:text-charcoal-100">
             Timeline Planner

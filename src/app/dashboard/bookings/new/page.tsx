@@ -112,7 +112,7 @@ function NewBookingContent() {
           href={providerId ? `/providers/${providerId}` : "/dashboard/bookings"}
           className="mb-4 text-sm text-primary-600 hover:underline"
         >
-          ← Back
+          ← {providerId ? "Back to Provider" : "Back to Bookings"}
         </Link>
         <Card className="mx-auto max-w-xl">
           <CardTitle className="mb-6">New Booking Request</CardTitle>

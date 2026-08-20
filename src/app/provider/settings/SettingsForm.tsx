@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { SERVICE_CATEGORIES, EVENT_TYPES } from "@/lib/constants";
@@ -47,9 +48,11 @@ export function SettingsForm({
 }: SettingsFormProps) {
   const currency = useCurrency();
   const discountedServicesCount = currentServices.filter((s) => s.discountPercent > 0).length;
+  const [formError, setFormError] = useState("");
 
   async function handleBusinessSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setFormError("");
     const form = e.currentTarget;
     const formData = new FormData(form);
     const res = await fetch("/api/provider/settings", {
@@ -70,11 +73,17 @@ export function SettingsForm({
         travelRadius: formData.get("travelRadius") ? Number(formData.get("travelRadius")) : null,
       }),
     });
-    if (res.ok) alert("Settings saved successfully!");
+    if (res.ok) {
+      alert("Settings saved successfully!");
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setFormError(data.error || "Failed to save settings. Please try again.");
+    }
   }
 
   async function handlePricingSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setFormError("");
     const form = e.currentTarget;
     const formData = new FormData(form);
     const defaultDiscount = Number(formData.get("defaultDiscount")) || 0;
@@ -97,11 +106,19 @@ export function SettingsForm({
     if (res.ok) {
       alert("Pricing settings saved successfully!");
       window.location.reload();
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setFormError(data.error || "Failed to save pricing settings. Please try again.");
     }
   }
 
   return (
     <div className="max-w-2xl space-y-8">
+      {formError && (
+        <div className="rounded-lg bg-terracotta-50 p-3 text-sm text-terracotta-700 dark:bg-terracotta-900/30 dark:text-terracotta-400">
+          {formError}
+        </div>
+      )}
       <Card>
         <CardTitle className="mb-6">Business Information</CardTitle>
         <form onSubmit={handleBusinessSubmit} className="space-y-6">

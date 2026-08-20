@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardTitle } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { serverApi } from "@/lib/server-api";
 import { formatCurrency, getCurrencyForCountry } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/Badge";
@@ -52,12 +54,33 @@ export default async function ProviderAnalyticsPage() {
   if (session.role !== "PROVIDER") redirect("/dashboard");
 
   let data: AnalyticsData | null = null;
+  let loadError = "";
   try {
     data = await serverApi<AnalyticsData>("/api/provider/analytics?months=6");
   } catch {
-    redirect("/provider");
+    loadError = "Failed to load analytics. Please try again.";
   }
-  if (!data) redirect("/provider");
+
+  if (!data) {
+    return (
+      <div className="flex min-h-screen">
+        <Sidebar role="PROVIDER" />
+        <PageContent>
+          <div className="mb-8">
+            <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Analytics</h1>
+          </div>
+          <Card>
+            <div className="flex flex-col items-center gap-4 py-10 text-center">
+              <p className="text-sm text-charcoal-500 dark:text-charcoal-400">{loadError}</p>
+              <Link href="/provider">
+                <Button variant="outline">Back to Dashboard</Button>
+              </Link>
+            </div>
+          </Card>
+        </PageContent>
+      </div>
+    );
+  }
 
   const currency = getCurrencyForCountry(session.country);
   const maxServiceBookings = Math.max(...data.topServices.map((s) => s.bookings), 1);

@@ -273,13 +273,25 @@ export function DocumentView({ document, role, logoUrl }: DocumentViewProps) {
               <Button onClick={() => handleStatusUpdate("SENT")} variant="primary">
                 Send Document
               </Button>
-              <Button onClick={handleDelete} variant="danger">
+              <Button
+                onClick={() => {
+                  if (window.confirm("Delete this draft? This cannot be undone.")) handleDelete();
+                }}
+                variant="danger"
+              >
                 Delete Draft
               </Button>
             </>
           )}
           {document.type === "QUOTE" && document.status === "SENT" && (
-            <Button onClick={() => handleStatusUpdate("CANCELLED")} variant="danger">
+            <Button
+              onClick={() => {
+                if (window.confirm("Cancel this quote? The customer will no longer be able to accept it.")) {
+                  handleStatusUpdate("CANCELLED");
+                }
+              }}
+              variant="danger"
+            >
               Cancel Quote
             </Button>
           )}

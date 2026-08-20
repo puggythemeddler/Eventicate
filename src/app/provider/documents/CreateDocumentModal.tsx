@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -23,6 +23,15 @@ export function CreateDocumentModal({ bookings }: CreateDocumentModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [open]);
 
   async function handleCreate() {
     if (!bookingId) { setError("Please select a booking"); return; }
@@ -57,8 +66,10 @@ export function CreateDocumentModal({ bookings }: CreateDocumentModalProps) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="create-document-title"
+          onClick={() => setOpen(false)}
         >
-          <Card className="w-full max-w-md">
+          <div onClick={(e) => e.stopPropagation()}>
+            <Card className="w-full max-w-md">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
@@ -100,9 +111,10 @@ export function CreateDocumentModal({ bookings }: CreateDocumentModalProps) {
                 </Button>
               </div>
             </div>
-          </Card>
-        </div>
-      )}
-    </>
+            </Card>
+            </div>
+          </div>
+        )}
+      </>
   );
 }

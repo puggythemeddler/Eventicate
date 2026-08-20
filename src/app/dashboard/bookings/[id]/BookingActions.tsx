@@ -65,7 +65,10 @@ export function BookingActions({
             <Button
               variant="danger"
               disabled={submitting !== null}
-              onClick={() => updateStatus("REJECTED")}
+              onClick={() => {
+                if (!window.confirm("Reject this quotation? This cannot be undone.")) return;
+                updateStatus("REJECTED");
+              }}
             >
               <X className="mr-2 h-4 w-4" />
               Reject
@@ -76,7 +79,10 @@ export function BookingActions({
           <Button
             variant="danger"
             disabled={submitting !== null}
-            onClick={() => updateStatus("CANCELLED")}
+            onClick={() => {
+              if (!window.confirm("Cancel this booking? This cannot be undone.")) return;
+              updateStatus("CANCELLED");
+            }}
           >
             Cancel Booking
           </Button>

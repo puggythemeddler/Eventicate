@@ -279,7 +279,18 @@ export default function ProviderSubscriptionPage() {
     return String(val);
   }
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen">
+        <Sidebar role="PROVIDER" />
+        <PageContent>
+          <div className="flex items-center justify-center py-20 text-sm text-charcoal-500 dark:text-charcoal-400">
+            Loading subscription...
+          </div>
+        </PageContent>
+      </div>
+    );
+  }
   if (!authorized) return null;
 
   const isOnTrial = subscription?.status === "TRIAL";
@@ -564,7 +575,18 @@ export default function ProviderSubscriptionPage() {
               tabIndex={-1}
               className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-xl outline-none dark:bg-charcoal-900"
             >
-              <h3 id="payment-modal-title" className="font-display mb-4 text-lg font-semibold text-charcoal-900 dark:text-charcoal-100">Complete Payment</h3>
+              <div className="flex items-center justify-between">
+                <h3 id="payment-modal-title" className="font-display mb-4 text-lg font-semibold text-charcoal-900 dark:text-charcoal-100">Complete Payment</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowPayment(false)}
+                  disabled={processing || paymentStatus === "waiting"}
+                  aria-label="Close payment dialog"
+                  className="mb-4 rounded-lg p-1 text-charcoal-400 transition-colors hover:text-charcoal-600 dark:text-charcoal-500 dark:hover:text-charcoal-200"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
 
               <div className="mb-4 rounded-lg border border-charcoal-200 dark:border-charcoal-800 p-4 ">
                 <p className="text-sm text-charcoal-500 dark:text-charcoal-400 ">{selectedPlan.name}</p>

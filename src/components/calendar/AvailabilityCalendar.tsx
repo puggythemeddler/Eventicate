@@ -122,11 +122,11 @@ export function AvailabilityCalendar({
   return (
     <div className="rounded-xl border border-charcoal-200 bg-white p-4 dark:border-charcoal-800 dark:bg-charcoal-900">
       <div className="mb-4 flex items-center justify-between">
-        <button onClick={prevMonth} className="rounded-lg p-1 hover:bg-sand dark:hover:bg-charcoal-800">
+        <button onClick={prevMonth} aria-label="Previous month" className="rounded-lg p-1 hover:bg-sand dark:hover:bg-charcoal-800">
           <ChevronLeft className="h-5 w-5" />
         </button>
         <h3 className="font-semibold text-charcoal-900 dark:text-charcoal-100">{MONTHS[month]} {year}</h3>
-        <button onClick={nextMonth} className="rounded-lg p-1 hover:bg-sand dark:hover:bg-charcoal-800">
+        <button onClick={nextMonth} aria-label="Next month" className="rounded-lg p-1 hover:bg-sand dark:hover:bg-charcoal-800">
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>

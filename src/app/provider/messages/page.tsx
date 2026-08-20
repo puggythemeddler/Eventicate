@@ -530,7 +530,7 @@ function MessagesContent() {
                       className="flex-1"
                       aria-label="Message"
                     />
-                    <Button type="submit" disabled={sending || !newMessage.trim()}>
+                    <Button type="submit" disabled={sending || !newMessage.trim()} aria-label="Send message">
                       <Send className="h-4 w-4" />
                     </Button>
                   </form>
@@ -602,6 +602,18 @@ function MessagesContent() {
                   className="w-full"
                 >
                   Send Message
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowNewModal(false);
+                    setSelectedReceiver("");
+                    setNewMessage("");
+                  }}
+                  className="w-full"
+                >
+                  Cancel
                 </Button>
               </div>
             </Card>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input, Select } from "@/components/ui/Input";
@@ -76,9 +76,17 @@ export function EditUserModal({ user, isSelf, onClose }: EditUserModalProps) {
     }
   };
 
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-lg overflow-hidden rounded-xl border border-charcoal-200 bg-white shadow-xl dark:border-charcoal-700 dark:bg-charcoal-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div className="w-full max-w-lg overflow-hidden rounded-xl border border-charcoal-200 bg-white shadow-xl dark:border-charcoal-700 dark:bg-charcoal-900" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-charcoal-100 px-5 py-4 dark:border-charcoal-800">
           <h2 className="font-display text-lg font-semibold text-charcoal-900 dark:text-charcoal-100">Edit User</h2>
           <button

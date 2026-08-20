@@ -157,10 +157,18 @@ export default function CartPage() {
             </p>
           </div>
           {items.length > 0 && (
-            <Button variant="outline" onClick={clearCart}>
-              <Trash2 className="mr-2 h-4 w-4" />
-              Clear Cart
-            </Button>
+            <div className="flex items-center gap-3">
+              <Link href="/search">
+                <Button variant="outline">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Continue Browsing
+                </Button>
+              </Link>
+              <Button variant="outline" onClick={clearCart}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Clear Cart
+              </Button>
+            </div>
           )}
         </div>
 

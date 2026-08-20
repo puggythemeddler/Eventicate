@@ -9,6 +9,7 @@ export function RejectButton({ providerId }: { providerId: string }) {
   const [loading, setLoading] = useState(false);
 
   const handleReject = async () => {
+    if (!window.confirm("Reject this provider? They will be notified that their application was not approved.")) return;
     setLoading(true);
     try {
       const res = await fetch("/api/admin", {

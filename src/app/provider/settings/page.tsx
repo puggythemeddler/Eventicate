@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { serverApi } from "@/lib/server-api";
 import { COUNTRIES } from "@/lib/locations";
 import { SettingsForm } from "./SettingsForm";
@@ -53,12 +56,33 @@ export default async function ProviderSettingsPage() {
   if (!session || session.role !== "PROVIDER") redirect("/auth/login");
 
   let settingsData: SettingsData | null = null;
+  let loadError = "";
   try {
     settingsData = await serverApi<SettingsData>("/api/provider/settings");
   } catch {
-    redirect("/auth/login");
+    loadError = "Failed to load your settings. Please try again.";
   }
-  if (!settingsData) redirect("/auth/login");
+
+  if (!settingsData) {
+    return (
+      <div className="flex min-h-screen">
+        <Sidebar role="PROVIDER" />
+        <PageContent>
+          <div className="mb-8">
+            <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Settings</h1>
+          </div>
+          <Card>
+            <div className="flex flex-col items-center gap-4 py-10 text-center">
+              <p className="text-sm text-charcoal-500 dark:text-charcoal-400">{loadError}</p>
+              <Link href="/provider">
+                <Button variant="outline">Back to Dashboard</Button>
+              </Link>
+            </div>
+          </Card>
+        </PageContent>
+      </div>
+    );
+  }
 
   const provider = settingsData.provider;
   const pricingRules = settingsData.pricingRules.filter((r) => r.isActive);

@@ -23,6 +23,7 @@ export default function WhatsAppPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [loadError, setLoadError] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -34,11 +35,25 @@ export default function WhatsAppPage() {
         return;
       }
       setAuthorized(true);
-      fetch("/api/admin/whatsapp")
-        .then((r) => r.json())
-        .then(setConfig);
+      try {
+        const res2 = await fetch("/api/admin/whatsapp");
+        if (!res2.ok) throw new Error("Failed to load");
+        const data = await res2.json();
+        setConfig(data);
+      } catch {
+        setLoadError("Failed to load WhatsApp configuration. Please try again.");
+      }
     })();
   }, [router]);
+
+  const reload = () => {
+    setLoadError("");
+    setAuthorized(true);
+    fetch("/api/admin/whatsapp")
+      .then((r) => r.json())
+      .then(setConfig)
+      .catch(() => setLoadError("Failed to load WhatsApp configuration. Please try again."));
+  };
 
   const update = (key: keyof WhatsAppConfig, value: string) => {
     setSaved(false);
@@ -71,7 +86,34 @@ export default function WhatsAppPage() {
     }
   };
 
-  if (!authorized || !config) return null;
+  if (!authorized) return null;
+
+  if (loadError || !config) {
+    return (
+      <div className="flex min-h-screen">
+        <Sidebar role="ADMIN" />
+        <PageContent>
+          <h1 className="mb-8 font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">WhatsApp Messaging</h1>
+          <Card>
+            <div className="flex flex-col items-center gap-4 py-10 text-center">
+              <AlertTriangle className="h-10 w-10 text-terracotta-600" />
+              <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
+                {loadError || "Failed to load configuration."}
+              </p>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={reload}>
+                  Retry
+                </Button>
+                <Button variant="outline" onClick={() => router.push("/admin")}>
+                  Back to Dashboard
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </PageContent>
+      </div>
+    );
+  }
 
   const webhookUrl = "https://eventicate-api.onrender.com/api/whatsapp/webhook";
 

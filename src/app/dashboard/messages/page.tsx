@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Sidebar } from "@/components/layout/Navigation";
 import { TopBar } from "@/components/layout/TopBar";
 import { Card, CardTitle } from "@/components/ui/Card";
@@ -167,6 +168,19 @@ function MessagesContent() {
   const prevConvRef = useRef<string | null>(null);
 
   useEffect(() => {
+    if (!showNewModal) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowNewModal(false);
+        setSelectedReceiver("");
+        setNewMessage("");
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [showNewModal]);
+
+  useEffect(() => {
     if (prevConvRef.current !== activeConv?.id) {
       prevConvRef.current = activeConv?.id || null;
       nearBottomRef.current = true;
@@ -328,6 +342,14 @@ function MessagesContent() {
         <div className="flex flex-1 overflow-hidden">
           <div className="flex w-80 flex-col border-r border-charcoal-200 dark:border-charcoal-800">
             <div className="border-b border-charcoal-200 p-4 dark:border-charcoal-800">
+              {bookingId && (
+                <Link
+                  href={`/dashboard/bookings/${bookingId}`}
+                  className="mb-3 inline-block text-sm text-primary-600 hover:underline"
+                >
+                  ← Back to Booking
+                </Link>
+              )}
               <div className="flex items-center justify-between">
                 <h1 className="font-display text-lg font-semibold text-charcoal-900 dark:text-charcoal-100">Messages</h1>
                 <Button size="sm" onClick={() => setShowNewModal(true)}>
@@ -522,7 +544,7 @@ function MessagesContent() {
                       className="flex-1"
                       aria-label="Message"
                     />
-                    <Button type="submit" disabled={sending || !newMessage.trim()}>
+                    <Button type="submit" disabled={sending || !newMessage.trim()} aria-label="Send message">
                       <Send className="h-4 w-4" />
                     </Button>
                   </form>
@@ -551,8 +573,14 @@ function MessagesContent() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="new-message-title"
+            onClick={() => {
+              setShowNewModal(false);
+              setSelectedReceiver("");
+              setNewMessage("");
+            }}
           >
-            <Card className="w-full max-w-md">
+            <div onClick={(e) => e.stopPropagation()}>
+              <Card className="w-full max-w-md">
               <div className="mb-4 flex items-center justify-between">
                 <CardTitle><span id="new-message-title">New Message</span></CardTitle>
                 <button
@@ -595,8 +623,21 @@ function MessagesContent() {
                 >
                   Send Message
                 </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowNewModal(false);
+                    setSelectedReceiver("");
+                    setNewMessage("");
+                  }}
+                  className="w-full"
+                >
+                  Cancel
+                </Button>
               </div>
             </Card>
+            </div>
           </div>
         )}
       </main>

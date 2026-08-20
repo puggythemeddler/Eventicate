@@ -9,6 +9,7 @@ export function ToggleUserStatus({ userId, isActive }: { userId: string; isActiv
   const [loading, setLoading] = useState(false);
 
   const handleToggle = async () => {
+    if (isActive && !window.confirm("Deactivate this user? They will no longer be able to sign in.")) return;
     setLoading(true);
     try {
       const res = await fetch("/api/admin/users", {

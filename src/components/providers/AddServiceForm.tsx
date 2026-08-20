@@ -21,6 +21,7 @@ export function AddServiceForm({ defaultCity = "", defaultCountry = "" }: { defa
   const [basePrice, setBasePrice] = useState(0);
   const [locationCountry, setLocationCountry] = useState(defaultCountry);
   const [locationCity, setLocationCity] = useState(defaultCity);
+  const [error, setError] = useState<string | null>(null);
 
   const discountedPrice = basePrice * (100 - discountPercent) / 100;
 
@@ -45,6 +46,7 @@ export function AddServiceForm({ defaultCity = "", defaultCountry = "" }: { defa
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploading(true);
+    setError(null);
     const form = e.currentTarget as HTMLFormElement;
     const formData = new FormData(form);
 
@@ -73,7 +75,12 @@ export function AddServiceForm({ defaultCity = "", defaultCountry = "" }: { defa
         images: imageUrls,
       }),
     });
-    if (res.ok) window.location.reload();
+    if (res.ok) {
+      window.location.reload();
+      return;
+    }
+    const data = await res.json().catch(() => ({}));
+    setError(Array.isArray(data.error) ? "Invalid form data. Please check your inputs." : data.error || "Failed to add service");
     setUploading(false);
   };
 
@@ -122,6 +129,7 @@ export function AddServiceForm({ defaultCity = "", defaultCountry = "" }: { defa
                 <button
                   type="button"
                   onClick={() => removeFile(i)}
+                  aria-label="Remove image"
                   className="absolute -right-1 -top-1 rounded-full bg-terracotta-600 p-0.5 text-white"
                 >
                   <X className="h-3 w-3" />
@@ -132,6 +140,7 @@ export function AddServiceForm({ defaultCity = "", defaultCountry = "" }: { defa
         )}
       </div>
 
+      {error && <p className="text-sm text-terracotta-600">{error}</p>}
       <Button type="submit" disabled={uploading} className="w-full">
         <Plus className="mr-2 h-4 w-4" />
         {uploading ? "Uploading..." : "Add Service"}

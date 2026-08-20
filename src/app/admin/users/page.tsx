@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
@@ -20,17 +21,19 @@ const ROLE_OPTIONS = [
 export default async function AdminUsersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ role?: string; search?: string }>;
+  searchParams: Promise<{ role?: string; search?: string; page?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect("/auth/login");
   if (session.role !== "ADMIN") redirect("/dashboard");
 
-  const { role, search } = await searchParams;
+  const { role, search, page } = await searchParams;
+  const currentPage = Math.max(1, Number(page) || 1);
 
   const params = new URLSearchParams();
   if (role && role !== "ALL") params.set("role", role);
   if (search) params.set("search", search);
+  if (currentPage > 1) params.set("page", String(currentPage));
   const qs = params.toString();
 
   const data = await serverApi<{
@@ -124,6 +127,30 @@ export default async function AdminUsersPage({
             </tbody>
           </table>
         </Card>
+
+        {data.totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-between">
+            <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
+              Page {data.page} of {data.totalPages} ({data.total} users)
+            </p>
+            <div className="flex gap-2">
+              {currentPage > 1 && (
+                <Link
+                  href={`/admin/users?${new URLSearchParams({ ...(role && role !== "ALL" ? { role } : {}), ...(search ? { search } : {}), page: String(currentPage - 1) }).toString()}`}
+                >
+                  <Button variant="outline" size="sm">← Previous</Button>
+                </Link>
+              )}
+              {currentPage < data.totalPages && (
+                <Link
+                  href={`/admin/users?${new URLSearchParams({ ...(role && role !== "ALL" ? { role } : {}), ...(search ? { search } : {}), page: String(currentPage + 1) }).toString()}`}
+                >
+                  <Button variant="outline" size="sm">Next →</Button>
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
       </PageContent>
     </div>
   );

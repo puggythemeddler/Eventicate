@@ -71,7 +71,14 @@ export function NotificationsList() {
         </Button>
       </div>
 
-      {error && <div className="mb-4 rounded-lg bg-terracotta-50 p-3 text-sm text-terracotta-700 dark:bg-terracotta-900/30 dark:text-terracotta-400">{error}</div>}
+      {error && (
+        <div className="mb-4 flex items-center justify-between rounded-lg bg-terracotta-50 p-3 text-sm text-terracotta-700 dark:bg-terracotta-900/30 dark:text-terracotta-400">
+          <span>{error}</span>
+          <Button variant="outline" size="sm" onClick={load}>
+            Retry
+          </Button>
+        </div>
+      )}
 
       {loading ? (
         <p className="p-8 text-center text-sm text-charcoal-400 dark:text-charcoal-500">Loading...</p>
@@ -82,28 +89,35 @@ export function NotificationsList() {
         </Card>
       ) : (
         <div className="space-y-2">
-          {notifications.map((n) => (
-            <button
-              key={n.id}
-              type="button"
-              onClick={() => markRead(n)}
-              className={cn(
-                "flex w-full items-start justify-between gap-4 rounded-xl border border-charcoal-200 bg-white px-4 py-3 text-left transition-colors hover:bg-sand dark:border-charcoal-800 dark:bg-charcoal-900 dark:hover:bg-charcoal-800/60",
-                !n.isRead && "border-primary-200 bg-primary-50/60 dark:border-primary-800 dark:bg-primary-900/20"
-              )}
-            >
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold">{n.title}</p>
-                  {!n.isRead && <span className="h-2 w-2 shrink-0 rounded-full bg-primary-600" />}
+          {notifications.map((n) => {
+            const content = (
+              <>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold">{n.title}</p>
+                    {!n.isRead && <span className="h-2 w-2 shrink-0 rounded-full bg-primary-600" />}
+                  </div>
+                  <p className="mt-0.5 text-sm text-charcoal-500 dark:text-charcoal-400">{n.message}</p>
                 </div>
-                <p className="mt-0.5 text-sm text-charcoal-500 dark:text-charcoal-400">{n.message}</p>
+                <span className="shrink-0 text-xs text-charcoal-400 dark:text-charcoal-500">
+                  {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
+                </span>
+              </>
+            );
+            const cls = cn(
+              "flex w-full items-start justify-between gap-4 rounded-xl border border-charcoal-200 bg-white px-4 py-3 text-left transition-colors hover:bg-sand dark:border-charcoal-800 dark:bg-charcoal-900 dark:hover:bg-charcoal-800/60",
+              !n.isRead && "border-primary-200 bg-primary-50/60 dark:border-primary-800 dark:bg-primary-900/20"
+            );
+            return n.link ? (
+              <button key={n.id} type="button" onClick={() => markRead(n)} className={cls}>
+                {content}
+              </button>
+            ) : (
+              <div key={n.id} className={cls}>
+                {content}
               </div>
-              <span className="shrink-0 text-xs text-charcoal-400 dark:text-charcoal-500">
-                {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
-              </span>
-            </button>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

@@ -37,6 +37,10 @@ export default function NewEventPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.guestCount || form.guestCount < 1) {
+      alert("Please enter a valid number of guests.");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/events", {
@@ -50,7 +54,7 @@ export default function NewEventPage() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(Array.isArray(data.error) ? "Invalid form data. Please check your inputs." : data.error);
       router.push(`/dashboard/events/${data.event.id}`);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to create event");
@@ -63,8 +67,8 @@ export default function NewEventPage() {
     <div className="flex min-h-screen">
       <Sidebar role="CUSTOMER" />
       <PageContent>
-        <Link href="/dashboard" className="mb-4 text-sm text-primary-600 hover:underline">
-          ← Back to Dashboard
+        <Link href="/dashboard/events" className="mb-4 text-sm text-primary-600 hover:underline">
+          ← Back to My Events
         </Link>
         <Card className="max-w-2xl">
           <CardTitle className="mb-6">Create New Event</CardTitle>

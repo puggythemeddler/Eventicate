@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { SERVICE_CATEGORIES } from "@/lib/constants";
@@ -34,6 +34,14 @@ export function EditServiceModal({ service, onClose, onSaved }: EditServiceModal
   const [locationCity, setLocationCity] = useState(service.locationCity || "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [onClose]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -78,6 +86,7 @@ export function EditServiceModal({ service, onClose, onSaved }: EditServiceModal
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close edit service dialog"
             className="text-charcoal-400 hover:text-charcoal-600 dark:text-charcoal-500 dark:hover:text-charcoal-200"
           >
             <X className="h-5 w-5" />

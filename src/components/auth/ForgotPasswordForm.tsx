@@ -45,9 +45,16 @@ export function ForgotPasswordForm() {
           </p>
 
           {sent ? (
-            <div className="rounded-lg bg-olive-50 p-4 text-sm text-olive-700 dark:bg-olive-900/30 dark:text-olive-400">
-              If an account exists for that email, a reset link has been sent. Check your inbox.
-            </div>
+            <>
+              <div className="rounded-lg bg-olive-50 p-4 text-sm text-olive-700 dark:bg-olive-900/30 dark:text-olive-400">
+                If an account exists for that email, a reset link has been sent. Check your inbox.
+              </div>
+              <Link href="/auth/login">
+                <Button variant="outline" className="mt-4 w-full">
+                  Back to Sign In
+                </Button>
+              </Link>
+            </>
           ) : (
             <>
               {error && (

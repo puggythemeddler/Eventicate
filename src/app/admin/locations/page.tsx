@@ -246,6 +246,8 @@ export default function LocationsPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => toggleExpand(country.id)}
+                    aria-expanded={expanded.has(country.id)}
+                    aria-label={`${expanded.has(country.id) ? "Collapse" : "Expand"} ${country.name}`}
                     className="text-charcoal-400 dark:text-charcoal-500 hover:text-charcoal-600 dark:hover:text-charcoal-300"
                   >
                     {expanded.has(country.id) ? (
@@ -271,6 +273,7 @@ export default function LocationsPage() {
                     size="sm"
                     variant="ghost"
                     onClick={() => { setEditingCountry(country); setEditCountryName(country.name); }}
+                    aria-label={`Edit ${country.name}`}
                   >
                     <Edit2 className="h-3 w-3" />
                   </Button>
@@ -278,6 +281,7 @@ export default function LocationsPage() {
                     size="sm"
                     variant="ghost"
                     onClick={() => handleDeleteCountry(country.id)}
+                    aria-label={`Delete ${country.name}`}
                   >
                     <Trash2 className="h-3 w-3 text-terracotta-600 dark:text-terracotta-400" />
                   </Button>
@@ -336,6 +340,7 @@ export default function LocationsPage() {
                           size="sm"
                           variant="ghost"
                           onClick={() => { setEditingSubdiv(sub); setEditSubdivName(sub.name); }}
+                          aria-label={`Edit ${sub.name}`}
                         >
                           <Edit2 className="h-3 w-3" />
                         </Button>
@@ -343,6 +348,7 @@ export default function LocationsPage() {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleDeleteSubdivision(sub.id)}
+                          aria-label={`Delete ${sub.name}`}
                         >
                           <Trash2 className="h-3 w-3 text-terracotta-600 dark:text-terracotta-400" />
                         </Button>

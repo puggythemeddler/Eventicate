@@ -100,7 +100,10 @@ export function ProviderBookingActions({ bookingId, status }: { bookingId: strin
           <Button
             variant="danger"
             disabled={submitting !== null}
-            onClick={() => updateStatus({ status: "REJECTED" })}
+            onClick={() => {
+              if (!window.confirm("Reject this booking request?")) return;
+              updateStatus({ status: "REJECTED" });
+            }}
           >
             Reject
           </Button>
@@ -118,7 +121,10 @@ export function ProviderBookingActions({ bookingId, status }: { bookingId: strin
           <Button
             variant="danger"
             disabled={submitting !== null}
-            onClick={() => updateStatus({ status: "CANCELLED" })}
+            onClick={() => {
+              if (!window.confirm("Cancel this booking? This cannot be undone.")) return;
+              updateStatus({ status: "CANCELLED" });
+            }}
           >
             Cancel
           </Button>

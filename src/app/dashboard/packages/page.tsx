@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardTitle } from "@/components/ui/Card";
@@ -170,6 +171,12 @@ function PackageBuilderContent() {
     <div className="flex min-h-screen">
       <Sidebar role="CUSTOMER" />
       <PageContent>
+        <Link
+          href={preselectedEventId ? `/dashboard/events/${preselectedEventId}` : "/dashboard/events"}
+          className="mb-4 inline-block text-sm text-primary-600 hover:underline"
+        >
+          ← {preselectedEventId ? "Back to Event" : "Back to My Events"}
+        </Link>
         <div className="mb-8">
           <div className="mb-2 flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-gold-500" />

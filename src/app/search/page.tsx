@@ -137,6 +137,21 @@ function SearchContent() {
 
   const hasFilters = Object.values(filters).some(Boolean);
 
+  const backQuery = (() => {
+    const params = new URLSearchParams();
+    if (filters.search) params.set("search", filters.search);
+    if (filters.category) params.set("category", filters.category);
+    if (filters.city) params.set("city", filters.city);
+    if (filters.country) params.set("country", filters.country);
+    if (filters.travelOutside) params.set("travelOutside", filters.travelOutside);
+    if (filters.minPrice) params.set("minPrice", filters.minPrice);
+    if (filters.maxPrice) params.set("maxPrice", filters.maxPrice);
+    if (filters.minRating) params.set("minRating", filters.minRating);
+    if (page > 1) params.set("page", String(page));
+    const qs = params.toString();
+    return qs ? `/search?${qs}` : "/search";
+  })();
+
   return (
     <div className="min-h-screen bg-cream dark:bg-charcoal-950">
       <PublicHeader />
@@ -379,6 +394,7 @@ function SearchContent() {
               {providers.map((provider) => (
                 <ListingCard
                   key={provider.id}
+                  backHref={backQuery}
                   provider={{
                     ...provider,
                     totalReviews: provider.totalReviews,

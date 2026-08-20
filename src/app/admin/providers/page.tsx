@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
@@ -150,7 +151,14 @@ export default async function AdminProvidersPage({
                   }`}
                 >
                   <td className="px-6 py-4 font-medium text-charcoal-900 dark:text-charcoal-100">
-                    {p.businessName}
+                    <Link
+                      href={`/providers/${p.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary-700 hover:underline dark:text-primary-400"
+                    >
+                      {p.businessName}
+                    </Link>
                     {p.verificationStatus && p.verificationStatus !== "NONE" && (
                       <span className={`ml-2 inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${VERIFICATION_META[p.verificationStatus]?.className || VERIFICATION_META.NONE.className}`}>
                         {VERIFICATION_META[p.verificationStatus]?.label || "Not Verified"}

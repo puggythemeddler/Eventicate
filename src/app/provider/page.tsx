@@ -168,44 +168,52 @@ export default async function ProviderDashboard() {
         </div>
 
         <div className="mb-8 grid gap-4 md:grid-cols-4">
-          <Card>
-            <div className="flex items-center gap-3">
-              <Package className="h-8 w-8 text-primary-600" />
-              <div>
-                <p className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">{dashboard.totalBookings}</p>
-                <p className="text-sm text-charcoal-500 dark:text-charcoal-400">Total Bookings</p>
+          <Link href="/provider/bookings" className="block">
+            <Card>
+              <div className="flex items-center gap-3">
+                <Package className="h-8 w-8 text-primary-600" />
+                <div>
+                  <p className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">{dashboard.totalBookings}</p>
+                  <p className="text-sm text-charcoal-500 dark:text-charcoal-400">Total Bookings</p>
+                </div>
               </div>
-            </div>
-          </Card>
-          <Card>
-            <div className="flex items-center gap-3">
-              <Calendar className="h-8 w-8 text-gold-600" />
-              <div>
-                <p className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">{pendingBookings}</p>
-                <p className="text-sm text-charcoal-500 dark:text-charcoal-400">Pending Requests</p>
+            </Card>
+          </Link>
+          <Link href="/provider/bookings" className="block">
+            <Card>
+              <div className="flex items-center gap-3">
+                <Calendar className="h-8 w-8 text-gold-600" />
+                <div>
+                  <p className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">{pendingBookings}</p>
+                  <p className="text-sm text-charcoal-500 dark:text-charcoal-400">Pending Requests</p>
+                </div>
               </div>
-            </div>
-          </Card>
-          <Card>
-            <div className="flex items-center gap-3">
-              <DollarSign className="h-8 w-8 text-olive-600" />
-              <div>
-                <p className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">
-                  {formatCurrency(dashboard.revenue, currency)}
-                </p>
-                <p className="text-sm text-charcoal-500 dark:text-charcoal-400">Total Revenue</p>
+            </Card>
+          </Link>
+          <Link href="/provider/analytics" className="block">
+            <Card>
+              <div className="flex items-center gap-3">
+                <DollarSign className="h-8 w-8 text-olive-600" />
+                <div>
+                  <p className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">
+                    {formatCurrency(dashboard.revenue, currency)}
+                  </p>
+                  <p className="text-sm text-charcoal-500 dark:text-charcoal-400">Total Revenue</p>
+                </div>
               </div>
-            </div>
-          </Card>
-          <Card>
-            <div className="flex items-center gap-3">
-              <Star className="h-8 w-8 text-gold-500" />
-              <div>
-                <p className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">{dashboard.averageRating.toFixed(1)}</p>
-                <p className="text-sm text-charcoal-500 dark:text-charcoal-400">{dashboard.totalReviews} Reviews</p>
+            </Card>
+          </Link>
+          <Link href="/provider/reviews" className="block">
+            <Card>
+              <div className="flex items-center gap-3">
+                <Star className="h-8 w-8 text-gold-500" />
+                <div>
+                  <p className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">{dashboard.averageRating.toFixed(1)}</p>
+                  <p className="text-sm text-charcoal-500 dark:text-charcoal-400">{dashboard.totalReviews} Reviews</p>
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          </Link>
         </div>
 
         <Card>
@@ -226,11 +234,17 @@ export default async function ProviderDashboard() {
                 </thead>
                 <tbody>
                   {dashboard.recentBookings.map((booking) => (
-                    <tr key={booking.id} className="border-b border-charcoal-100 dark:border-charcoal-800">
+                    <tr key={booking.id} className="border-b border-charcoal-100 transition-colors hover:bg-sand dark:border-charcoal-800 dark:hover:bg-charcoal-800/50">
                       <td className="py-3">
-                        {booking.customer.user.firstName} {booking.customer.user.lastName}
+                        <Link href={`/provider/bookings/${booking.id}`} className="font-medium text-primary-700 hover:underline dark:text-primary-400">
+                          {booking.customer.user.firstName} {booking.customer.user.lastName}
+                        </Link>
                       </td>
-                      <td className="py-3">{booking.event.title}</td>
+                      <td className="py-3">
+                        <Link href={`/provider/bookings/${booking.id}`} className="hover:underline">
+                          {booking.event.title}
+                        </Link>
+                      </td>
                       <td className="py-3">{formatDate(new Date(booking.event.eventDate))}</td>
                       <td className="py-3">
                         <StatusBadge status={booking.status} />

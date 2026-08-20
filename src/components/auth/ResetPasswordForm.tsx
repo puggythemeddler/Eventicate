@@ -61,7 +61,11 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
           {!token && (
             <div className="rounded-lg bg-terracotta-50 p-3 text-sm text-terracotta-700 dark:bg-terracotta-900/30 dark:text-terracotta-400">
-              Missing reset token. Request a new reset link.
+              Missing reset token.{" "}
+              <Link href="/auth/forgot-password" className="font-medium underline">
+                Request a new reset link
+              </Link>
+              .
             </div>
           )}
 

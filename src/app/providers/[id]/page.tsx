@@ -7,7 +7,7 @@ import { Badge, StarRating } from "@/components/ui/Badge";
 import { PublicAvailabilityCalendar } from "./PublicAvailabilityCalendar";
 import { serverApi } from "@/lib/server-api";
 import { formatCurrency, parseJsonArray, getCurrencyForCountry } from "@/lib/utils";
-import { MapPin, ShieldCheck } from "lucide-react";
+import { MapPin, ShieldCheck, ArrowLeft } from "lucide-react";
 import { SERVICE_CATEGORIES, EVENT_TYPES, CATEGORY_IMAGES } from "@/lib/constants";
 import { CategoryIcon } from "@/components/layout/Navigation";
 import { AddToCartButton } from "./AddToCartButton";
@@ -91,11 +91,18 @@ interface ProviderData {
 
 export default async function ProviderProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ back?: string }>;
 }) {
   const { id } = await params;
+  const { back } = await searchParams;
   const session = await getSession();
+
+  // Preserve the visitor's search context when they arrived from the marketplace.
+  const backHref = back && back.startsWith("/search") ? back : "/search";
+  const backLabel = back ? "Back to results" : "Back to marketplace";
 
   const currency = getCurrencyForCountry(session?.country);
   const now = new Date();
@@ -117,8 +124,16 @@ export default async function ProviderProfilePage({
 
   if (!provider) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p>Provider not found</p>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-cream p-4 text-center dark:bg-charcoal-950">
+        <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
+          Provider not found.
+        </p>
+        <Link
+          href={backHref}
+          className="text-sm font-medium text-primary-600 hover:underline"
+        >
+          ← Back to Marketplace
+        </Link>
       </div>
     );
   }
@@ -128,6 +143,30 @@ export default async function ProviderProfilePage({
 
   return (
     <div className="min-h-screen bg-cream dark:bg-charcoal-950">
+      {/* Contextual navigation */}
+      <div className="border-b border-charcoal-200 bg-white dark:border-charcoal-800 dark:bg-charcoal-900">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
+          <Link
+            href={backHref}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-charcoal-600 transition-colors hover:text-primary-700 dark:text-charcoal-300 dark:hover:text-primary-400"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {backLabel}
+          </Link>
+          <nav aria-label="Breadcrumb" className="hidden items-center gap-1.5 text-sm text-charcoal-400 dark:text-charcoal-500 sm:flex">
+            <Link href="/" className="transition-colors hover:text-primary-700 dark:hover:text-primary-400">
+              Home
+            </Link>
+            <span aria-hidden="true">/</span>
+            <Link href="/search" className="transition-colors hover:text-primary-700 dark:hover:text-primary-400">
+              Marketplace
+            </Link>
+            <span aria-hidden="true">/</span>
+            <span className="font-medium text-charcoal-700 dark:text-charcoal-200">{provider.businessName}</span>
+          </nav>
+        </div>
+      </div>
+
       {/* Provider banner */}
       <div className="relative h-64 w-full bg-charcoal-900 md:h-72">
         <Image

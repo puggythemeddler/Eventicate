@@ -130,6 +130,7 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
     <div className="border-b border-charcoal-100 last:border-0 dark:border-charcoal-800">
       <button
         onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
         className="flex w-full items-center justify-between px-6 py-4 text-left hover:bg-sand dark:hover:bg-charcoal-800/60"
       >
         <div className="flex-1">

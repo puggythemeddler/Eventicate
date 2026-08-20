@@ -22,19 +22,24 @@ interface ListingCardProps {
     services?: { name: string; basePrice: number }[];
   };
   className?: string;
+  /** Optional destination to return to (e.g. the search results page with filters preserved). */
+  backHref?: string;
 }
 
-export function ListingCard({ provider, className }: ListingCardProps) {
+export function ListingCard({ provider, className, backHref }: ListingCardProps) {
   const categoryKey = provider.category as ServiceCategory;
   const categoryLabel = SERVICE_CATEGORIES.find((c) => c.value === categoryKey)?.label ?? "Provider";
   const image = provider.images?.[0] || provider.coverImageUrl || CATEGORY_IMAGES[categoryKey] || CATEGORY_IMAGES.OTHER;
   const isVerified = provider.verificationStatus === "VERIFIED";
   const fromPrice = provider.services?.[0]?.basePrice;
   const currency = getCurrencyForCountry(provider.country);
+  const href = backHref
+    ? `/providers/${provider.id}?back=${encodeURIComponent(backHref)}`
+    : `/providers/${provider.id}`;
 
   return (
     <Link
-      href={`/providers/${provider.id}`}
+      href={href}
       className={cn(
         "group block overflow-hidden rounded-xl border border-charcoal-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-charcoal-300 hover:shadow-lg dark:border-charcoal-800 dark:bg-charcoal-900 dark:hover:border-charcoal-700",
         className

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { EQUIPMENT_CATEGORIES } from "@/lib/constants";
@@ -53,6 +53,14 @@ export function EditEquipmentModal({ item, onClose, onSaved }: EditEquipmentModa
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [onClose]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -102,6 +110,7 @@ export function EditEquipmentModal({ item, onClose, onSaved }: EditEquipmentModa
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close edit equipment dialog"
             className="text-charcoal-400 hover:text-charcoal-600 dark:text-charcoal-500 dark:hover:text-charcoal-200"
           >
             <X className="h-5 w-5" />

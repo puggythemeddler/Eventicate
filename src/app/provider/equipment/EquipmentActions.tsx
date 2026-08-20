@@ -136,10 +136,10 @@ export function EquipmentActions({ item }: EquipmentActionsProps) {
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={() => setEditing(true)} variant="outline" size="sm">
+          <Button onClick={() => setEditing(true)} variant="outline" size="sm" aria-label={`Edit ${item.name}`}>
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button onClick={deleteItem} variant="danger" size="sm" disabled={deleting}>
+          <Button onClick={deleteItem} variant="danger" size="sm" disabled={deleting} aria-label={`Delete ${item.name}`}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>

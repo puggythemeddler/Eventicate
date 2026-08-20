@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
@@ -64,8 +65,17 @@ export default async function AdminDashboard() {
 
         <div className="mb-8 grid gap-4 md:grid-cols-4">
           {[
-            { label: "Total Users", value: totalUsers },
-            { label: "Active Providers", value: totalProviders },
+            { label: "Total Users", value: totalUsers, href: "/admin/users" },
+            { label: "Active Providers", value: totalProviders, href: "/admin/providers" },
+          ].map((stat) => (
+            <Link key={stat.label} href={stat.href} className="block">
+              <Card>
+                <p className="text-2xl font-bold">{stat.value}</p>
+                <p className="text-sm text-charcoal-500 dark:text-charcoal-400">{stat.label}</p>
+              </Card>
+            </Link>
+          ))}
+          {[
             { label: "Total Events", value: totalEvents },
             { label: "Total Bookings", value: totalBookings },
           ].map((stat) => (
@@ -83,15 +93,22 @@ export default async function AdminDashboard() {
               {formatCurrency(totalRevenue, currency)}
             </p>
           </Card>
-          <Card>
-            <CardTitle className="mb-2">Open Complaints</CardTitle>
-            <p className="text-3xl font-bold text-terracotta-700 dark:text-terracotta-400">{openComplaints}</p>
-          </Card>
+          <Link href="/admin/complaints" className="block">
+            <Card>
+              <CardTitle className="mb-2">Open Complaints</CardTitle>
+              <p className="text-3xl font-bold text-terracotta-700 dark:text-terracotta-400">{openComplaints}</p>
+            </Card>
+          </Link>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
           <Card>
-            <CardTitle className="mb-4">Pending Provider Approvals</CardTitle>
+            <div className="mb-4 flex items-center justify-between">
+              <CardTitle>Pending Provider Approvals</CardTitle>
+              <Link href="/admin/providers" className="text-sm text-primary-600 hover:underline">
+                View all
+              </Link>
+            </div>
             {pendingProviders.length === 0 ? (
               <p className="text-sm text-charcoal-500 dark:text-charcoal-400">No pending approvals.</p>
             ) : (

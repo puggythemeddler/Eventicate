@@ -20,11 +20,11 @@ interface Field {
   options?: { value: string; label: string }[];
 }
 
-const TABS: { value: ListingType; label: string }[] = [
-  { value: "venue", label: "Venues" },
-  { value: "vehicle", label: "Vehicles" },
-  { value: "menuPackage", label: "Menu Packages" },
-  { value: "photoPackage", label: "Photo & Video" },
+const TABS: { value: ListingType; label: string; singular: string }[] = [
+  { value: "venue", label: "Venues", singular: "Venue" },
+  { value: "vehicle", label: "Vehicles", singular: "Vehicle" },
+  { value: "menuPackage", label: "Menu Packages", singular: "Menu Package" },
+  { value: "photoPackage", label: "Photo & Video", singular: "Photo Package" },
 ];
 
 const FIELDS: Record<ListingType, Field[]> = {
@@ -277,7 +277,7 @@ export function ListingsManager() {
         {!adding && (
           <Button onClick={startAdd}>
             <Plus className="mr-2 h-4 w-4" />
-            Add {TABS.find((t) => t.value === tab)?.label.slice(0, -1)}
+            Add {TABS.find((t) => t.value === tab)?.singular || "Item"}
           </Button>
         )}
       </div>
@@ -301,7 +301,7 @@ export function ListingsManager() {
       ) : rows.length === 0 ? (
         <Card>
           <CardTitle>No listings yet</CardTitle>
-          <p className="mt-2 text-sm text-charcoal-500 dark:text-charcoal-400">Add your first {TABS.find((t) => t.value === tab)?.label.toLowerCase()} using the button above.</p>
+          <p className="mt-2 text-sm text-charcoal-500 dark:text-charcoal-400">Add your first {TABS.find((t) => t.value === tab)?.singular.toLowerCase() || "item"} using the button above.</p>
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -335,7 +335,7 @@ export function ListingsManager() {
                 <Button variant="outline" size="sm" onClick={() => toggleActive(row)}>
                   {row.isActive ? "Deactivate" : "Activate"}
                 </Button>
-                <Button variant="danger" size="sm" onClick={() => remove(row)}>
+                <Button variant="danger" size="sm" onClick={() => remove(row)} aria-label="Delete listing">
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>

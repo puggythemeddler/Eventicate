@@ -80,6 +80,10 @@ export default function EditEventPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form) return;
+    if (!form.guestCount || form.guestCount < 1) {
+      alert("Please enter a valid number of guests.");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch(`/api/events/${eventId}`, {
@@ -110,8 +114,17 @@ export default function EditEventPage() {
       <div className="flex min-h-screen">
         <Sidebar role="CUSTOMER" />
         <PageContent>
+          <Link href="/dashboard/events" className="mb-4 text-sm text-primary-600 hover:underline">
+            ← Back to My Events
+          </Link>
           <Card>
             <CardTitle>Event not found</CardTitle>
+            <p className="mt-2 text-sm text-charcoal-500 dark:text-charcoal-400">
+              This event may have been deleted or you may not have access to it.
+            </p>
+            <Link href="/dashboard/events">
+              <Button className="mt-4">Go to My Events</Button>
+            </Link>
           </Card>
         </PageContent>
       </div>
@@ -229,9 +242,19 @@ export default function EditEventPage() {
                 ))}
               </div>
             </div>
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading ? "Saving..." : "Save Changes"}
-            </Button>
+            <div className="flex gap-3">
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading ? "Saving..." : "Save Changes"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push(`/dashboard/events/${eventId}`)}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+            </div>
           </form>
         </Card>
       </PageContent>

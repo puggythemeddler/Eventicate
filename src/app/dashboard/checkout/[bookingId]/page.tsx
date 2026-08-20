@@ -200,6 +200,9 @@ export default function CheckoutPage() {
             <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
               {loadError || "Booking not found."}
             </p>
+            <Link href="/dashboard/bookings">
+              <Button className="mt-4" variant="outline">Back to Bookings</Button>
+            </Link>
           </Card>
         </PageContent>
       </div>
@@ -318,6 +321,9 @@ export default function CheckoutPage() {
               <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
                 No outstanding balance for this booking.
               </p>
+              <Button variant="primary" onClick={() => router.push(`/dashboard/bookings/${bookingId}`)}>
+                View Booking
+              </Button>
             </div>
           </Card>
         ) : pollStatus === "COMPLETED" ? (

@@ -112,10 +112,10 @@ export function ServiceActions({ service }: ServiceActionsProps) {
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={() => setEditing(true)} variant="outline" size="sm">
+          <Button onClick={() => setEditing(true)} variant="outline" size="sm" aria-label={`Edit ${service.name}`}>
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button onClick={deleteService} variant="danger" size="sm" disabled={deleting}>
+          <Button onClick={deleteService} variant="danger" size="sm" disabled={deleting} aria-label={`Delete ${service.name}`}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
