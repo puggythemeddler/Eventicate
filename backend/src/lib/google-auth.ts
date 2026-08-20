@@ -74,7 +74,7 @@ export async function getGoogleTokens(code: string): Promise<GoogleTokens> {
 export async function getGoogleUser(tokens: GoogleTokens): Promise<GoogleUser> {
   const res = await fetch(
     `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${tokens.access_token}`,
-    { headers: { Authorization: `Bearer ${tokens.id_token}` } }
+    { headers: { Authorization: `Bearer ${tokens.access_token}` } }
   );
   if (!res.ok) throw new Error("Failed to fetch user info");
   return (await res.json()) as GoogleUser;
