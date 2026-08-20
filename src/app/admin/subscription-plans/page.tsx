@@ -65,12 +65,24 @@ export default function SubscriptionPlansPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState<FormData>(emptyForm);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
 
   const fetchPlans = useCallback(async () => {
-    const res = await fetch("/api/admin/subscription-plans");
-    const data = await res.json();
-    setPlans(data.plans || []);
+    try {
+      const res = await fetch("/api/admin/subscription-plans");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Request failed (${res.status})`);
+      }
+      const data = await res.json();
+      setPlans(data.plans || []);
+      setLoadError(null);
+    } catch {
+      setLoadError("Unable to load subscription plans. Check your connection and try again.");
+    }
   }, []);
 
   useEffect(() => {
@@ -89,39 +101,70 @@ export default function SubscriptionPlansPage() {
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    const res = await fetch("/api/admin/subscription-plans", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    if (res.ok) {
+    setActionError(null);
+    setSuccess(null);
+    try {
+      const res = await fetch("/api/admin/subscription-plans", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to create plan (${res.status})`);
+      }
       setShowCreate(false);
       setForm(emptyForm);
+      setSuccess("Plan created.");
       fetchPlans();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to create plan. Please try again.");
     }
   }
 
   async function handleUpdate(id: string) {
-    const res = await fetch("/api/admin/subscription-plans", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, ...form }),
-    });
-    if (res.ok) {
+    setActionError(null);
+    setSuccess(null);
+    try {
+      const res = await fetch("/api/admin/subscription-plans", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...form }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to update plan (${res.status})`);
+      }
       setEditingId(null);
       setForm(emptyForm);
+      setSuccess("Plan updated.");
       fetchPlans();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to update plan. Please try again.");
     }
   }
 
   async function handleDelete(id: string) {
     if (!confirm("Are you sure you want to delete this plan?")) return;
-    await fetch(`/api/admin/subscription-plans?id=${id}`, { method: "DELETE" });
-    fetchPlans();
+    setActionError(null);
+    setSuccess(null);
+    try {
+      const res = await fetch(`/api/admin/subscription-plans?id=${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to delete plan (${res.status})`);
+      }
+      setSuccess("Plan deleted.");
+      fetchPlans();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to delete plan. Please try again.");
+    }
   }
 
   function startEdit(plan: Plan) {
     setEditingId(plan.id);
+    setSuccess(null);
+    setActionError(null);
     setForm({
       name: plan.name,
       description: plan.description || "",
@@ -138,7 +181,18 @@ export default function SubscriptionPlansPage() {
     });
   }
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen">
+        <Sidebar role="ADMIN" />
+        <PageContent>
+          <Card className="animate-pulse p-6">
+            <p className="text-sm text-charcoal-500 dark:text-charcoal-400">Loading subscription plans…</p>
+          </Card>
+        </PageContent>
+      </div>
+    );
+  }
 
   if (!authorized) return null;
 
@@ -146,14 +200,32 @@ export default function SubscriptionPlansPage() {
     <div className="flex min-h-screen">
       <Sidebar role="ADMIN" />
       <PageContent>
-        <div className="mb-8 flex items-center justify-between">
+          {loadError && (
+            <Card className="mb-6 border-terracotta-200 bg-terracotta-50 dark:border-terracotta-900 dark:bg-terracotta-950/30">
+              <p className="text-sm text-terracotta-700 dark:text-terracotta-300">{loadError}</p>
+              <div className="mt-3">
+                <Button variant="outline" onClick={() => { setLoadError(null); fetchPlans(); }}>Retry</Button>
+              </div>
+            </Card>
+          )}
+          {actionError && (
+            <Card className="mb-6 border-terracotta-200 bg-terracotta-50 dark:border-terracotta-900 dark:bg-terracotta-950/30">
+              <p className="text-sm text-terracotta-700 dark:text-terracotta-300">{actionError}</p>
+            </Card>
+          )}
+          {success && (
+            <Card className="mb-6 border-olive-200 bg-olive-50 dark:border-olive-900 dark:bg-olive-950/30">
+              <p className="text-sm text-olive-700 dark:text-olive-300">{success}</p>
+            </Card>
+          )}
+          <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Subscription Plans</h1>
             <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
               Manage subscription tiers and pricing
             </p>
           </div>
-          <Button onClick={() => { setShowCreate(!showCreate); setEditingId(null); setForm(emptyForm); }}>
+          <Button onClick={() => { setShowCreate(!showCreate); setEditingId(null); setForm(emptyForm); setSuccess(null); setActionError(null); }}>
             <Plus className="mr-1 h-4 w-4" /> New Plan
           </Button>
         </div>
@@ -245,7 +317,7 @@ export default function SubscriptionPlansPage() {
                         </td>
                         <td className="py-3">
                           <div className="flex gap-1">
-                            <button onClick={() => handleUpdate(plan.id)} className="rounded p-1 text-olive-700 dark:text-olive-400 hover:bg-olive-50"><Check className="h-4 w-4" /></button>
+                            <button onClick={() => handleUpdate(plan.id)} aria-label="Save changes" className="rounded p-1 text-olive-700 dark:text-olive-400 hover:bg-olive-50"><Check className="h-4 w-4" /></button>
                             <button type="button" onClick={() => { setEditingId(null); setForm(emptyForm); }} aria-label="Cancel editing" className="rounded p-1 text-charcoal-600 dark:text-charcoal-300 hover:bg-sand dark:hover:bg-charcoal-800"><X className="h-4 w-4" /></button>
                           </div>
                         </td>

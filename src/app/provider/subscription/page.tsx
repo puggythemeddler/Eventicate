@@ -79,6 +79,7 @@ export default function ProviderSubscriptionPage() {
   const [paymentError, setPaymentError] = useState("");
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "waiting" | "success" | "failed">("idle");
+  const [activationError, setActivationError] = useState("");
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -131,16 +132,21 @@ export default function ProviderSubscriptionPage() {
 
   async function handleStartTrial() {
     setSubscribing(true);
+    setActivationError("");
     try {
       const res = await fetch("/api/provider/subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
       });
-      if (res.ok) {
-        const data = await res.json();
-        setSubscription(data.subscription);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to start trial (${res.status})`);
       }
+      const data = await res.json();
+      setSubscription(data.subscription);
+    } catch (err) {
+      setActivationError(err instanceof Error ? err.message : "Failed to start your trial. Please try again.");
     } finally {
       setSubscribing(false);
     }
@@ -161,16 +167,21 @@ export default function ProviderSubscriptionPage() {
   async function handleSubscribeClick(plan: Plan) {
     if (plan.price === 0) {
       setSubscribing(true);
+      setActivationError("");
       try {
         const res = await fetch("/api/provider/subscription", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ planId: plan.id, billingPeriod: selectedBilling }),
         });
-        if (res.ok) {
-          const data = await res.json();
-          setSubscription(data.subscription);
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || `Failed to switch plan (${res.status})`);
         }
+        const data = await res.json();
+        setSubscription(data.subscription);
+      } catch (err) {
+        setActivationError(err instanceof Error ? err.message : "Failed to switch plan. Please try again.");
       } finally {
         setSubscribing(false);
       }
@@ -306,6 +317,12 @@ export default function ProviderSubscriptionPage() {
           <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Subscription</h1>
           <p className="text-sm text-charcoal-500 dark:text-charcoal-400 ">Manage your plan and billing</p>
         </div>
+
+        {activationError && (
+          <Card className="mb-6 border-terracotta-200 bg-terracotta-50 dark:border-terracotta-900 dark:bg-terracotta-950/30">
+            <p className="text-sm text-terracotta-700 dark:text-terracotta-300">{activationError}</p>
+          </Card>
+        )}
 
         {subscription && (
           <Card className="mb-8">

@@ -25,24 +25,43 @@ export default function LocalSyncPage() {
   });
   const [logs, setLogs] = useState<SyncLog[]>([]);
   const [syncing, setSyncing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
-    fetch("/api/local-sync")
-      .then((r) => r.json())
-      .then((data) => {
+    (async () => {
+      try {
+        const res = await fetch("/api/local-sync");
+        if (!res.ok) throw new Error("Failed to load");
+        const data = await res.json();
         if (data.config) setConfig(data.config);
         setLogs(data.logs || []);
-      });
+      } catch {
+        setLoadError("Unable to load sync configuration and history. Please try again.");
+      }
+    })();
   }, []);
 
   const saveConfig = async () => {
-    await fetch("/api/local-sync", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(config),
-    });
-    setMessage("Configuration saved");
+    setSaving(true);
+    setMessage("");
+    try {
+      const res = await fetch("/api/local-sync", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to save configuration (${res.status})`);
+      }
+      setMessage("Configuration saved.");
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Failed to save configuration. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const runSync = async (action: string) => {
@@ -54,11 +73,14 @@ export default function LocalSyncPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || `Sync failed (${res.status})`);
+      }
       setMessage(`Sync completed: ${JSON.stringify(data).slice(0, 100)}...`);
-      setLogs((prev) => [data.log, ...prev]);
-    } catch {
-      setMessage("Sync failed");
+      if (data.log) setLogs((prev) => [data.log, ...prev]);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Sync failed. Please try again.");
     } finally {
       setSyncing(false);
     }
@@ -72,6 +94,12 @@ export default function LocalSyncPage() {
         <p className="mb-8 text-charcoal-500 dark:text-charcoal-400">
           Connect your local business system for offline inventory and booking sync.
         </p>
+
+        {loadError && (
+          <Card className="mb-6 border-terracotta-200 bg-terracotta-50 dark:border-terracotta-900 dark:bg-terracotta-950/30">
+            <p className="text-sm text-terracotta-700 dark:text-terracotta-300">{loadError}</p>
+          </Card>
+        )}
 
         <div className="grid gap-8 lg:grid-cols-2">
           <Card>
@@ -103,7 +131,7 @@ export default function LocalSyncPage() {
                 value={config.apiKey || ""}
                 onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
               />
-              <Button onClick={saveConfig}>Save Configuration</Button>
+              <Button onClick={saveConfig} disabled={saving}>{saving ? "Saving..." : "Save Configuration"}</Button>
             </div>
           </Card>
 

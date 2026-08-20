@@ -43,6 +43,8 @@ export default function LocationsPage() {
   const [csvText, setCsvText] = useState("");
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ imported: number; errors: string[] } | null>(null);
+  const [actionError, setActionError] = useState("");
+  const [actionSuccess, setActionSuccess] = useState("");
 
   const fetchCountries = useCallback(async () => {
     setLoading(true);
@@ -72,87 +74,152 @@ export default function LocationsPage() {
 
   const handleAddCountry = async () => {
     if (!countryName.trim()) return;
-    const res = await fetch("/api/locations/countries", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: countryName.trim() }),
-    });
-    if (res.ok) {
+    setActionError("");
+    setActionSuccess("");
+    try {
+      const res = await fetch("/api/locations/countries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: countryName.trim() }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to add country (${res.status})`);
+      }
       setCountryName("");
       setShowAddCountry(false);
+      setActionSuccess("Country added.");
       fetchCountries();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to add country. Please try again.");
     }
   };
 
   const handleEditCountry = async () => {
     if (!editingCountry || !editCountryName.trim()) return;
-    const res = await fetch(`/api/locations/countries/${editingCountry.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: editCountryName.trim() }),
-    });
-    if (res.ok) {
+    setActionError("");
+    setActionSuccess("");
+    try {
+      const res = await fetch(`/api/locations/countries/${editingCountry.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editCountryName.trim() }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to update country (${res.status})`);
+      }
       setEditingCountry(null);
       setEditCountryName("");
+      setActionSuccess("Country updated.");
       fetchCountries();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to update country. Please try again.");
     }
   };
 
   const handleDeleteCountry = async (id: string) => {
     if (!confirm("Delete this country and all its subdivisions?")) return;
-    const res = await fetch(`/api/locations/countries/${id}`, { method: "DELETE" });
-    if (res.ok) fetchCountries();
+    setActionError("");
+    setActionSuccess("");
+    try {
+      const res = await fetch(`/api/locations/countries/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to delete country (${res.status})`);
+      }
+      setActionSuccess("Country deleted.");
+      fetchCountries();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to delete country. Please try again.");
+    }
   };
 
   const handleAddSubdivision = async () => {
     if (!addingSubdiv || !subdivName.trim()) return;
-    const res = await fetch("/api/locations/subdivisions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ countryId: addingSubdiv, name: subdivName.trim() }),
-    });
-    if (res.ok) {
+    setActionError("");
+    setActionSuccess("");
+    try {
+      const res = await fetch("/api/locations/subdivisions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ countryId: addingSubdiv, name: subdivName.trim() }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to add subdivision (${res.status})`);
+      }
       setSubdivName("");
       setAddingSubdiv(null);
+      setActionSuccess("Subdivision added.");
       fetchCountries();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to add subdivision. Please try again.");
     }
   };
 
   const handleEditSubdivision = async () => {
     if (!editingSubdiv || !editSubdivName.trim()) return;
-    const res = await fetch(`/api/locations/subdivisions/${editingSubdiv.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: editSubdivName.trim() }),
-    });
-    if (res.ok) {
+    setActionError("");
+    setActionSuccess("");
+    try {
+      const res = await fetch(`/api/locations/subdivisions/${editingSubdiv.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editSubdivName.trim() }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to update subdivision (${res.status})`);
+      }
       setEditingSubdiv(null);
       setEditSubdivName("");
+      setActionSuccess("Subdivision updated.");
       fetchCountries();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to update subdivision. Please try again.");
     }
   };
 
   const handleDeleteSubdivision = async (id: string) => {
     if (!confirm("Delete this subdivision?")) return;
-    const res = await fetch(`/api/locations/subdivisions/${id}`, { method: "DELETE" });
-    if (res.ok) fetchCountries();
+    setActionError("");
+    setActionSuccess("");
+    try {
+      const res = await fetch(`/api/locations/subdivisions/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to delete subdivision (${res.status})`);
+      }
+      setActionSuccess("Subdivision deleted.");
+      fetchCountries();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to delete subdivision. Please try again.");
+    }
   };
 
   const handleImport = async () => {
     if (!csvText.trim()) return;
     setImporting(true);
     setImportResult(null);
+    setActionError("");
+    setActionSuccess("");
     try {
       const res = await fetch("/api/locations/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ csv: csvText }),
       });
-      const data = await res.json();
-      setImportResult(data);
-      if (res.ok) fetchCountries();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setImportResult({ imported: 0, errors: [data.error || `Import failed (${res.status})`] });
+      } else {
+        setImportResult(data);
+        setActionSuccess("CSV imported successfully.");
+        fetchCountries();
+      }
     } catch {
-      setImportResult({ imported: 0, errors: ["Failed to import"] });
+      setImportResult({ imported: 0, errors: ["Failed to import. Please try again."] });
     } finally {
       setImporting(false);
     }
@@ -163,6 +230,17 @@ export default function LocationsPage() {
       <Sidebar role="ADMIN" />
       <PageContent>
         <h1 className="mb-8 font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Locations Management</h1>
+
+        {actionError && (
+          <Card className="mb-6 border-terracotta-200 bg-terracotta-50 dark:border-terracotta-900 dark:bg-terracotta-950/30">
+            <p className="text-sm text-terracotta-700 dark:text-terracotta-300">{actionError}</p>
+          </Card>
+        )}
+        {actionSuccess && (
+          <Card className="mb-6 border-olive-200 bg-olive-50 dark:border-olive-900 dark:bg-olive-950/30">
+            <p className="text-sm text-olive-700 dark:text-olive-300">{actionSuccess}</p>
+          </Card>
+        )}
 
         <Card className="mb-8">
           <CardHeader>
@@ -236,7 +314,12 @@ export default function LocationsPage() {
         {error && <p className="text-terracotta-600 dark:text-terracotta-400">{error}</p>}
 
         {!loading && !error && countries.length === 0 && (
-          <p className="text-charcoal-500 dark:text-charcoal-400">No countries found.</p>
+          <Card className="mb-4 p-6 text-center">
+            <p className="text-sm text-charcoal-500 dark:text-charcoal-400">No countries found.</p>
+            <Button size="sm" className="mt-3" onClick={() => setShowAddCountry(true)}>
+              <Plus className="mr-1 h-4 w-4" /> Add your first country
+            </Button>
+          </Card>
         )}
 
         <div className="space-y-3">

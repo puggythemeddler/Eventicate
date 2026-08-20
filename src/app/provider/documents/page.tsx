@@ -114,6 +114,11 @@ export default async function ProviderDocumentsPage({
               />
             </div>
             <Button type="submit" variant="secondary">Filter</Button>
+            {(type || status) && (
+              <Link href="/provider/documents">
+                <Button type="button" variant="ghost">Clear filters</Button>
+              </Link>
+            )}
           </form>
         </Card>
 

@@ -159,7 +159,12 @@ export default async function ProviderAnalyticsPage() {
           <Card>
             <CardTitle className="mb-4">Bookings by Status</CardTitle>
             {data.bookingsByStatus.length === 0 ? (
-              <p className="text-sm text-charcoal-500 dark:text-charcoal-400 ">No bookings yet.</p>
+              <div className="py-6 text-center">
+                <p className="text-sm text-charcoal-500 dark:text-charcoal-400 ">No bookings yet.</p>
+                <Link href="/provider/bookings" className="mt-3 inline-block">
+                  <Button variant="outline" size="sm">View Bookings</Button>
+                </Link>
+              </div>
             ) : (
               <div className="space-y-2">
                 {data.bookingsByStatus.map((s) => (
@@ -176,7 +181,12 @@ export default async function ProviderAnalyticsPage() {
         <Card>
           <CardTitle className="mb-4">Top Services</CardTitle>
           {data.topServices.length === 0 ? (
-            <p className="text-sm text-charcoal-500 dark:text-charcoal-400 ">No service bookings yet.</p>
+            <div className="py-6 text-center">
+              <p className="text-sm text-charcoal-500 dark:text-charcoal-400 ">No service bookings yet.</p>
+              <Link href="/provider/bookings" className="mt-3 inline-block">
+                <Button variant="outline" size="sm">View Bookings</Button>
+              </Link>
+            </div>
           ) : (
             <div className="space-y-4">
               {data.topServices.map((s) => (

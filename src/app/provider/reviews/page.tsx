@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardDescription } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 
 import { StarRating } from "@/components/ui/Badge";
 import { serverApi } from "@/lib/server-api";
@@ -87,6 +89,11 @@ export default async function ReviewsPage() {
           {reviewsReceived.length === 0 ? (
             <Card>
               <CardDescription>No reviews yet.</CardDescription>
+              <div className="mt-3">
+                <Link href="/provider/bookings">
+                  <Button variant="outline" size="sm">View Bookings</Button>
+                </Link>
+              </div>
             </Card>
           ) : (
             <div className="space-y-4">
@@ -133,6 +140,11 @@ export default async function ReviewsPage() {
           {reviewsGiven.length === 0 ? (
             <Card>
               <CardDescription>You haven&apos;t rated any customers yet.</CardDescription>
+              <div className="mt-3">
+                <Link href="/provider/bookings">
+                  <Button variant="outline" size="sm">View Bookings</Button>
+                </Link>
+              </div>
             </Card>
           ) : (
             <div className="space-y-4">
