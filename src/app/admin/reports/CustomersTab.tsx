@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { serverApi } from "@/lib/server-api";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatCurrency } from "@/lib/utils";
 import { ExportCsvButton } from "./ExportCsvButton";
 
 interface CustomerRow {
@@ -80,7 +80,7 @@ export async function CustomersTab({ search, page }: { search?: string; page?: s
                 </td>
                 <td className="px-6 py-4 text-right text-charcoal-500 dark:text-charcoal-400">{row.bookings}</td>
                 <td className="px-6 py-4 text-right font-medium text-charcoal-900 dark:text-charcoal-100">
-                  {row.spent.toLocaleString("en-US", { style: "currency", currency: "USD" })}
+                  {formatCurrency(row.spent)}
                 </td>
                 <td className="px-6 py-4 text-charcoal-500 dark:text-charcoal-400">{formatDate(row.joined)}</td>
               </tr>

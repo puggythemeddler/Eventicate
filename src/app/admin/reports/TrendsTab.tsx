@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/Card";
 import { serverApi } from "@/lib/server-api";
+import { formatCurrency } from "@/lib/utils";
 import { ExportCsvButton } from "./ExportCsvButton";
 
 interface TrendRow {
@@ -25,7 +26,7 @@ export async function TrendsTab() {
           { label: "New Users (12 mo)", value: totalUsers },
           { label: "New Providers (12 mo)", value: totalProviders },
           { label: "Bookings (12 mo)", value: totalBookings },
-          { label: "Revenue (12 mo)", value: totalRevenue.toLocaleString("en-US", { style: "currency", currency: "USD" }) },
+          { label: "Revenue (12 mo)", value: formatCurrency(totalRevenue) },
         ].map((stat) => (
           <Card key={stat.label} className="p-3">
             <p className="text-xl font-bold text-charcoal-900 dark:text-charcoal-100">{stat.value}</p>
@@ -53,7 +54,7 @@ export async function TrendsTab() {
                 <td className="px-6 py-4 text-right text-charcoal-500 dark:text-charcoal-400">{row.newProviders}</td>
                 <td className="px-6 py-4 text-right text-charcoal-500 dark:text-charcoal-400">{row.bookings}</td>
                 <td className="px-6 py-4 text-right font-medium text-charcoal-900 dark:text-charcoal-100">
-                  {row.revenue.toLocaleString("en-US", { style: "currency", currency: "USD" })}
+                  {formatCurrency(row.revenue)}
                 </td>
               </tr>
             ))}
