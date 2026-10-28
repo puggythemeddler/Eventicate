@@ -1,4 +1,4 @@
-import type { EventType } from "@prisma/client";
+import type { EventType, Prisma } from "@prisma/client";
 import prisma from "./prisma";
 
 interface PricingContext {
@@ -138,14 +138,15 @@ export interface EquipmentAvailability {
 
 export async function getEquipmentAvailability(
   providerId: string,
-  equipmentId: string
+  equipmentId: string,
+  db: Prisma.TransactionClient = prisma
 ): Promise<EquipmentAvailability> {
-  const equipment = await prisma.equipment.findUnique({ where: { id: equipmentId } });
+  const equipment = await db.equipment.findUnique({ where: { id: equipmentId } });
   if (!equipment || equipment.providerId !== providerId) {
     return { totalUnits: 0, reservedUnits: 0, availableUnits: 0 };
   }
 
-  const items = await prisma.bookingItem.findMany({
+  const items = await db.bookingItem.findMany({
     where: {
       equipmentId,
       booking: {
@@ -167,11 +168,13 @@ export async function getEquipmentAvailability(
 export async function assertEquipmentQuantityAvailable(
   providerId: string,
   equipmentId: string,
-  requestedQty: number
+  requestedQty: number,
+  db: Prisma.TransactionClient = prisma
 ) {
   const { totalUnits, reservedUnits, availableUnits } = await getEquipmentAvailability(
     providerId,
-    equipmentId
+    equipmentId,
+    db
   );
   if (requestedQty > availableUnits) {
     const message =

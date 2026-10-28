@@ -1,4 +1,5 @@
 import prisma from "./prisma";
+import type { Prisma } from "@prisma/client";
 import { formatCurrency } from "./utils";
 
 export interface LineItem {
@@ -12,19 +13,17 @@ export function formatDocumentNumber(num: number): string {
   return String(num).padStart(4, "0");
 }
 
-export async function generateDocumentNumber(type: "QUOTE" | "INVOICE" | "RECEIPT" | "PROFORMA_INVOICE" | "TAX_INVOICE"): Promise<string> {
+export async function generateDocumentNumber(type: "QUOTE" | "INVOICE" | "RECEIPT" | "PROFORMA_INVOICE" | "TAX_INVOICE", db: Prisma.TransactionClient = prisma): Promise<string> {
   const prefix = type === "QUOTE" ? "QTE" : type === "INVOICE" ? "INV" : type === "PROFORMA_INVOICE" ? "PFI" : type === "TAX_INVOICE" ? "TIN" : "RCT";
 
   // Atomically claim the next number (single UPDATE ... RETURNING under the
   // hood) so concurrent generations can never produce a duplicate.
-  const counter = await prisma.$transaction(async (tx) => {
-    const row = await tx.documentCounter.update({
-      where: { type },
-      data: { nextNumber: { increment: 1 } },
-      select: { nextNumber: true },
-    });
-    return row.nextNumber;
+  const row = await db.documentCounter.update({
+    where: { type },
+    data: { nextNumber: { increment: 1 } },
+    select: { nextNumber: true },
   });
+  const counter = row.nextNumber;
 
   return `${prefix}-${formatDocumentNumber(counter - 1)}`;
 }
@@ -47,8 +46,8 @@ export function calculateDocumentTotals(
   };
 }
 
-export async function generateQuoteFromBooking(bookingId: string) {
-  const booking = await prisma.booking.findUnique({
+export async function generateQuoteFromBooking(bookingId: string, db: Prisma.TransactionClient = prisma) {
+  const booking = await db.booking.findUnique({
     where: { id: bookingId },
     include: {
       event: true,
@@ -70,9 +69,9 @@ export async function generateQuoteFromBooking(bookingId: string) {
   const depositRequired = booking.depositAmount?.toNumber() || booking.quotedPrice.toNumber() * 0.3;
   const totals = calculateDocumentTotals(lineItems, 0, 0);
 
-  const docNumber = await generateDocumentNumber("QUOTE");
+  const docNumber = await generateDocumentNumber("QUOTE", db);
 
-  return prisma.document.create({
+  return db.document.create({
     data: {
       type: "QUOTE",
       status: "DRAFT",
@@ -111,7 +110,7 @@ export async function generateInvoiceFromBooking(bookingId: string) {
   });
   if (!booking) throw new Error("Booking not found");
 
-  const totalPaid = booking.payments.reduce((sum, p) => sum + p.amount.toNumber(), 0);
+  const totalPaid = booking.payments.filter((p) => p.status === "DEPOSIT_PAID" || p.status === "FULLY_PAID").reduce((sum, p) => sum + p.amount.toNumber(), 0);
   const remaining = (booking.finalPrice?.toNumber() ?? booking.quotedPrice?.toNumber() ?? 0) - totalPaid;
 
   const lineItems: LineItem[] = [
@@ -165,7 +164,7 @@ export async function generateProformaInvoice(bookingId: string) {
   });
   if (!booking) throw new Error("Booking not found");
 
-  const totalPaid = booking.payments.reduce((sum, p) => sum + p.amount.toNumber(), 0);
+  const totalPaid = booking.payments.filter((p) => p.status === "DEPOSIT_PAID" || p.status === "FULLY_PAID").reduce((sum, p) => sum + p.amount.toNumber(), 0);
   const totalDue = booking.finalPrice?.toNumber() ?? booking.quotedPrice?.toNumber() ?? 0;
   const remaining = totalDue - totalPaid;
 
@@ -222,7 +221,7 @@ export async function generateTaxInvoice(bookingId: string, taxRate = 16) {
   });
   if (!booking) throw new Error("Booking not found");
 
-  const totalPaid = booking.payments.reduce((sum, p) => sum + p.amount.toNumber(), 0);
+  const totalPaid = booking.payments.filter((p) => p.status === "DEPOSIT_PAID" || p.status === "FULLY_PAID").reduce((sum, p) => sum + p.amount.toNumber(), 0);
   const totalDue = booking.finalPrice?.toNumber() ?? booking.quotedPrice?.toNumber() ?? 0;
 
   const lineItems: LineItem[] = [

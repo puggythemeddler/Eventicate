@@ -1,5 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
+import { settledPaymentTotal } from "@/lib/payment-balance";
 import { getSession } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
@@ -66,8 +67,8 @@ export default async function BookingDetailPage({
 
   if (!booking) notFound();
 
-  const totalPaid = booking.payments.reduce((s, p) => s + p.amount, 0);
-  const totalDue = booking.finalPrice || booking.quotedPrice || 0;
+  const totalPaid = settledPaymentTotal(booking.payments);
+  const totalDue = booking.finalPrice ?? booking.quotedPrice ?? 0;
   const remainingBalance = Math.max(0, totalDue - totalPaid);
   const currency = getCurrencyForCountry(session.country);
 

@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/layout/Navigation";
 import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Input";
 import { formatCurrency } from "@/lib/utils";
 import { useCurrency } from "@/hooks/useCurrency";
 import Image from "next/image";
@@ -52,9 +53,30 @@ export default function CartPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [events, setEvents] = useState<{ id: string; title: string; eventDate: string; location: string }[]>([]);
+  const [eventId, setEventId] = useState("");
+  const [eventsLoading, setEventsLoading] = useState(true);
+  const [eventsError, setEventsError] = useState("");
+
+  async function loadEvents() {
+    setEventsLoading(true);
+    setEventsError("");
+    try {
+      const res = await fetch("/api/events");
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setEvents((data.events || []).filter((event: { status: string; eventDate: string }) =>
+        !["CANCELLED", "COMPLETED"].includes(event.status) && new Date(event.eventDate) > new Date()));
+    } catch {
+      setEventsError("We couldn’t load your events. Try again before requesting quotes.");
+    } finally {
+      setEventsLoading(false);
+    }
+  }
 
   useEffect(() => {
     fetchCart();
+    loadEvents();
   }, []);
 
   const fetchCart = async () => {
@@ -114,9 +136,18 @@ export default function CartPage() {
   const grandTotal = providerTotals.reduce((sum, pt) => sum + pt.total, 0);
 
   const generateQuotes = async () => {
+    if (!eventId) {
+      setError("Choose the event these services are for.");
+      return;
+    }
+    setError(null);
     setGenerating(true);
     try {
-      const res = await fetch("/api/quotes/generate-from-cart", { method: "POST" });
+      const res = await fetch("/api/quotes/generate-from-cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventId }),
+      });
       const data = await res.json();
       if (res.ok && data.documents?.length > 0) {
         window.location.href = `/dashboard/documents?ids=${data.documents.map((d: { id: string }) => d.id).join(",")}`;
@@ -308,9 +339,29 @@ export default function CartPage() {
               </div>
             </Card>
 
+            <Card className="mb-6">
+              <CardTitle>Which event is this for?</CardTitle>
+              <p className="mt-2 mb-4 text-sm text-charcoal-600 dark:text-charcoal-300">
+                Your quotation will use this event’s date and location. We’ll check each provider’s availability before creating it.
+              </p>
+              {eventsLoading ? <p role="status">Loading your events…</p> : eventsError ? (
+                <div role="alert">
+                  <p>{eventsError}</p>
+                  <Button variant="outline" onClick={loadEvents} className="mt-3">Try again</Button>
+                </div>
+              ) : events.length > 0 ? (
+                <Select label="Event" value={eventId} onChange={(e) => setEventId(e.target.value)}
+                  options={[{ value: "", label: "Choose an upcoming event" }, ...events.map((event) => ({
+                    value: event.id,
+                    label: `${event.title} — ${new Date(event.eventDate).toLocaleDateString("en-GB")} · ${event.location}`,
+                  }))]} />
+              ) : <p>You don’t have an upcoming event yet.</p>}
+              <Link href="/dashboard/events/new" className="mt-4 inline-block font-medium text-primary-700 underline underline-offset-4 dark:text-primary-300">Create an event</Link>
+            </Card>
+
             <Button
               onClick={generateQuotes}
-              disabled={generating}
+              disabled={generating || eventsLoading || !!eventsError || !eventId}
               className="w-full"
               size="lg"
               variant="gold"

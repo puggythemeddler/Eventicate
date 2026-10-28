@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
 import { formatCurrency } from "@/lib/utils";
+import { settledPaymentTotal } from "@/lib/payment-balance";
 import { useCurrency } from "@/hooks/useCurrency";
 import { ArrowLeft, CreditCard, Smartphone, ExternalLink, Loader2, CheckCircle, XCircle } from "lucide-react";
 
@@ -75,8 +76,8 @@ export default function CheckoutPage() {
       .finally(() => setLoading(false));
   }, [bookingId]);
 
-  const totalPaid = booking?.payments?.reduce((s, p) => s + p.amount, 0) || 0;
-  const totalDue = booking?.finalPrice || booking?.quotedPrice || 0;
+  const totalPaid = settledPaymentTotal(booking?.payments ?? []);
+  const totalDue = booking?.finalPrice ?? booking?.quotedPrice ?? 0;
   const remaining = Math.max(0, totalDue - totalPaid);
   const depositAmount = booking?.depositAmount || 0;
   const depositPaid = booking?.depositPaid || false;
@@ -100,7 +101,7 @@ export default function CheckoutPage() {
   const getPayAmount = () => {
     if (paymentMode === "deposit") return depositAmount;
     if (paymentMode === "remaining") return remaining;
-    return totalDue;
+    return remaining;
   };
 
   const pollStatusFn = useCallback(async (checkoutRequestId: string) => {
