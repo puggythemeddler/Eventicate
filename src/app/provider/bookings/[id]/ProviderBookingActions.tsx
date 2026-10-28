@@ -41,6 +41,7 @@ export function ProviderBookingActions({ bookingId, status }: { bookingId: strin
     await updateStatus({
       status: "QUOTATION_SENT",
       quotedPrice,
+      depositAmount: Number(formData.get("depositAmount")) || 0,
       providerNotes: formData.get("providerNotes") || undefined,
     });
   }
@@ -71,11 +72,21 @@ export function ProviderBookingActions({ bookingId, status }: { bookingId: strin
             className="w-40"
           />
           <Textarea
-            label="Provider Notes"
+            label="Quotation terms and details"
             name="providerNotes"
             rows={2}
             className="w-64"
             placeholder="Terms, details..."
+            required
+          />
+          <Input
+            label="Deposit required (0 for none)"
+            name="depositAmount"
+            type="number"
+            step="0.01"
+            min="0"
+            defaultValue="0"
+            className="w-40"
           />
           <Button type="submit" variant="primary" disabled={submitting !== null}>
             Send Quotation

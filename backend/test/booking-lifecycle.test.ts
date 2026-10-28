@@ -10,6 +10,7 @@ import { createMpesaCallbackRouter } from "../src/routes/payments/mpesa-callback
 import { createAgreementsRouter } from "../src/routes/agreements";
 import { createBookingDetailRouter } from "../src/routes/bookings/[id]";
 import { getEquipmentAvailability } from "../src/lib/booking-engine";
+import { generateQuoteFromBooking } from "../src/lib/documents";
 
 test("booking payments and agreements: isolated route regression and journey checks", async (t) => {
   function override<T, K extends keyof T>(object: T, key: K, implementation: unknown) {
@@ -21,6 +22,9 @@ test("booking payments and agreements: isolated route regression and journey che
   let status: BookingStatus, depositPaid: boolean, payments: Payment[], signed: Agreement | null;
   let bookingOwner: string, failBookingWrite: boolean, gatewayCalls: number, receipts: number, notices: string[];
   let callbackStatus: "COMPLETED" | "FAILED" | "PENDING", gatewaySuccess: boolean;
+  let generatedDocument: Record<string, unknown> | null = null;
+  let providerTerms: string | null = "Delivery included. Balance due before setup.";
+  let requestedDeposit: number | null = 3000;
   let detailsQuery: { include?: { documents?: unknown; agreements?: unknown } } | null;
   const decimal = (n: number) => new Prisma.Decimal(n);
   const quote = { id: "quote-test", bookingId: "booking-test", type: "QUOTE", status: "SENT", senderId: "provider-user", recipientId: "customer-user", documentNumber: "QTE-0001", total: decimal(10000), depositRequired: decimal(3000), terms: "Delivery included. Balance due before setup.", lineItems: '[{"description":"Sound hire","quantity":1,"unitPrice":10000,"total":10000}]' };
@@ -36,7 +40,7 @@ test("booking payments and agreements: isolated route regression and journey che
   reset();
   const bookingRow = () => ({
     id: "booking-test", status, depositPaid, customerId: bookingOwner, providerId: provider.id,
-    quotedPrice: decimal(10000), finalPrice: null, depositAmount: decimal(3000),
+    quotedPrice: decimal(10000), finalPrice: null, depositAmount: requestedDeposit === null ? null : decimal(requestedDeposit), providerNotes: providerTerms,
     customer, provider, payments: payments.map(p => ({ ...p })),
     event: { id: "event-test", title: "Future event", eventType: "WEDDING", eventDate: new Date("2035-05-15T10:00:00Z") },
     service: { name: "Sound hire" }, documents: [quote], agreements: signed ? [signed] : [],
@@ -75,7 +79,7 @@ test("booking payments and agreements: isolated route regression and journey che
   });
   override(prisma.document, "findFirst", async () => quote);
   override(prisma.document, "update", async ({ data }: { data: { status: string } }) => { quote.status = data.status; return quote; });
-  override(prisma.document, "create", async () => quote);
+  override(prisma.document, "create", async ({ data }: { data: Record<string, unknown> }) => { generatedDocument = data; return quote; });
   override(prisma.documentCounter, "update", async () => ({ nextNumber: 2 }));
   override(prisma.availabilitySlot, "upsert", async () => ({}));
   override(prisma.availabilitySlot, "updateMany", async () => ({ count: 1 }));
@@ -180,7 +184,7 @@ test("booking payments and agreements: isolated route regression and journey che
   });
   await t.test("customer/provider journey: quotation, acceptance, agreement, deposit, balance, delivery", async () => {
     reset("QUOTATION_REQUESTED");
-    assert.equal((await request("/bookings/booking-test", { status: "QUOTATION_SENT", quotedPrice: 10000 }, "PROVIDER", "PATCH")).status, 200);
+    assert.equal((await request("/bookings/booking-test", { status: "QUOTATION_SENT", quotedPrice: 10000, providerNotes: quote.terms }, "PROVIDER", "PATCH")).status, 200);
     assert.equal((await request("/bookings/booking-test", { status: "CONFIRMED" }, "CUSTOMER", "PATCH")).status, 200);
     assert.equal((await request("/agreements", signPayload())).status, 201);
     assert.equal(signed!.terms, quote.terms); assert.equal(quote.status, "ACCEPTED");
@@ -190,5 +194,26 @@ test("booking payments and agreements: isolated route regression and journey che
     assert.equal(payments.reduce((sum, p) => sum + p.amount.toNumber(), 0), 10000);
     assert.equal((await request("/bookings/booking-test", { status: "COMPLETED" }, "PROVIDER", "PATCH")).status, 200); assert.equal(status, "COMPLETED");
     assert.equal((await getEquipmentAvailability(provider.id, "equipment-test")).reservedUnits, 0);
+  });
+  await t.test("generated quotations preserve provider terms and never invent a deposit", async () => {
+    reset("QUOTATION_SENT");
+    providerTerms = "DEMO ONLY. No services or payment due.";
+    for (const deposit of [null, 0, 2500]) {
+      requestedDeposit = deposit;
+      await generateQuoteFromBooking("booking-test");
+      assert.equal(generatedDocument!.terms, providerTerms);
+      assert.equal(generatedDocument!.depositRequired, deposit ?? 0);
+      assert.equal(generatedDocument!.status, "SENT");
+    }
+    providerTerms = null;
+    await generateQuoteFromBooking("booking-test");
+    assert.equal(generatedDocument!.terms, null);
+    requestedDeposit = 3000;
+  });
+  await t.test("sending a quotation requires terms and a deposit within its price", async () => {
+    reset("QUOTATION_REQUESTED");
+    assert.equal((await request("/bookings/booking-test", { status: "QUOTATION_SENT", quotedPrice: 100 }, "PROVIDER", "PATCH")).status, 400);
+    assert.equal((await request("/bookings/booking-test", { status: "QUOTATION_SENT", quotedPrice: 100, providerNotes: "Demo", depositAmount: 101 }, "PROVIDER", "PATCH")).status, 400);
+    assert.equal(status, "QUOTATION_REQUESTED");
   });
 });

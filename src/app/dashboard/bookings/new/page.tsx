@@ -116,7 +116,12 @@ function NewBookingContent() {
         </Link>
         <Card className="mx-auto max-w-xl">
           <CardTitle className="mb-6">New Booking Request</CardTitle>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {!providerId ? (
+            <div className="space-y-4">
+              <p className="text-sm text-charcoal-600 dark:text-charcoal-300">Choose a provider and select Get a Quote on their profile. You can then select your event and share your requirements.</p>
+              <Link href="/search" className="inline-block text-sm font-medium text-primary-600 hover:underline">Find a provider</Link>
+            </div>
+          ) : <form onSubmit={handleSubmit} className="space-y-4">
             <Select
               label="Event"
               value={selectedEventId}
@@ -184,7 +189,7 @@ function NewBookingContent() {
             <Button type="submit" disabled={loading || !selectedEventId} className="w-full">
               {loading ? "Submitting..." : "Get a Quote"}
             </Button>
-          </form>
+          </form>}
         </Card>
       </PageContent>
     </div>

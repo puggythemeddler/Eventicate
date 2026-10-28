@@ -117,6 +117,17 @@ export function createBookingDetailRouter(sendStatus: typeof sendBookingStatusUp
         return res.status(400).json({ error: "Price cannot be negative" });
       }
 
+      if (data.status === "QUOTATION_SENT") {
+        const price = data.quotedPrice ?? 0;
+        const deposit = data.depositAmount ?? Number(booking.depositAmount ?? 0);
+        if (price <= 0 || !data.providerNotes?.trim()) {
+          return res.status(400).json({ error: "A positive price and quotation terms are required" });
+        }
+        if (deposit < 0 || deposit > price) {
+          return res.status(400).json({ error: "Deposit must be between zero and the quoted price" });
+        }
+      }
+
       const updated = await prisma.booking.update({
         where: { id },
         data: {

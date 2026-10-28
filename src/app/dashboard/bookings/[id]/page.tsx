@@ -22,6 +22,8 @@ type BookingDetail = {
   finalPrice: number | null;
   depositAmount: number | null;
   customerNotes: string | null;
+  documents: { id: string; documentNumber: string; terms: string | null }[];
+  agreements: { id: string }[];
   event: { id: string; title: string; eventDate: string };
   provider: {
     businessName: string;
@@ -156,6 +158,21 @@ export default async function BookingDetailPage({
           <Card className="mb-8">
             <CardTitle className="mb-2">Your Notes</CardTitle>
             <p className="text-sm text-charcoal-600 dark:text-charcoal-300">{booking.customerNotes}</p>
+          </Card>
+        )}
+
+        {booking.documents[0] && (
+          <Card className="mb-8">
+            <CardTitle className="mb-2">Quotation and agreement</CardTitle>
+            <Link href={`/dashboard/documents/${booking.documents[0].id}`} className="text-sm text-primary-600 hover:underline">
+              View quotation {booking.documents[0].documentNumber}
+            </Link>
+            <p className="mt-3 whitespace-pre-wrap text-sm text-charcoal-600 dark:text-charcoal-300">
+              {booking.documents[0].terms || "The provider has not supplied quotation terms yet."}
+            </p>
+            <Link href={`/dashboard/agreements/${booking.id}`} className="mt-4 inline-block text-sm font-medium text-primary-600 hover:underline">
+              {booking.agreements.length > 0 ? "View signed agreement" : "Review agreement"}
+            </Link>
           </Card>
         )}
 

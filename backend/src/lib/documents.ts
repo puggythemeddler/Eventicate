@@ -66,7 +66,7 @@ export async function generateQuoteFromBooking(bookingId: string, db: Prisma.Tra
       total: booking.quotedPrice.toNumber(),
     },
   ];
-  const depositRequired = booking.depositAmount?.toNumber() || booking.quotedPrice.toNumber() * 0.3;
+  const depositRequired = booking.depositAmount?.toNumber() ?? 0;
   const totals = calculateDocumentTotals(lineItems, 0, 0);
 
   const docNumber = await generateDocumentNumber("QUOTE", db);
@@ -74,7 +74,7 @@ export async function generateQuoteFromBooking(bookingId: string, db: Prisma.Tra
   return db.document.create({
     data: {
       type: "QUOTE",
-      status: "DRAFT",
+      status: booking.status === "QUOTATION_SENT" ? "SENT" : "DRAFT",
       documentNumber: docNumber,
       bookingId: booking.id,
       senderId: booking.provider.userId,
@@ -90,9 +90,8 @@ export async function generateQuoteFromBooking(bookingId: string, db: Prisma.Tra
       depositRequired,
       depositPaid: booking.depositPaid,
       validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      dueAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       notes: `Quote for ${booking.event.title} on ${booking.event.eventDate.toLocaleDateString()}`,
-      terms: "Payment is due within 30 days. A deposit may be required to confirm the booking.",
+      terms: booking.providerNotes?.trim() || null,
     },
   });
 }
