@@ -43,10 +43,10 @@ export function PlanningForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid gap-4 rounded-2xl border border-charcoal-200 bg-white p-5 shadow-lg dark:border-charcoal-800 dark:bg-charcoal-900 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end"
+      className="grid gap-4 rounded-xl bg-sand p-5 dark:bg-charcoal-900 md:grid-cols-2 md:items-end lg:grid-cols-[1fr_1fr_1fr_auto]"
     >
       <div>
-        <label htmlFor="planning-need" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-charcoal-500 dark:text-charcoal-400">
+        <label htmlFor="planning-need" className="mb-1 block text-sm font-medium text-charcoal-700 dark:text-charcoal-200">
           What do you need?
         </label>
         <Select
@@ -57,10 +57,8 @@ export function PlanningForm() {
         />
       </div>
       <div>
-        <label htmlFor="planning-country" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-charcoal-500 dark:text-charcoal-400">
-          Where?
-        </label>
         <Autocomplete
+          label="Country"
           value={country}
           onChange={(val) => {
             setCountry(val);
@@ -72,10 +70,8 @@ export function PlanningForm() {
         />
       </div>
       <div>
-        <label htmlFor="planning-city" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-charcoal-500 dark:text-charcoal-400">
-          Area
-        </label>
         <Autocomplete
+          label="Region or county"
           value={city}
           onChange={setCity}
           options={subdivisions}
@@ -84,12 +80,12 @@ export function PlanningForm() {
         />
       </div>
       <Button type="submit" variant="gold" size="lg" className="md:min-w-[150px]">
-        Start Planning
+        Find providers
         <ArrowRight className="ml-2 h-4 w-4" />
       </Button>
-      <p className="col-span-full flex items-center gap-1.5 text-xs text-charcoal-500 dark:text-charcoal-400 md:hidden">
+      <p className="col-span-full flex items-center gap-1.5 text-sm text-charcoal-600 dark:text-charcoal-300">
         <MapPin className="h-3.5 w-3.5" />
-        We serve Kenya, Uganda and Tanzania.
+        Browse providers in Kenya, Uganda and Tanzania.
       </p>
     </form>
   );

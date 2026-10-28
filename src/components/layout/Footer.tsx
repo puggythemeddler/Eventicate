@@ -32,8 +32,8 @@ export function Footer() {
           <div>
             <BrandLogo tone="light" markClassName="h-9 w-9" />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-charcoal-400">
-              The event marketplace and planning platform. Discover venues, services, rentals
-              and professionals — and manage your whole event in one place.
+              Find people and businesses to help with your event, from the venue
+              and food to the last chair.
             </p>
             <p className="mt-6 text-sm font-medium text-charcoal-300">Serving Kenya · Uganda · Tanzania</p>
           </div>

@@ -1,62 +1,36 @@
 import Link from "next/link";
-import Image from "next/image";
 import { PublicHeader } from "@/components/layout/Navigation";
 import { Footer } from "@/components/layout/Footer";
 import { PlanningForm } from "@/components/home/PlanningForm";
 import { ListingCard } from "@/components/ui/ListingCard";
-import { Button } from "@/components/ui/Button";
 import { serverApi } from "@/lib/server-api";
 import { isSolemnEvent } from "@/lib/constants";
-import { ArrowRight, ShieldCheck, Banknote, Star, BadgeCheck, Lock } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
-const HERO_IMAGE = "https://images.unsplash.com/photo-1519741497674-611481863552?w=2000&q=80&auto=format&fit=crop";
-const SOLEMN_HERO_IMAGE = "https://images.unsplash.com/photo-1438032005730-c779502df39b?w=2000&q=80&auto=format&fit=crop";
-
-const CATEGORY_TILES = [
-  {
-    href: "/search?category=VENUE",
-    title: "Venues",
-    description: "Spaces for every occasion — ballrooms, gardens and halls.",
-    image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1200&q=80&auto=format&fit=crop",
-    span: "lg:col-span-2 lg:row-span-2",
-  },
-  {
-    href: "/search?category=CATERING",
-    title: "Catering",
-    description: "Menus, chefs and packages your guests will remember.",
-    image: "https://images.unsplash.com/photo-1555244162-803834f70033?w=1200&q=80&auto=format&fit=crop",
-    span: "",
-  },
-  {
-    href: "/search?category=TENTS",
-    title: "Rentals",
-    description: "Tents, chairs, tables and staging for any setup.",
-    image: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=1200&q=80&auto=format&fit=crop",
-    span: "",
-  },
-  {
-    href: "/search?category=ENTERTAINMENT",
-    title: "Entertainment",
-    description: "DJs, bands, MCs and live performers.",
-    image: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80&auto=format&fit=crop",
-    span: "lg:col-span-2",
-  },
+const CATEGORIES = [
+  { href: "/search?category=VENUE", title: "Venues", description: "Find a space for your guest list." },
+  { href: "/search?category=CATERING", title: "Catering", description: "Compare menus and meal packages." },
+  { href: "/search?category=TENTS", title: "Tents & rentals", description: "Hire tents, chairs and tables." },
+  { href: "/search?category=ENTERTAINMENT", title: "Entertainment", description: "Find DJs, bands and MCs." },
 ];
 
-const STEPS = [
-  { step: "01", title: "Create your event", description: "Set the type, date, guest count and budget." },
-  { step: "02", title: "Discover providers", description: "Browse and compare verified venues, services and rentals." },
-  { step: "03", title: "Add services & rentals", description: "Build up everything your event needs in one cart." },
-  { step: "04", title: "Request quotations", description: "Send quote requests and compare pricing side by side." },
-  { step: "05", title: "Book & pay", description: "Confirm bookings and pay deposits securely." },
-  { step: "06", title: "Manage your event", description: "Track bookings, documents, messages and budget in one place." },
-];
-
-const TRUST_POINTS = [
-  { icon: BadgeCheck, title: "Verified providers", description: "Businesses go through a verification review before they can operate." },
-  { icon: Lock, title: "Secure payments", description: "Bookings and deposits are handled with clear, transparent terms." },
-  { icon: Star, title: "Real customer reviews", description: "Two-way ratings after every event keep quality honest." },
-  { icon: Banknote, title: "Transparent pricing", description: "See starting prices before you enquire — no guessing games." },
+const QUESTIONS = [
+  {
+    title: "Does the price include transport?",
+    answer: "Ask the provider to include delivery, collection and setup in your quotation. A starting price on a listing may not cover these costs, especially if your event is outside their usual area.",
+  },
+  {
+    title: "Can I hire just chairs or a tent?",
+    answer: "You can browse equipment separately and add the items you need to your cart. Check quantities, hire duration and setup with the provider before confirming your booking.",
+  },
+  {
+    title: "What if my date changes?",
+    answer: "Contact your provider before changing plans. Ask about availability on the new date, any extra charges and what happens to your deposit. Check the cancellation terms in your agreement before signing.",
+  },
+  {
+    title: "What does the verified badge mean?",
+    answer: "The badge means an administrator has approved the provider’s submitted verification documents. It is a document review, so take time to look at their work, read available reviews and discuss what you need.",
+  },
 ];
 
 interface FeaturedProvider {
@@ -73,290 +47,151 @@ interface FeaturedProvider {
   _count: { reviewsReceived: number };
 }
 
-export default async function HomePage({
-  searchParams,
-}: {
+const actionClass = "inline-flex items-center justify-center gap-2 rounded-lg bg-gold-500 px-6 py-3 font-medium text-charcoal-950 transition-colors hover:bg-gold-400 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-500";
+
+export default async function HomePage({ searchParams }: {
   searchParams: Promise<{ eventType?: string }>;
 }) {
   const { eventType } = await searchParams;
   const solemn = isSolemnEvent(eventType);
-  const heroImage = solemn ? SOLEMN_HERO_IMAGE : HERO_IMAGE;
-  const heroSubtitle = solemn
-    ? "Quiet, respectful support from verified providers for your occasion."
-    : "Discover venues, services, equipment and professionals — all in one place.";
-
   let featured: FeaturedProvider[] = [];
+  let providersUnavailable = false;
   try {
     const data = await serverApi<{ providers: FeaturedProvider[] }>("/api/providers?limit=6");
     featured = data.providers;
   } catch {
-    featured = [];
+    providersUnavailable = true;
   }
 
   return (
     <div className="min-h-screen">
       <PublicHeader />
-
-      {/* Hero — real-event photography */}
-      <section className="relative">
-        <div className="relative h-[560px] w-full md:h-[640px]">
-          <Image
-            src={heroImage}
-            alt="An elegant event reception"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-          />
-          <div className="hero-image-overlay absolute inset-0" />
-        </div>
-        <div className="absolute inset-0 flex items-end">
-          <div className="mx-auto w-full max-w-7xl px-4 pb-20">
+      <main>
+        <section className="relative bg-charcoal-950 text-cream">
+          <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 md:py-20 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16">
             <div className="max-w-2xl">
-              <div className="mb-5 flex items-center gap-3">
-                <span className="h-px w-10 bg-gold-400" aria-hidden="true" />
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-300">
-                  Event marketplace & planning platform
-                </p>
-              </div>
-              <h1 className="font-display text-4xl font-semibold leading-tight text-cream md:text-5xl">
-                Everything you need to bring your event together.
+              <h1 className="max-w-xl font-display text-4xl font-semibold leading-tight md:text-6xl">
+                {solemn ? "Support for your gathering." : "Find your event people."}
               </h1>
-              <p className="mt-4 max-w-xl text-lg text-charcoal-100">{heroSubtitle}</p>
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <a href="#plan">
-                  <Button variant="gold" size="lg">
-                    Start Planning
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
+              <p className="mt-6 max-w-xl text-lg leading-relaxed text-cream">
+                {solemn
+                  ? "Find venues, catering and equipment hire for a respectful gathering in Kenya, Uganda or Tanzania."
+                  : "Find venues, caterers, photographers and equipment hire across Kenya, Uganda and Tanzania."}
+              </p>
+              <div className="mt-8 flex flex-wrap items-center gap-5">
+                <a href="#plan" className={actionClass}>
+                  Find a provider <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </a>
-                <Link href="/search">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="border-cream/40 bg-transparent text-cream hover:bg-cream/10"
-                  >
-                    Explore Marketplace
-                  </Button>
+                <Link href="/how-it-works" className="rounded-sm py-3 font-medium underline decoration-cream/50 underline-offset-4 hover:decoration-cream focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-500">
+                  How booking works
                 </Link>
               </div>
-              <p className="mt-6 flex items-center gap-2 text-sm text-charcoal-200">
-                <ShieldCheck className="h-4 w-4 text-gold-400" />
-                Verified providers · Secure payments · Local professionals
+              <p className="mt-8 text-sm leading-relaxed text-charcoal-100">
+                {solemn ? "Start with your location and what you need." : "A wedding, a family gathering, a work event. Start with what you need."}
               </p>
             </div>
+            <aside className="hidden rounded-xl bg-charcoal-900 p-8 lg:block" aria-labelledby="enquiry-heading">
+              <h2 id="enquiry-heading" className="font-display text-2xl font-semibold">A useful first enquiry</h2>
+              <p className="mt-3 leading-relaxed text-charcoal-200">Help a provider put together a quotation that fits. Share:</p>
+              <ul className="mt-5 list-disc space-y-3 pl-5 text-charcoal-100 marker:text-gold-400">
+                <li>Your date and event location</li>
+                <li>How many guests you expect</li>
+                <li>The services or equipment you need</li>
+                <li>Whether you need delivery and setup</li>
+              </ul>
+              <p className="mt-6 text-sm leading-relaxed text-charcoal-200">Still working out the details? Browse first to see what’s available.</p>
+            </aside>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Event planning search */}
-      <section id="plan" className="relative -mt-8 scroll-mt-20 px-4">
-        <div className="mx-auto max-w-7xl">
-          <PlanningForm />
-        </div>
-      </section>
+        <section id="plan" aria-label="Find providers by service and location" className="scroll-mt-20 px-4 pt-8">
+          <div className="mx-auto max-w-7xl"><PlanningForm /></div>
+        </section>
 
-      {/* Explore categories */}
-      <section className="px-4 py-16 md:py-20">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-primary-700 dark:text-primary-400">
-                Explore Eventicate
-              </p>
-              <h2 className="mt-2 font-display text-3xl font-semibold text-charcoal-900 dark:text-charcoal-100 md:text-4xl">
-                What are you planning?
-              </h2>
-            </div>
-            <Link
-              href="/search"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 hover:text-primary-800 dark:text-primary-400"
-            >
-              Browse everything <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {CATEGORY_TILES.map((tile) => (
-              <Link
-                key={tile.title}
-                href={tile.href}
-                className={`group relative overflow-hidden rounded-xl bg-charcoal-900 ${tile.span}`}
-              >
-                <Image
-                  src={tile.image}
-                  alt={tile.title}
-                  fill
-                  sizes="(max-width: 1024px) 50vw, 25vw"
-                  className="object-cover opacity-90 transition-transform duration-300 group-hover:scale-[1.04]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950/85 via-charcoal-950/20 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-6">
-                  <h3 className="font-display text-2xl font-semibold text-cream">{tile.title}</h3>
-                  <p className="mt-1 text-sm text-charcoal-200">{tile.description}</p>
-                  <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-gold-300 opacity-0 transition-opacity group-hover:opacity-100">
-                    Explore <ArrowRight className="h-4 w-4" />
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Real marketplace inventory */}
-      <section className="bg-sand px-4 py-16 md:py-20 dark:bg-charcoal-900/40">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-primary-700 dark:text-primary-400">
-                On the marketplace
-              </p>
-              <h2 className="mt-2 font-display text-3xl font-semibold text-charcoal-900 dark:text-charcoal-100 md:text-4xl">
-                Popular providers
-              </h2>
-            </div>
-            <Link href="/search">
-              <Button variant="outline">
-                View all providers
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-
-          {featured.length > 0 ? (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {featured.map((provider) => (
-                <ListingCard
-                  key={provider.id}
-                  provider={{
-                    ...provider,
-                    totalReviews: provider._count.reviewsReceived,
-                    coverImageUrl: provider.images?.[0] ?? null,
-                  }}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="rounded-xl border border-charcoal-200 bg-white p-10 text-center text-charcoal-500 dark:border-charcoal-800 dark:bg-charcoal-900">
-              Providers are being onboarded — check back soon, or explore by category above.
-            </p>
-          )}
-        </div>
-      </section>
-
-      {/* Build your event — editorial timeline */}
-      <section className="px-4 py-16 md:py-20">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-12 max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary-700 dark:text-primary-400">
-              The Eventicate workflow
-            </p>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-charcoal-900 dark:text-charcoal-100 md:text-4xl">
-              Build your event in one place.
-            </h2>
-            <p className="mt-3 text-charcoal-600 dark:text-charcoal-300">
-              From the first idea to the final booking — plan, source, compare, book and manage
-              your whole event without juggling ten different apps.
-            </p>
-          </div>
-
-          <div className="grid gap-px overflow-hidden rounded-xl border border-charcoal-200 bg-charcoal-200 dark:border-charcoal-800 dark:bg-charcoal-800 md:grid-cols-3">
-            {STEPS.map((step, i) => (
-              <div key={step.step} className="bg-white p-7 dark:bg-charcoal-900">
-                <div className="flex items-baseline justify-between">
-                  <span className="font-display text-3xl font-semibold text-primary-600 dark:text-primary-400">
-                    {step.step}
-                  </span>
-                  {i < STEPS.length - 1 && (
-                    <ArrowRight className="hidden h-5 w-5 text-charcoal-300 dark:text-charcoal-700 md:block" />
-                  )}
-                </div>
-                <h3 className="mt-4 font-display text-lg font-semibold text-charcoal-900 dark:text-charcoal-100">
-                  {step.title}
-                </h3>
-                <p className="mt-1.5 text-sm text-charcoal-600 dark:text-charcoal-300">{step.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Provider CTA */}
-      <section className="relative overflow-hidden bg-charcoal-950">
-        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 md:grid-cols-2 md:py-20">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-gold-400">
-              For event businesses
-            </p>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-cream md:text-4xl">
-              Have a service people need?
-            </h2>
-            <p className="mt-4 text-charcoal-200">
-              List your business on Eventicate and reach customers planning real events.
-              Manage enquiries, availability, quotations, bookings and reviews — all in one place.
-            </p>
-            <ul className="mt-6 grid gap-2 sm:grid-cols-2">
-              {[
-                "Reach new customers",
-                "Manage enquiries",
-                "Receive bookings",
-                "Control availability",
-                "Send quotations",
-                "Track your business",
-              ].map((item) => (
-                <li key={item} className="flex items-center gap-2 text-sm text-charcoal-100">
-                  <BadgeCheck className="h-4 w-4 text-gold-400" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <Link href="/auth/register?role=provider" className="mt-8 inline-block">
-              <Button variant="gold" size="lg">
-                List Your Business
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-          <div className="relative h-72 overflow-hidden rounded-xl md:h-[420px]">
-            <Image
-              src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80&auto=format&fit=crop"
-              alt="An event professional at work"
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Trust */}
-      <section className="px-4 py-16 md:py-20">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-10 max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary-700 dark:text-primary-400">
-              Why Eventicate
-            </p>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-charcoal-900 dark:text-charcoal-100 md:text-4xl">
-              A marketplace you can plan with confidence.
-            </h2>
-          </div>
-          <div className="grid gap-x-8 gap-y-8 border-t border-charcoal-200 pt-10 dark:border-charcoal-800 md:grid-cols-2 lg:grid-cols-4">
-            {TRUST_POINTS.map((point) => (
-              <div key={point.title} className="border-l-2 border-gold-400 pl-5">
-                <point.icon className="h-6 w-6 text-primary-700 dark:text-primary-400" />
-                <h3 className="mt-3 font-display text-lg font-semibold text-charcoal-900 dark:text-charcoal-100">
-                  {point.title}
-                </h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-charcoal-600 dark:text-charcoal-300">
-                  {point.description}
+        <section className="px-4 py-14 md:py-20" aria-labelledby="providers-heading">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 id="providers-heading" className="font-display text-3xl font-semibold md:text-4xl">Meet the providers</h2>
+                <p className="mt-3 max-w-xl text-charcoal-600 dark:text-charcoal-300">
+                  See where they’re based, what they offer and what other customers have shared.
                 </p>
               </div>
-            ))}
+              <Link href="/search" className="inline-flex items-center gap-2 rounded-sm py-3 font-medium text-primary-700 hover:underline dark:text-primary-300">
+                See all providers <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
+            {featured.length > 0 ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {featured.map((provider) => (
+                  <ListingCard key={provider.id} provider={{ ...provider, totalReviews: provider._count.reviewsReceived }} />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl bg-sand p-6 dark:bg-charcoal-900">
+                <p className="font-medium">{providersUnavailable ? "We couldn’t load the providers just now." : "No providers to show yet."}</p>
+                <p className="mt-2 text-charcoal-600 dark:text-charcoal-300">
+                  {providersUnavailable ? "Try browsing again in a moment." : "You can still explore the service categories below."}
+                </p>
+                <Link href="/search" className="mt-4 inline-block py-2 font-medium underline underline-offset-4">Browse providers</Link>
+              </div>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
 
+        <section className="bg-sand px-4 py-14 dark:bg-charcoal-900 md:py-20" aria-labelledby="categories-heading">
+          <div className="mx-auto max-w-7xl">
+            <h2 id="categories-heading" className="font-display text-3xl font-semibold md:text-4xl">Still making your list?</h2>
+            <p className="mt-3 text-charcoal-600 dark:text-charcoal-300">Start with the space, the food or the things you need to hire.</p>
+            <div className="mt-8 grid gap-x-10 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
+              {CATEGORIES.map((category) => (
+                <Link key={category.title} href={category.href} className="group rounded-lg py-3 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-500">
+                  <h3 className="flex items-center justify-between gap-3 font-display text-xl font-semibold">
+                    {category.title}<ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1 motion-reduce:transform-none" aria-hidden="true" />
+                  </h3>
+                  <p className="mt-2 text-sm text-charcoal-600 dark:text-charcoal-300">{category.description}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="before-you-book" className="scroll-mt-20 px-4 py-14 md:py-20" aria-labelledby="questions-heading">
+          <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
+            <div>
+              <h2 id="questions-heading" className="max-w-sm font-display text-3xl font-semibold md:text-4xl">Before you book</h2>
+              <p className="mt-4 max-w-sm leading-relaxed text-charcoal-600 dark:text-charcoal-300">
+                The details matter: transport, setup, dates and deposits. Get them agreed with your provider before you commit.
+              </p>
+              <Link href="/how-it-works" className="mt-6 inline-flex items-center gap-2 py-3 font-medium text-primary-700 hover:underline dark:text-primary-300">
+                Read the booking guide <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
+            <div className="space-y-8">
+              {QUESTIONS.map((question) => (
+                <div key={question.title}>
+                  <h3 className="text-lg font-semibold">{question.title}</h3>
+                  <p className="mt-2 leading-relaxed text-charcoal-600 dark:text-charcoal-300">{question.answer}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-charcoal-950 px-4 py-14 text-cream md:py-20" aria-labelledby="business-heading">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-8">
+            <div className="max-w-2xl">
+              <h2 id="business-heading" className="font-display text-3xl font-semibold md:text-4xl">Do you run an event business?</h2>
+              <p className="mt-4 leading-relaxed text-charcoal-200">
+                Show customers your work, list your services and prices, and handle enquiries and quotations from your provider account.
+              </p>
+            </div>
+            <Link href="/auth/register?role=provider" className={actionClass}>
+              List your business <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+        </section>
+      </main>
       <Footer />
     </div>
   );

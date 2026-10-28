@@ -18,7 +18,7 @@ const fraunces = Fraunces({
 
 export const metadata: Metadata = {
   title: "Eventicate — Event Management Marketplace",
-  description: "Plan and organize events by booking all required services from verified providers in one platform.",
+  description: "Find venues, caterers, photographers and equipment hire across Kenya, Uganda and Tanzania. Compare providers and request quotations for your event.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
