@@ -17,7 +17,7 @@ export function BookingActions({
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const payableStatuses = ["CONFIRMED", "DEPOSIT_PAID"];
+  const payableStatuses = ["CONFIRMED", "DEPOSIT_PAID", "COMPLETED"];
 
   async function updateStatus(nextStatus: string) {
     setSubmitting(nextStatus);

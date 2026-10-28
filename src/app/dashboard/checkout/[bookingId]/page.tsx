@@ -210,6 +210,25 @@ export default function CheckoutPage() {
     );
   }
 
+  if (!["CONFIRMED", "DEPOSIT_PAID", "COMPLETED"].includes(booking.status)) {
+    return (
+      <div className="flex min-h-screen">
+        <Sidebar role="CUSTOMER" />
+        <PageContent>
+          <Card>
+            <CardTitle>Payments unavailable</CardTitle>
+            <p className="mt-3 text-sm text-charcoal-600 dark:text-charcoal-300">
+              This booking is {booking.status.replace(/_/g, " ").toLowerCase()} and cannot accept a payment.
+            </p>
+            <Link href={`/dashboard/bookings/${bookingId}`} className="mt-4 inline-block">
+              <Button variant="outline">Back to booking</Button>
+            </Link>
+          </Card>
+        </PageContent>
+      </div>
+    );
+  }
+
   const optionButton = (active: boolean) =>
     `flex w-full items-center justify-between gap-3 rounded-xl border p-4 text-left transition-colors ${
       active

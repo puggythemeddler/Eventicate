@@ -20,8 +20,8 @@ interface BookingData {
   status: string;
   event: { title: string };
   provider: { businessName: string };
-  documents: { id: string; type: string; total: number; terms: string | null; lineItems: string }[];
-  agreements: { id: string }[];
+  documents: { id: string; type: string; documentNumber: string; total: number; depositRequired: number | null; terms: string | null; lineItems: string }[];
+  agreements: { id: string; customerName: string; signedAt: string; terms: string; totalAmount: number; depositAmount: number | null }[];
 }
 
 export default function AgreementPage() {
@@ -45,11 +45,18 @@ export default function AgreementPage() {
   useEffect(() => {
     if (!bookingId) return;
     Promise.all([
-      fetch(`/api/bookings/${bookingId}`).then((r) => r.json()),
-      fetch("/api/auth/session").then((r) => r.json()),
+      fetch(`/api/bookings/${bookingId}`).then((r) => {
+        if (!r.ok) throw new Error("Booking could not be loaded");
+        return r.json();
+      }),
+      fetch("/api/auth/session").then((r) => {
+        if (!r.ok) throw new Error("Session could not be loaded");
+        return r.json();
+      }),
     ])
       .then(([bookingData, sessionData]) => {
-        const b = bookingData.booking || bookingData;
+        const b = bookingData.booking;
+        if (!b?.id || !b.provider || !b.event) throw new Error("Booking could not be loaded");
         setBooking(b);
         if (sessionData.user) {
           setCustomerName(`${sessionData.user.firstName} ${sessionData.user.lastName}`.trim());
@@ -61,31 +68,31 @@ export default function AgreementPage() {
   }, [bookingId]);
 
   const quoteDoc = booking?.documents?.find((d) => d.type === "QUOTE");
-  const totalAmount = booking?.finalPrice || booking?.quotedPrice || 0;
-  const depositAmount = booking?.depositAmount || 0;
+  const totalAmount = booking?.finalPrice ?? booking?.quotedPrice ?? 0;
+  const depositAmount = booking?.depositAmount ?? quoteDoc?.depositRequired ?? 0;
   const hasAgreement = (booking?.agreements?.length ?? 0) > 0;
+  const signedAgreement = booking?.agreements?.[0];
+  const canSign = totalAmount > 0 && !!quoteDoc?.terms?.trim() && Math.abs(quoteDoc.total - totalAmount) <= 0.001
+    && depositAmount >= 0 && depositAmount <= totalAmount
+    && !["CANCELLED", "REJECTED", "COMPLETED"].includes(booking?.status ?? "");
 
   const parseLineItems = (json: string) => {
     try {
-      return JSON.parse(json) as { description: string; quantity: number; unitPrice: number; total: number }[];
+      const items = JSON.parse(json) as unknown;
+      if (!Array.isArray(items)) return [];
+      return items.filter((item): item is { description: string; quantity: number; unitPrice: number; total: number } =>
+        !!item && typeof item.description === "string" && Number.isFinite(item.quantity)
+          && Number.isFinite(item.unitPrice) && Number.isFinite(item.total));
     } catch {
       return [];
     }
   };
 
-  const termsText = quoteDoc?.terms || `AGREEMENT TERMS & CONDITIONS
-
-1. This agreement is between the customer and ${booking?.provider?.businessName || "the service provider"}.
-2. The total amount of ${formatCurrency(totalAmount, currency)} shall be paid as agreed.
-${depositAmount > 0 ? `3. A deposit of ${formatCurrency(depositAmount, currency)} is required to confirm the booking.` : ""}
-${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment schedule.` : "3. Payment is due as per the invoice terms."}
-5. Cancellation policy applies as per the provider's terms.
-6. Any changes to the agreement must be made in writing.
-7. The provider reserves the right to amend terms with prior notice.`;
+  const termsText = quoteDoc?.terms ?? "";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!signature.trim()) return;
+    if (!signature.trim() || !canSign) return;
 
     setSubmitting(true);
     setError(null);
@@ -96,7 +103,7 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           bookingId,
-          documentId: quoteDoc?.id || undefined,
+          documentId: quoteDoc!.id,
           customerName: customerName.trim(),
           customerPhone: customerPhone.trim(),
           customerEmail: customerEmail.trim(),
@@ -140,7 +147,11 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
       <div className="flex min-h-screen">
         <Sidebar role="CUSTOMER" />
         <PageContent>
-          <p className="text-charcoal-500 dark:text-charcoal-400">Booking not found.</p>
+          <Card>
+            <p role="alert">{error || "Booking not found."}</p>
+            <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>Try again</Button>
+            <Link href="/dashboard/bookings" className="ml-4 underline underline-offset-4">Back to bookings</Link>
+          </Card>
         </PageContent>
       </div>
     );
@@ -163,7 +174,7 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
     );
   }
 
-  if (hasAgreement) {
+  if (hasAgreement && signedAgreement) {
     return (
       <div className="flex min-h-screen">
         <Sidebar role="CUSTOMER" />
@@ -171,8 +182,16 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
           <Card>
             <div className="flex flex-col items-center gap-4 py-12">
               <FileSignature className="h-16 w-16 text-charcoal-300 dark:text-charcoal-600" />
-              <CardTitle>Agreement Already Signed</CardTitle>
-              <p className="text-sm text-charcoal-500 dark:text-charcoal-400">An agreement has already been submitted for this booking.</p>
+              <h1 className="font-display text-2xl font-semibold">Your signed agreement</h1>
+              <p className="text-sm text-charcoal-600 dark:text-charcoal-300">
+                Signed by {signedAgreement.customerName} on {new Date(signedAgreement.signedAt).toLocaleDateString("en-GB", { dateStyle: "long" })}.
+              </p>
+              <p className="font-semibold">Agreed total: {formatCurrency(signedAgreement.totalAmount, currency)}</p>
+              {signedAgreement.depositAmount != null && <p>Agreed deposit: {formatCurrency(signedAgreement.depositAmount, currency)}</p>}
+              <div className="w-full max-w-3xl rounded-lg bg-sand p-4 dark:bg-charcoal-800">
+                <h2 className="font-semibold">Terms you signed</h2>
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-charcoal-700 dark:text-charcoal-200">{signedAgreement.terms}</p>
+              </div>
               <Link href={`/dashboard/bookings/${bookingId}`}>
                 <Button>View Booking</Button>
               </Link>
@@ -196,6 +215,13 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
         </Link>
 
         <h1 className="mb-6 font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">Customer Agreement</h1>
+        {!canSign && (
+          <Card className="mb-6">
+            <p role="status" className="text-sm leading-relaxed">
+              This agreement is not ready to sign. The booking must be open and have a current quotation with terms, a matching total and a valid deposit. Ask your provider to update it, then reload this page.
+            </p>
+          </Card>
+        )}
 
         <div className="mb-6 grid gap-4 md:grid-cols-2">
           <Card>
@@ -214,27 +240,29 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
 
         {quoteDoc && parseLineItems(quoteDoc.lineItems).length > 0 && (
           <Card className="mb-6">
-            <CardTitle className="mb-3">Quote Details</CardTitle>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-charcoal-200 dark:border-charcoal-800 text-left">
-                  <th className="pb-2 font-medium text-charcoal-500 dark:text-charcoal-400">Description</th>
-                  <th className="pb-2 font-medium text-charcoal-500 dark:text-charcoal-400">Qty</th>
-                  <th className="pb-2 font-medium text-charcoal-500 dark:text-charcoal-400">Unit Price</th>
-                  <th className="pb-2 text-right font-medium text-charcoal-500 dark:text-charcoal-400">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {parseLineItems(quoteDoc.lineItems).map((li, i) => (
-                  <tr key={i} className="border-b border-charcoal-100 dark:border-charcoal-800">
-                    <td className="py-2">{li.description}</td>
-                    <td className="py-2">{li.quantity}</td>
-                    <td className="py-2">{formatCurrency(li.unitPrice, currency)}</td>
-                    <td className="py-2 text-right">{formatCurrency(li.total, currency)}</td>
+            <CardTitle className="mb-3">Quote Details · {quoteDoc.documentNumber}</CardTitle>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[28rem] text-sm">
+                <thead>
+                  <tr className="border-b border-charcoal-200 dark:border-charcoal-800 text-left">
+                    <th className="pb-2 font-medium text-charcoal-500 dark:text-charcoal-400">Description</th>
+                    <th className="pb-2 font-medium text-charcoal-500 dark:text-charcoal-400">Qty</th>
+                    <th className="pb-2 font-medium text-charcoal-500 dark:text-charcoal-400">Unit Price</th>
+                    <th className="pb-2 text-right font-medium text-charcoal-500 dark:text-charcoal-400">Total</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {parseLineItems(quoteDoc.lineItems).map((li, i) => (
+                    <tr key={i} className="border-b border-charcoal-100 dark:border-charcoal-800">
+                      <td className="py-2">{li.description}</td>
+                      <td className="py-2">{li.quantity}</td>
+                      <td className="py-2">{formatCurrency(li.unitPrice, currency)}</td>
+                      <td className="py-2 text-right">{formatCurrency(li.total, currency)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </Card>
         )}
 
@@ -274,7 +302,7 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
           <Card className="mb-6">
             <CardTitle className="mb-4">Terms & Conditions</CardTitle>
             <div className="max-h-64 overflow-y-auto rounded-lg border border-charcoal-200 dark:border-charcoal-800 bg-sand dark:bg-charcoal-800 p-4 text-sm text-charcoal-600 dark:text-charcoal-300">
-              {termsText.split("\n").map((line, i) => (
+              {(termsText || "No quotation terms have been supplied yet.").split("\n").map((line, i) => (
                 <p key={i} className="mb-1">{line}</p>
               ))}
             </div>
@@ -302,7 +330,7 @@ ${depositAmount > 0 ? `4. The remaining balance shall be paid as per the payment
 
           <Button
             type="submit"
-            disabled={submitting || !signature.trim() || !customerName.trim() || !customerPhone.trim() || !customerEmail.trim()}
+            disabled={!canSign || submitting || !signature.trim() || !customerName.trim() || !customerPhone.trim() || !customerEmail.trim()}
             className="w-full"
             size="lg"
           >
