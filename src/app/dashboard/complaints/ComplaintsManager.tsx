@@ -14,12 +14,14 @@ const COMPLAINT_TYPES = [
   { value: "no_show", label: "Provider No-Show" },
   { value: "damaged_items", label: "Damaged Items" },
   { value: "payment_refund", label: "Payment / Refund" },
+  { value: "cancellation_request", label: "Cancellation request" },
   { value: "other", label: "Other" },
 ];
 
 const STATUS_VARIANTS: Record<string, "warning" | "info" | "success" | "danger"> = {
   open: "warning",
   investigating: "info",
+  refund_pending: "warning",
   resolved: "success",
   dismissed: "danger",
 };
@@ -33,6 +35,8 @@ interface Complaint {
   status: string;
   resolution: string | null;
   refundAmount: number | null;
+  refundReference?: string | null;
+  refundPaidAt?: string | null;
   evidenceUrls: string;
   adminNotes: string | null;
   createdAt: string;
@@ -129,7 +133,7 @@ export function ComplaintsManager({ initial }: { initial: Complaint[] }) {
             <Input label="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="e.g. Provider did not deliver booked service" />
             <Textarea label="Description" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} placeholder="Describe what happened..." />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Select label="Type" value={complaintType} onChange={(e) => setComplaintType(e.target.value)} options={COMPLAINT_TYPES} />
+              <Select label="Type" value={complaintType} onChange={(e) => setComplaintType(e.target.value)} options={COMPLAINT_TYPES.filter(t => t.value !== "cancellation_request")} />
               <Select
                 label="Priority"
                 value={priority}
@@ -217,14 +221,15 @@ export function ComplaintsManager({ initial }: { initial: Complaint[] }) {
 
               {c.status === "resolved" && (
                 <p className="mt-3 rounded-lg bg-olive-50 px-3 py-2 text-sm text-olive-700 dark:bg-olive-900/20 dark:text-olive-300">
-                  {c.resolution === "REFUNDED"
-                    ? `Resolved with a full refund${c.refundAmount ? ` of ${c.refundAmount}` : ""}.`
-                    : c.resolution === "PARTIAL_REFUND"
-                      ? `Resolved with a partial refund${c.refundAmount ? ` of ${c.refundAmount}` : ""}.`
+                  {c.refundPaidAt
+                    ? `Refund transfer recorded${c.refundAmount ? `: ${c.refundAmount}` : ""}. Reference: ${c.refundReference}.`
+                    : c.resolution === "REFUNDED" || c.resolution === "PARTIAL_REFUND"
+                      ? "A refund resolution was recorded previously; no transfer reference is available."
                       : "Resolved."}
                   {c.adminNotes ? ` Note: ${c.adminNotes}` : ""}
                 </p>
               )}
+              {c.status === "refund_pending" && <p className="mt-3 text-sm">Refund approved: {c.refundAmount}. Awaiting transfer; no returned payment has been recorded yet. {c.adminNotes}</p>}
               {c.status === "dismissed" && c.adminNotes && (
                 <p className="mt-3 rounded-lg bg-sand px-3 py-2 text-sm text-charcoal-600 dark:bg-charcoal-800 dark:text-charcoal-200">
                   Note: {c.adminNotes}

@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
+import { CancellationRequest } from "@/components/bookings/CancellationRequest";
 
-export function ProviderBookingActions({ bookingId, status }: { bookingId: string; status: string }) {
+export function ProviderBookingActions({ bookingId, status, hasPayments = false }: { bookingId: string; status: string; hasPayments?: boolean }) {
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -129,7 +130,7 @@ export function ProviderBookingActions({ bookingId, status }: { bookingId: strin
           >
             Complete
           </Button>
-          <Button
+          {!hasPayments && <Button
             variant="danger"
             disabled={submitting !== null}
             onClick={() => {
@@ -138,7 +139,7 @@ export function ProviderBookingActions({ bookingId, status }: { bookingId: strin
             }}
           >
             Cancel
-          </Button>
+          </Button>}
         </div>
       )}
       {status === "DEPOSIT_PAID" && (
@@ -150,6 +151,7 @@ export function ProviderBookingActions({ bookingId, status }: { bookingId: strin
           Complete Booking
         </Button>
       )}
+      {["CONFIRMED", "DEPOSIT_PAID"].includes(status) && (hasPayments || status === "DEPOSIT_PAID") && <CancellationRequest bookingId={bookingId} />}
       {error && <p className="text-sm text-terracotta-700 dark:text-terracotta-400">{error}</p>}
     </div>
   );

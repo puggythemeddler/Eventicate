@@ -10,12 +10,13 @@ import { formatDateTime } from "@/lib/utils";
 const STATUS_OPTIONS = [
   { value: "open", label: "Open" },
   { value: "investigating", label: "Investigating" },
+  { value: "refund_pending", label: "Refund pending (approved)" },
   { value: "resolved", label: "Resolved" },
   { value: "dismissed", label: "Dismissed" },
 ];
 
 const RESOLUTION_OPTIONS = [
-  { value: "", label: "No refund" },
+  { value: "NO_REFUND", label: "No refund" },
   { value: "REFUNDED", label: "Full refund" },
   { value: "PARTIAL_REFUND", label: "Partial refund" },
 ];
@@ -23,6 +24,7 @@ const RESOLUTION_OPTIONS = [
 const STATUS_VARIANTS: Record<string, "warning" | "info" | "success" | "danger"> = {
   open: "warning",
   investigating: "info",
+  refund_pending: "warning",
   resolved: "success",
   dismissed: "danger",
 };
@@ -38,6 +40,7 @@ const COMPLAINT_TYPE_LABELS: Record<string, string> = {
   no_show: "No-Show",
   damaged_items: "Damaged Items",
   payment_refund: "Payment / Refund",
+  cancellation_request: "Cancellation request",
   other: "Other",
 };
 
@@ -50,6 +53,8 @@ interface Complaint {
   status: string;
   resolution: string | null;
   refundAmount: number | null;
+  refundReference?: string | null;
+  refundPaidAt?: string | null;
   evidenceUrls: string;
   adminNotes: string | null;
   createdAt: string;
@@ -60,6 +65,8 @@ interface Complaint {
     id: string;
     status: string;
     finalPrice: number | null;
+    settledPaid?: number;
+    agreementTerms?: string | null;
     provider: { businessName: string } | null;
     customer: { user: { firstName: string; lastName: string } } | null;
   } | null;
@@ -70,13 +77,18 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
   const [expanded, setExpanded] = useState(false);
   const [complaint, setComplaint] = useState(initial);
   const [status, setStatus] = useState(initial.status);
-  const [resolution, setResolution] = useState(initial.resolution || "");
+  const [resolution, setResolution] = useState(initial.resolution || "NO_REFUND");
   const [refundAmount, setRefundAmount] = useState(initial.refundAmount?.toString() || "");
   const [notes, setNotes] = useState(initial.adminNotes || "");
   const [saving, setSaving] = useState(false);
+  const [reference, setReference] = useState(initial.refundReference || "");
+  const [error, setError] = useState("");
+  const isFinal = ["resolved", "dismissed"].includes(complaint.status);
+  const isRefund = ["REFUNDED", "PARTIAL_REFUND"].includes(resolution);
 
   const updateStatus = async () => {
     setSaving(true);
+    setError("");
     try {
       const res = await fetch("/api/admin/complaints", {
         method: "PATCH",
@@ -84,16 +96,18 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
         body: JSON.stringify({
           complaintId: complaint.id,
           status,
-          resolution: status === "resolved" && resolution ? resolution : undefined,
-          refundAmount: resolution && refundAmount ? parseFloat(refundAmount) : undefined,
+          resolution: ["resolved", "refund_pending"].includes(status) ? resolution : undefined,
+          refundAmount: isRefund && refundAmount ? parseFloat(refundAmount) : undefined,
+          refundReference: status === "resolved" && isRefund ? reference : undefined,
+          adminNotes: notes,
         }),
       });
-      if (!res.ok) throw new Error("Failed to update");
       const data = await res.json();
-      setComplaint((prev) => ({ ...prev, status: data.complaint.status, resolution: data.complaint.resolution, refundAmount: data.complaint.refundAmount }));
+      if (!res.ok) throw new Error(data.error || "Failed to update");
+      setComplaint(prev => ({ ...prev, ...data.complaint }));
       router.refresh();
-    } catch {
-      alert("Failed to update status");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to update status");
     } finally {
       setSaving(false);
     }
@@ -112,7 +126,7 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
       setComplaint((prev) => ({ ...prev, adminNotes: data.complaint.adminNotes }));
       router.refresh();
     } catch {
-      alert("Failed to save notes");
+      setError("Failed to save notes");
     } finally {
       setSaving(false);
     }
@@ -131,10 +145,10 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
       <button
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
-        className="flex w-full items-center justify-between px-6 py-4 text-left hover:bg-sand dark:hover:bg-charcoal-800/60"
+        className="flex w-full flex-col items-start justify-between gap-3 px-6 py-4 text-left hover:bg-sand dark:hover:bg-charcoal-800/60 sm:flex-row sm:items-center"
       >
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
             <p className="font-medium text-charcoal-900 dark:text-charcoal-100">{complaint.subject}</p>
             <Badge variant={PRIORITY_VARIANTS[complaint.priority] || "default"}>{complaint.priority}</Badge>
           </div>
@@ -145,9 +159,9 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
             {complaint.booking && ` · booking: ${complaint.booking.id}`}
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3">
           <Badge variant={STATUS_VARIANTS[complaint.status] || "default"}>
-            {complaint.status}
+            {complaint.status.replace(/_/g, " ")}
           </Badge>
           <span className="text-xs text-charcoal-400 dark:text-charcoal-500">{formatDateTime(complaint.createdAt)}</span>
         </div>
@@ -168,6 +182,8 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
                 {complaint.booking.finalPrice != null && ` · ${complaint.booking.finalPrice}`}
                 {complaint.booking.provider && ` · ${complaint.booking.provider.businessName}`}
               </p>
+              <p className="mt-2 text-sm">Verified payments received: {complaint.booking.settledPaid ?? "Not available"}. Refund approvals are limited to these funds less other approved refunds.</p>
+              {complaint.booking.agreementTerms && <details className="mt-3 text-sm"><summary className="cursor-pointer font-medium">Read signed cancellation and payment terms</summary><p className="mt-2 whitespace-pre-wrap break-words">{complaint.booking.agreementTerms}</p></details>}
             </div>
           )}
 
@@ -186,46 +202,54 @@ export function ComplaintRow({ complaint: initial }: { complaint: Complaint }) {
 
           <div className="mb-4 grid gap-4 md:grid-cols-3">
             <div>
-              <p className="mb-1 text-xs font-medium text-charcoal-500 dark:text-charcoal-400">Status</p>
-              <div className="flex gap-2">
-                <div className="flex-1">
+              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-end">
+                <div className="w-full min-w-0 flex-1">
                   <Select
+                    label="Decision status"
                     options={STATUS_OPTIONS}
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
+                    disabled={isFinal}
                   />
                 </div>
-                <Button size="sm" onClick={updateStatus} disabled={saving || status === complaint.status}>
-                  {saving ? "..." : "Update"}
+                <Button size="sm" onClick={updateStatus} disabled={saving || isFinal || status === complaint.status}>
+                  {saving ? "Saving…" : "Save decision"}
                 </Button>
               </div>
             </div>
             <div>
-              <p className="mb-1 text-xs font-medium text-charcoal-500 dark:text-charcoal-400">Resolution</p>
               <Select
+                label="Refund decision"
                 options={RESOLUTION_OPTIONS}
                 value={resolution}
                 onChange={(e) => setResolution(e.target.value)}
-                disabled={status !== "resolved"}
+                disabled={isFinal || complaint.status === "refund_pending" || !["resolved", "refund_pending"].includes(status)}
               />
             </div>
             <div>
-              <p className="mb-1 text-xs font-medium text-charcoal-500 dark:text-charcoal-400">Refund Amount</p>
               <Input
+                label="Refund amount"
                 type="number"
+                min="0"
+                step="0.01"
                 value={refundAmount}
                 onChange={(e) => setRefundAmount(e.target.value)}
-                disabled={!resolution}
+                disabled={!isRefund || isFinal || complaint.status === "refund_pending"}
                 placeholder="0.00"
               />
             </div>
           </div>
 
+          <p className="mb-4 text-sm text-charcoal-600 dark:text-charcoal-300">Refund pending approves the amount but does not send money. Return the funds through the original payment channel, then select Resolved and record the transfer reference. Approving a cancellation releases the booking; dismissing the request keeps it active.</p>
+          {isRefund && status === "resolved" && !isFinal && <div className="mb-4"><Input label="Completed refund transfer reference" value={reference} onChange={e => setReference(e.target.value)} required /></div>}
+          {complaint.refundPaidAt && <p className="mb-4 break-words text-sm">Refund transfer recorded {formatDateTime(complaint.refundPaidAt)} · {complaint.refundReference}</p>}
+          {error && <p role="alert" className="mb-4 text-sm text-terracotta-700 dark:text-terracotta-400">{error}</p>}
+
           <div>
-            <p className="mb-1 text-xs font-medium text-charcoal-500 dark:text-charcoal-400">Admin Notes</p>
-            <div className="flex gap-2">
-              <div className="flex-1">
+            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-end">
+              <div className="w-full min-w-0 flex-1">
                 <Textarea
+                  label="Decision notes"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={2}

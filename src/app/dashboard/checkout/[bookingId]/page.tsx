@@ -49,6 +49,7 @@ export default function CheckoutPage() {
 
   const [booking, setBooking] = useState<BookingData | null>(null);
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
+  const [unavailableReason, setUnavailableReason] = useState("");
   const [selectedMethod, setSelectedMethod] = useState<string>("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(true);
@@ -70,6 +71,7 @@ export default function CheckoutPage() {
     ])
       .then(([methodsData, bookingData]) => {
         setMethods(methodsData.methods || []);
+        setUnavailableReason(methodsData.unavailableReason || "No online payment methods are available. Contact the provider before paying.");
         setBooking(bookingData.booking || bookingData);
       })
       .catch(() => setLoadError("Failed to load booking details"))
@@ -430,6 +432,7 @@ export default function CheckoutPage() {
           <>
             <Card className="mb-6">
               <CardTitle className="mb-4">Select Payment Method</CardTitle>
+              {methods.length === 0 && <p role="status" className="text-sm text-charcoal-600 dark:text-charcoal-300">{unavailableReason}</p>}
               <div className="space-y-3">
                 {methods.map((method) => (
                   <button

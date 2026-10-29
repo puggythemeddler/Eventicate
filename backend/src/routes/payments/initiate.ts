@@ -120,7 +120,7 @@ export function createPaymentInitiationRouter(startPayment: typeof initiatePayme
 
       if (data.isDeposit) {
         // Never trust the client amount: derive the deposit server-side.
-        const depositAmount = booking.depositAmount?.toNumber() ?? Math.round(totalDue * 0.3 * 100) / 100;
+        const depositAmount = booking.depositAmount?.toNumber() ?? 0;
         if (depositAmount <= 0) {
           return res.status(400).json({ error: "No deposit is due for this booking" });
         }

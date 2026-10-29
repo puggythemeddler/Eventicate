@@ -4,15 +4,18 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Check, X, CreditCard } from "lucide-react";
+import { CancellationRequest } from "@/components/bookings/CancellationRequest";
 
 export function BookingActions({
   bookingId,
   status,
   hasBalance,
+  hasPayments = false,
 }: {
   bookingId: string;
   status: string;
   hasBalance?: boolean;
+  hasPayments?: boolean;
 }) {
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +78,7 @@ export function BookingActions({
             </Button>
           </>
         )}
-        {status === "CONFIRMED" && (
+        {status === "CONFIRMED" && !hasPayments && (
           <Button
             variant="danger"
             disabled={submitting !== null}
@@ -88,6 +91,7 @@ export function BookingActions({
           </Button>
         )}
       </div>
+      {["CONFIRMED", "DEPOSIT_PAID"].includes(status) && (hasPayments || status === "DEPOSIT_PAID") && <CancellationRequest bookingId={bookingId} />}
       {error && <p className="text-sm text-terracotta-700 dark:text-terracotta-400">{error}</p>}
     </div>
   );

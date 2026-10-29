@@ -37,7 +37,8 @@ router.post("/", async (req, res) => {
         return res.status(404).json({ error: "Booking not found" });
       }
       const ownsBooking =
-        (session.role === "CUSTOMER" && booking.customerId === session.id) ||
+        (session.role === "CUSTOMER" &&
+          (await prisma.customerProfile.count({ where: { userId: session.id, id: booking.customerId } })) > 0) ||
         (session.role === "PROVIDER" &&
           (await prisma.providerProfile.count({
             where: { userId: session.id, id: booking.providerId },
@@ -95,7 +96,7 @@ router.get("/my", async (req, res) => {
   }
 
   const complaints = await prisma.complaint.findMany({
-    where: { reporterId: session.id },
+    where: { OR: [{ reporterId: session.id }, { reportedId: session.id }] },
     orderBy: { createdAt: "desc" },
   });
 

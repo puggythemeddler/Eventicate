@@ -703,6 +703,9 @@ model Complaint {
   status        String    @default("open") // open, investigating, resolved, dismissed
   resolution    String? // REFUNDED, PARTIAL_REFUND, NO_REFUND
   refundAmount  Decimal?
+  refundReference String?
+  refundPaidAt DateTime?
+  refundRecordedBy String?
   adminNotes    String?
   resolvedAt    DateTime?
   createdAt     DateTime  @default(now())

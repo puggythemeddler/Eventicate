@@ -63,6 +63,14 @@ export async function isMpesaConfigured(): Promise<boolean> {
   return Boolean(cfg.consumerKey && cfg.consumerSecret && cfg.passkey);
 }
 
+export async function getMpesaReadiness() {
+  const cfg = await loadMpesaConfig();
+  return {
+    environment: cfg.env === "production" ? "production" : "sandbox",
+    configured: Boolean(cfg.consumerKey && cfg.consumerSecret && cfg.passkey && cfg.callbackSecret && cfg.callbackUrl),
+  };
+}
+
 async function baseUrl(): Promise<string> {
   const cfg = await loadMpesaConfig();
   return cfg.env === "production" ? "https://api.safaricom.co.ke" : "https://sandbox.safaricom.co.ke";

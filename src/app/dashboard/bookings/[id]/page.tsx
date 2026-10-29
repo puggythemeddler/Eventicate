@@ -14,6 +14,7 @@ import {
   Phone, Mail, Globe, MapPin,
 } from "lucide-react";
 import { BookingActions } from "./BookingActions";
+import { CancellationStatus, type CancellationDecision } from "@/components/bookings/CancellationStatus";
 
 type BookingDetail = {
   id: string;
@@ -24,6 +25,7 @@ type BookingDetail = {
   customerNotes: string | null;
   documents: { id: string; documentNumber: string; terms: string | null }[];
   agreements: { id: string }[];
+  cancellationRequests?: CancellationDecision[];
   event: { id: string; title: string; eventDate: string };
   provider: {
     businessName: string;
@@ -86,7 +88,7 @@ export default async function BookingDetailPage({
           Back to Bookings
         </Link>
 
-        <div className="mb-8 flex items-start justify-between">
+        <div className="mb-8 flex flex-wrap items-start justify-between gap-6">
           <div>
             <div className="mb-2 flex items-center gap-3">
               <h1 className="font-display text-2xl font-semibold text-charcoal-900 dark:text-charcoal-100">{booking.provider.businessName}</h1>
@@ -94,8 +96,10 @@ export default async function BookingDetailPage({
             </div>
             <p className="text-sm text-charcoal-500 dark:text-charcoal-400">{booking.provider.category}</p>
           </div>
-          <BookingActions bookingId={booking.id} status={booking.status} hasBalance={remainingBalance > 0} />
+          <BookingActions bookingId={booking.id} status={booking.status} hasBalance={remainingBalance > 0} hasPayments={totalPaid > 0} />
         </div>
+
+        <CancellationStatus requests={booking.cancellationRequests} currency={currency} />
 
         <div className="mb-8 grid gap-4 md:grid-cols-3">
           <Card>

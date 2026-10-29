@@ -1,10 +1,13 @@
 import { Router } from "express";
 import { z } from "zod";
+import type { Prisma } from "@prisma/client";
 import prisma from "../../lib/prisma";
 import { getSession } from "../../lib/auth";
 import { blockAvailability, releaseAvailability, createNotification } from "../../lib/booking-engine";
 import { generateQuoteFromBooking } from "../../lib/documents";
 import { sendBookingStatusUpdate } from "../../lib/email";
+import cancellationRouter from "./cancellation";
+import { cancelBooking, cancellationError } from "../../lib/cancellations";
 
 const updateSchema = z.object({
   status: z.enum([
@@ -47,6 +50,7 @@ function assertTransition(allowed: Record<string, string[]>, from: string, to: s
 
 export function createBookingDetailRouter(sendStatus: typeof sendBookingStatusUpdate = sendBookingStatusUpdate) {
   const router = Router({ mergeParams: true });
+  router.use("/cancellation", cancellationRouter);
   router.patch("/", async (req, res) => {
     const session = await getSession(req);
     if (!session) return res.status(401).json({ error: "Unauthorized" });
@@ -128,23 +132,26 @@ export function createBookingDetailRouter(sendStatus: typeof sendBookingStatusUp
         }
       }
 
-      const updated = await prisma.booking.update({
-        where: { id },
-        data: {
-          ...data,
-          // depositPaid is only ever set true by the verified payments flow — this
-          // endpoint only clears it when a booking is cancelled or rejected.
-          depositPaid:
-            data.status === "CANCELLED" || data.status === "REJECTED" ? false : undefined,
-        },
-        include: { event: true, provider: true, service: true },
+      const persistUpdate = (db: Prisma.TransactionClient) => db.booking.update({
+        where: { id }, data, include: { event: true, provider: true, service: true },
       });
+      const updated = data.status === "CANCELLED"
+        ? await prisma.$transaction(async tx => {
+          const current = await tx.booking.findUnique({ where: { id }, include: { payments: true } });
+          if (!current || current.status !== booking.status) cancellationError(409, "The booking changed. Reload and try again.");
+          if (current.payments.some(p => ["DEPOSIT_PAID", "FULLY_PAID"].includes(p.status))) {
+            cancellationError(409, "This booking has received a payment. Request cancellation for admin review of the refund terms.");
+          }
+          await cancelBooking(tx, id);
+          return persistUpdate(tx);
+        }, { isolationLevel: "Serializable" })
+        : await persistUpdate(prisma);
 
       if (data.status === "CONFIRMED" || data.status === "DEPOSIT_PAID") {
         await blockAvailability(booking.providerId, booking.event.eventDate, id, "CONFIRMED");
       }
 
-      if (data.status === "CANCELLED" || data.status === "REJECTED") {
+      if (data.status === "REJECTED") {
         await releaseAvailability(booking.providerId, booking.event.eventDate);
       }
 
@@ -178,6 +185,9 @@ export function createBookingDetailRouter(sendStatus: typeof sendBookingStatusUp
 
       return res.status(200).json({ booking: updated });
     } catch (error) {
+      const failure = error as { status?: number; message?: string; code?: string };
+      if (failure.status) return res.status(failure.status).json({ error: failure.message });
+      if (failure.code === "P2034") return res.status(409).json({ error: "The booking changed. Reload and try again." });
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: error.errors });
       }
@@ -249,7 +259,12 @@ export function createBookingDetailRouter(sendStatus: typeof sendBookingStatusUp
       }
     }
 
-    return res.status(200).json({ booking });
+    const cancellationRequests = await prisma.complaint.findMany({
+      where: { bookingId: id, complaintType: "cancellation_request" },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, status: true, description: true, adminNotes: true, refundAmount: true, refundReference: true, refundPaidAt: true },
+    });
+    return res.status(200).json({ booking: { ...booking, cancellationRequests } });
   });
 
   return router;

@@ -60,7 +60,8 @@ export function createManualPaymentRouter(makeReceipt: typeof generateReceiptFro
 
         if (data.isDeposit) {
           if (booking.depositPaid) throw Object.assign(new Error("Deposit already paid"), { status: 400 });
-          const deposit = booking.depositAmount?.toNumber() ?? totalDue * 0.3;
+          const deposit = booking.depositAmount?.toNumber() ?? 0;
+          if (deposit <= 0) throw Object.assign(new Error("No deposit is due for this booking"), { status: 400 });
           if (data.amount < deposit) throw Object.assign(new Error("Amount is less than the deposit due"), { status: 400 });
         }
         if (data.amount > Math.max(0, totalDue - totalPaid)) {

@@ -81,6 +81,7 @@ test("booking payments and agreements: isolated route regression and journey che
   override(prisma.document, "update", async ({ data }: { data: { status: string } }) => { quote.status = data.status; return quote; });
   override(prisma.document, "create", async ({ data }: { data: Record<string, unknown> }) => { generatedDocument = data; return quote; });
   override(prisma.documentCounter, "update", async () => ({ nextNumber: 2 }));
+  override(prisma.complaint, "findMany", async () => []);
   override(prisma.availabilitySlot, "upsert", async () => ({}));
   override(prisma.availabilitySlot, "updateMany", async () => ({ count: 1 }));
   override(prisma.equipment, "findUnique", async () => ({ id: "equipment-test", providerId: provider.id, quantity: 5 }));
@@ -215,5 +216,15 @@ test("booking payments and agreements: isolated route regression and journey che
     assert.equal((await request("/bookings/booking-test", { status: "QUOTATION_SENT", quotedPrice: 100 }, "PROVIDER", "PATCH")).status, 400);
     assert.equal((await request("/bookings/booking-test", { status: "QUOTATION_SENT", quotedPrice: 100, providerNotes: "Demo", depositAmount: 101 }, "PROVIDER", "PATCH")).status, 400);
     assert.equal(status, "QUOTATION_REQUESTED");
+  });
+  await t.test("missing or zero deposits cannot produce an invented deposit charge", async () => {
+    reset();
+    for (const deposit of [null, 0]) {
+      requestedDeposit = deposit;
+      assert.equal((await initiate(3000, true)).status, 400);
+      assert.equal((await manual(3000, true)).status, 400);
+      assert.equal(gatewayCalls, 0); assert.equal(payments.length, 0);
+    }
+    requestedDeposit = 3000;
   });
 });

@@ -10,6 +10,8 @@ import { serverApi } from "@/lib/server-api";
 import { formatCurrency, formatDate, formatDateTime, getCurrencyForCountry } from "@/lib/utils";
 import { ArrowLeft, Calendar, DollarSign, MessageSquare, Mail, User } from "lucide-react";
 import { DocumentActions, ProviderBookingActions, ProviderNotesForm } from "./ProviderBookingActions";
+import { settledPaymentTotal } from "@/lib/payment-balance";
+import { CancellationStatus, type CancellationDecision } from "@/components/bookings/CancellationStatus";
 
 type BookingDetail = {
   id: string;
@@ -19,6 +21,7 @@ type BookingDetail = {
   depositAmount: number | null;
   customerNotes: string | null;
   providerNotes: string | null;
+  cancellationRequests?: CancellationDecision[];
   event: { title: string; eventDate: string; guestCount: number };
   customer: {
     user: { firstName: string; lastName: string; email: string; phone: string | null };
@@ -167,7 +170,8 @@ if (!booking) notFound();
         </Card>
 
         <div className="mb-8">
-          <ProviderBookingActions bookingId={booking.id} status={booking.status} />
+          <ProviderBookingActions bookingId={booking.id} status={booking.status} hasPayments={settledPaymentTotal(booking.payments) > 0} />
+          <CancellationStatus requests={booking.cancellationRequests} currency={currency} />
         </div>
 
         <Card className="mb-8">

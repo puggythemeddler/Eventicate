@@ -12,6 +12,7 @@ const STATUS_OPTIONS = [
   { value: "ALL", label: "All Statuses" },
   { value: "open", label: "Open" },
   { value: "investigating", label: "Investigating" },
+  { value: "refund_pending", label: "Refund pending" },
   { value: "resolved", label: "Resolved" },
   { value: "dismissed", label: "Dismissed" },
 ];
