@@ -68,6 +68,44 @@ export async function sendEmail(to: string, subject: string, html: string) {
   return info;
 }
 
+export function isSmtpConfigured() {
+  return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+}
+
+function escapeHtml(value: string) {
+  const entities: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  return value.replace(/[&<>"']/g, (character) => entities[character] || character);
+}
+
+export async function sendEventGuestInvitation(to: string, guestName: string, event: {
+  title: string;
+  eventDate: Date;
+  location: string;
+  guestsInvited: number;
+}, organizerName: string, rsvpUrl: string) {
+  if (!isSmtpConfigured()) throw new Error("Email delivery is not configured");
+  const safeName = escapeHtml(guestName);
+  const safeOrganizer = escapeHtml(organizerName);
+  const safeTitle = escapeHtml(event.title);
+  const safeLocation = escapeHtml(event.location);
+  const date = event.eventDate.toLocaleString("en-KE", {
+    dateStyle: "full", timeStyle: "short", timeZone: "Africa/Nairobi",
+  });
+  await sendEmail(to, "You’re invited to an event with Eventicate", wrapHtml(`
+    <p style="font-size:18px;font-weight:600;margin:0 0 16px">You're invited</p>
+    <p>Hi ${safeName},</p>
+    <p>${safeOrganizer} has invited you to join <strong>${safeTitle}</strong>.</p>
+    <table width="100%" cellpadding="8" cellspacing="0" style="margin:16px 0;background:#f5f5f5;border-radius:8px">
+      <tr><td style="font-weight:600;width:120px;color:#666">Date</td><td>${escapeHtml(date)}</td></tr>
+      <tr><td style="font-weight:600;width:120px;color:#666">Location</td><td>${safeLocation}</td></tr>
+      <tr><td style="font-weight:600;width:120px;color:#666">Invited</td><td>Up to ${event.guestsInvited} ${event.guestsInvited === 1 ? "guest" : "guests"}</td></tr>
+    </table>
+    <p>Please let the organizer know whether you can attend.</p>
+    ${ctaButton(rsvpUrl, "Respond to invitation")}
+    <p style="color:#888;font-size:13px">This link is intended for you. If you weren’t expecting this invitation, you can ignore this email.</p>
+  `));
+}
+
 export async function sendWelcomeEmail(to: string, name: string) {
   await sendEmail(to, `Welcome to ${appName}!`, wrapHtml(`
     <p style="font-size:18px;font-weight:600;margin:0 0 16px">Welcome to ${appName}!</p>

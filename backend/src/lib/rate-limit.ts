@@ -24,6 +24,14 @@ export const paymentLimiter = rateLimit({
   message: { error: "Too many payment attempts, please try again later" },
 });
 
+export const invitationLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 25,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "Too many invitations sent. Please try again later." },
+});
+
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 300,

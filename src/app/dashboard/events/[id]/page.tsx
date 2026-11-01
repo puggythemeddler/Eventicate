@@ -10,6 +10,7 @@ import { serverApi } from "@/lib/server-api";
 import { formatDate, formatCurrency, parseJsonArray, getCurrencyForCountry } from "@/lib/utils";
 import { EVENT_TYPES, SERVICE_CATEGORIES } from "@/lib/constants";
 import { EventActions } from "./EventActions";
+import { GuestListManager, type EventGuestRow } from "@/components/events/GuestListManager";
 import { Calendar, MapPin, Users, Wallet, ArrowLeft, Search, Plus, Package, Clock } from "lucide-react";
 
 interface EventData {
@@ -31,6 +32,11 @@ interface EventData {
     provider: { businessName: string; category: string };
     service: { name: string } | null;
   }>;
+}
+
+interface GuestListData {
+  guests: EventGuestRow[];
+  event: { guestCount: number; closed: boolean };
 }
 
 function initials(name: string) {
@@ -71,6 +77,12 @@ export default async function EventDetailPage({
   if (!event) redirect("/dashboard/events");
 
   const currency = getCurrencyForCountry(session.country);
+  let guestList: GuestListData = { guests: [], event: { guestCount: event.guestCount, closed: false } };
+  try {
+    guestList = await serverApi<GuestListData>(`/api/events/${encodeURIComponent(event.id)}/guests`);
+  } catch {
+    // Keep the rest of the event workspace usable if the guest-list endpoint is temporarily unavailable.
+  }
   const requiredServices = parseJsonArray<string>(event.requiredServices);
   const eventTypeLabel =
     EVENT_TYPES.find((t) => t.value === event.eventType)?.label || event.eventType;
@@ -130,6 +142,9 @@ export default async function EventDetailPage({
                 Timeline
               </Button>
             </Link>
+            <a href="#guest-list" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-charcoal-300 px-3 text-sm font-medium text-charcoal-800 hover:bg-sand dark:border-charcoal-700 dark:text-charcoal-200 dark:hover:bg-charcoal-800">
+              <Users className="mr-2 h-4 w-4" aria-hidden="true" />Guest list
+            </a>
             <EventActions eventId={event.id} status={event.status} />
           </div>
         </div>
@@ -207,6 +222,8 @@ export default async function EventDetailPage({
             </div>
           </Card>
         )}
+
+        <GuestListManager eventId={event.id} initialGuests={guestList.guests} expectedGuestCount={guestList.event.guestCount} closed={guestList.event.closed} />
 
         <Card>
           <div className="mb-4 flex items-center justify-between">

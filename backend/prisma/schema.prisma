@@ -27,6 +27,12 @@ enum EventType {
   OTHER
 }
 
+enum RSVPStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
 enum ServiceCategory {
   VENUE
   PA_SYSTEM
@@ -280,11 +286,32 @@ model Event {
   timelineData    String   @default("[]") // JSON array of timeline entries
   status          String    @default("planning")
   bookings        Booking[]
+  guests          EventGuest[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
   @@index([customerId])
   @@index([eventDate])
+}
+
+model EventGuest {
+  id                 String     @id @default(cuid())
+  eventId            String
+  event              Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name               String
+  email              String
+  contactPermissionAt DateTime
+  guestsInvited      Int        @default(1)
+  guestsAttending    Int        @default(0)
+  rsvpStatus         RSVPStatus @default(PENDING)
+  inviteTokenHash    String?    @unique
+  invitationSentAt   DateTime?
+  respondedAt        DateTime?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  @@unique([eventId, email])
+  @@index([eventId, rsvpStatus])
 }
 
 // Public ticketed events are deliberately separate from private planning Events

@@ -22,6 +22,7 @@ Keep service bookings and ticket orders as separate sales streams. They may appe
 - Service categories are represented in the Prisma `ServiceCategory` enum and the frontend `SERVICE_CATEGORIES` list in `src/lib/constants.ts`. Check filters, forms, category imagery, and backend validation when changing categories.
 - Existing service categories include venues, PA/audio, catering, tents, transport, photography, videography, decoration, entertainment, and other. Equipment listings separately cover audio, instruments, lighting, and tent rentals.
 - Ticket events, ticket types, orders, and admission tickets use separate Prisma models and the `/api/ticketing` routes. Free reservations issue signed QR codes, reserve inventory transactionally, and support one-time check-in.
+- Private planning events now have an `EventGuest` list and token-based RSVP links under `/api/events/:id/guests` and `/api/rsvp`. Keep guest contact data private, store only a hash of the invitation token, and send email only from an explicit organizer action. Sending requires SMTP configuration; saving a guest does not send mail.
 - Paid ticket checkout is intentionally inactive. Adding M-Pesa credentials alone does not activate it: the ticket-specific payment, confirmation, and payout flow still needs to be implemented and verified.
 - Eventickets commission defaults to 6%, is configurable in admin settings (0–20%), and is snapshotted on orders. Free tickets have no commission. Show any fee and who pays it clearly before activating paid checkout.
 - The admin payment settings already include the M-Pesa environment, consumer key, consumer secret, passkey, shortcode, callback URL, and an optional proxy callback secret. Callback URLs must be public HTTPS. Safaricom does not send Eventicate's custom proxy header; do not make that optional proxy secret a normal setup requirement.
@@ -43,6 +44,7 @@ Keep service bookings and ticket orders as separate sales streams. They may appe
 - `src/components/layout/Navigation.tsx` — public and role-based navigation.
 - `backend/prisma/schema.prisma` — domain models and enums; add schema changes with a migration.
 - `backend/src/routes/ticketing.ts` — public event listing, free reservations, organizer reports, and check-in.
+- `backend/src/routes/event-guests.ts`, `backend/src/routes/rsvp.ts`, and `src/components/events/GuestListManager.tsx` — private guest management and public RSVP responses.
 - `backend/src/lib/mpesa.ts` and `backend/src/routes/admin/payments.ts` — M-Pesa readiness and admin configuration.
 - `src/app/admin/payments/page.tsx` — payment gateway and ticket commission settings.
 
