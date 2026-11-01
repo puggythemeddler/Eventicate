@@ -122,6 +122,32 @@ enum DocumentType {
   AGREEMENT
 }
 
+enum TicketEventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
+
+enum TicketOrderStatus {
+  FREE_CONFIRMED
+  PENDING
+  PAID
+  CANCELLED
+  REFUNDED
+}
+
+enum TicketStatus {
+  VALID
+  CHECKED_IN
+  CANCELLED
+}
+
+enum TicketFeePayer {
+  ORGANIZER
+  ATTENDEE
+}
+
 // ─── Users & Profiles ────────────────────────────────────────────────────────
 
 model User {
@@ -148,6 +174,9 @@ model User {
   localSyncLogs      LocalSyncLog[]
   complaints         Complaint[]
   passwordResetTokens PasswordResetToken[]
+  organizedTicketEvents TicketEvent[] @relation("TicketEventOrganizer")
+  boughtTicketOrders   TicketOrder[]  @relation("TicketOrderBuyer")
+  checkedInTickets     Ticket[]      @relation("TicketCheckedInBy")
 }
 
 model PasswordResetToken {
@@ -256,6 +285,106 @@ model Event {
 
   @@index([customerId])
   @@index([eventDate])
+}
+
+// Public ticketed events are deliberately separate from private planning Events
+// and provider Bookings. Their sales can be reported alongside bookings without
+// mixing service reservations with admission inventory.
+model TicketEvent {
+  id             String           @id @default(cuid())
+  organizerId    String
+  organizer      User             @relation("TicketEventOrganizer", fields: [organizerId], references: [id], onDelete: Cascade)
+  slug           String           @unique
+  title          String
+  summary        String
+  description    String
+  category       String
+  startsAt       DateTime
+  endsAt         DateTime?
+  timeZone       String           @default("Africa/Nairobi")
+  venueName      String
+  location       String
+  city           String
+  country        String           @default("Kenya")
+  currency       String           @default("KES")
+  imageUrl       String?
+  status         TicketEventStatus @default(DRAFT)
+  feePayer       TicketFeePayer   @default(ORGANIZER)
+  ticketTypes    TicketType[]
+  orders         TicketOrder[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([organizerId, status])
+  @@index([status, startsAt])
+  @@index([country, city])
+}
+
+model TicketType {
+  id             String      @id @default(cuid())
+  eventId        String
+  event          TicketEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  price          Decimal     @default(0) @db.Decimal(12, 2)
+  quantity       Int
+  sold           Int         @default(0)
+  salesStartAt   DateTime?
+  salesEndAt     DateTime?
+  isActive       Boolean     @default(true)
+  orders         TicketOrder[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@unique([eventId, name])
+  @@index([eventId, isActive])
+}
+
+model TicketOrder {
+  id                       String         @id @default(cuid())
+  orderCode                String         @unique
+  eventId                  String
+  event                    TicketEvent    @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  ticketTypeId             String
+  ticketType               TicketType     @relation(fields: [ticketTypeId], references: [id], onDelete: Restrict)
+  buyerId                  String?
+  buyer                    User?          @relation("TicketOrderBuyer", fields: [buyerId], references: [id], onDelete: SetNull)
+  buyerName                String
+  buyerEmail               String
+  buyerPhone               String?
+  quantity                 Int
+  currency                 String
+  ticketSubtotal           Decimal        @default(0) @db.Decimal(12, 2)
+  platformFeeRate          Decimal        @default(0) @db.Decimal(6, 5)
+  platformFeeAmount        Decimal        @default(0) @db.Decimal(12, 2)
+  paymentProcessingFeeAmount Decimal       @default(0) @db.Decimal(12, 2)
+  feePayer                 TicketFeePayer @default(ORGANIZER)
+  totalAmount              Decimal        @default(0) @db.Decimal(12, 2)
+  organizerNetAmount       Decimal        @default(0) @db.Decimal(12, 2)
+  status                   TicketOrderStatus @default(PENDING)
+  idempotencyKey           String?        @unique
+  confirmedAt              DateTime?
+  tickets                  Ticket[]
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+
+  @@index([eventId, status])
+  @@index([ticketTypeId, status])
+  @@index([buyerEmail])
+}
+
+model Ticket {
+  id           String       @id @default(cuid())
+  orderId      String
+  order        TicketOrder  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  ticketCode   String       @unique
+  status       TicketStatus @default(VALID)
+  checkedInAt  DateTime?
+  checkedInById String?
+  checkedInBy  User?        @relation("TicketCheckedInBy", fields: [checkedInById], references: [id], onDelete: SetNull)
+  createdAt    DateTime     @default(now())
+
+  @@index([orderId, status])
 }
 
 // ─── Services & Listings ─────────────────────────────────────────────────────
@@ -806,6 +935,8 @@ model SystemConfig {
   mpesaShortcode String @default("174379")
   mpesaCallbackUrl String?
   mpesaCallbackSecret String?
+  // Default platform commission for paid Eventickets tickets, captured per order.
+  ticketCommissionRate Float    @default(0.06)
   // WhatsApp Cloud API config (admin-editable)
   whatsappAccessToken String?
   whatsappPhoneId     String?

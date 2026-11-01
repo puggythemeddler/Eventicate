@@ -18,6 +18,8 @@ interface PaymentConfig {
   mpesaCallbackUrl: string;
   mpesaCallbackSecret: string;
   configured: boolean;
+  missingFields: string[];
+  ticketCommissionRate: number;
 }
 
 export default function PaymentsPage() {
@@ -61,7 +63,10 @@ export default function PaymentsPage() {
   const update = (key: keyof PaymentConfig, value: string) => {
     setSaved(false);
     setError("");
-    setConfig((prev) => (prev ? { ...prev, [key]: value } : prev));
+    setConfig((prev) => (prev ? {
+      ...prev,
+      [key]: key === "ticketCommissionRate" ? (Number(value) || 0) / 100 : value,
+    } : prev));
   };
 
   const handleSave = async () => {
@@ -133,10 +138,15 @@ export default function PaymentsPage() {
           ) : (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-gold-100 dark:bg-gold-900/50 px-3 py-1 text-sm font-medium text-gold-700 dark:text-gold-400">
               <AlertTriangle className="h-4 w-4" />
-              M-Pesa not configured — payments will fail until credentials are added
+              M-Pesa setup is incomplete
             </span>
           )}
         </div>
+        {!config.configured && config.missingFields.length > 0 && (
+          <p className="mb-6 max-w-2xl text-sm text-charcoal-600 dark:text-charcoal-300">
+            Still needed: {config.missingFields.join(", ")}. Payments stay unavailable until these fields are complete.
+          </p>
+        )}
 
         <Card className="max-w-2xl">
           <CardTitle className="mb-4">M-Pesa (Daraja)</CardTitle>
@@ -190,17 +200,18 @@ export default function PaymentsPage() {
             />
 
             <Input
-              label="Callback Secret (optional)"
+              label="Proxy callback secret (optional)"
               type="password"
-              placeholder="Shared secret verified on M-Pesa callbacks"
+              placeholder="Only for a proxy that adds the x-eventicate-callback header"
               value={config.mpesaCallbackSecret}
               onChange={(e) => update("mpesaCallbackSecret", e.target.value)}
             />
           </div>
 
           <p className="mt-4 text-xs text-charcoal-500 dark:text-charcoal-400">
-            Credentials are stored in the database and applied immediately. Existing values are masked and left blank
-            to keep them. Get test credentials at{" "}
+            Credentials are stored in the platform database and masked on this screen. Existing values stay unchanged when left masked.
+            Safaricom cannot send custom callback headers, so the proxy secret is optional; successful and failed callbacks
+            are verified against Daraja transaction status. For test credentials, use{" "}
             <a
               href="https://developer.safaricom.co.ke/test_credentials"
               target="_blank"
@@ -211,6 +222,24 @@ export default function PaymentsPage() {
             </a>
             .
           </p>
+
+          <div className="mt-8 border-t border-charcoal-200 pt-6 dark:border-charcoal-800">
+            <h2 className="font-display text-lg font-semibold text-charcoal-900 dark:text-charcoal-100">Eventickets commission</h2>
+            <p className="mb-4 mt-2 text-sm text-charcoal-600 dark:text-charcoal-300">
+              Default platform share for paid ticket orders. Free tickets remain free. The rate is saved with each paid order.
+            </p>
+            <div className="max-w-xs">
+              <Input
+                label="Platform commission (%)"
+                type="number"
+                min="0"
+                max="20"
+                step="0.5"
+                value={String(Math.round(config.ticketCommissionRate * 10000) / 100)}
+                onChange={(e) => update("ticketCommissionRate", e.target.value)}
+              />
+            </div>
+          </div>
 
           {error && <p className="mt-3 text-sm text-terracotta-600 dark:text-terracotta-400">{error}</p>}
           {saved && (

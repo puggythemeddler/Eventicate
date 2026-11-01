@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import prisma from "../../lib/prisma";
 import { getSession } from "../../lib/auth";
-import { invalidateMpesaConfigCache } from "../../lib/mpesa";
+import { getMpesaReadiness, invalidateMpesaConfigCache } from "../../lib/mpesa";
 
 const configSchema = z.object({
   mpesaEnv: z.enum(["sandbox", "production"]).default("sandbox"),
@@ -12,6 +12,7 @@ const configSchema = z.object({
   mpesaShortcode: z.string().trim().default("174379"),
   mpesaCallbackUrl: z.string().trim().url().optional().or(z.literal("")),
   mpesaCallbackSecret: z.string().trim().optional(),
+  ticketCommissionRate: z.number().min(0).max(0.2).default(0.06),
 });
 
 const router = Router();
@@ -23,19 +24,22 @@ router.get("/", async (req, res) => {
   }
 
   const config = await prisma.systemConfig.findUnique({ where: { id: "default" } });
+  const readiness = await getMpesaReadiness();
 
   const masked = (v: string | null | undefined) =>
     v ? (v.length > 8 ? `${v.slice(0, 4)}****${v.slice(-4)}` : "****") : "";
 
   return res.status(200).json({
-    mpesaEnv: config?.mpesaEnv || "sandbox",
-    mpesaConsumerKey: masked(config?.mpesaConsumerKey),
-    mpesaConsumerSecret: masked(config?.mpesaConsumerSecret),
-    mpesaPasskey: masked(config?.mpesaPasskey),
-    mpesaShortcode: config?.mpesaShortcode || "174379",
-    mpesaCallbackUrl: config?.mpesaCallbackUrl || "",
-    mpesaCallbackSecret: masked(config?.mpesaCallbackSecret),
-    configured: Boolean(config?.mpesaConsumerKey && config?.mpesaConsumerSecret && config?.mpesaPasskey),
+    mpesaEnv: config?.mpesaEnv || process.env.MPESA_ENV || "sandbox",
+    mpesaConsumerKey: masked(config?.mpesaConsumerKey || process.env.MPESA_CONSUMER_KEY),
+    mpesaConsumerSecret: masked(config?.mpesaConsumerSecret || process.env.MPESA_CONSUMER_SECRET),
+    mpesaPasskey: masked(config?.mpesaPasskey || process.env.MPESA_PASSKEY),
+    mpesaShortcode: config?.mpesaShortcode || process.env.MPESA_SHORTCODE || "174379",
+    mpesaCallbackUrl: config?.mpesaCallbackUrl || readiness.callbackUrl,
+    mpesaCallbackSecret: masked(config?.mpesaCallbackSecret || process.env.MPESA_CALLBACK_SECRET),
+    configured: readiness.configured,
+    missingFields: readiness.missingFields,
+    ticketCommissionRate: config?.ticketCommissionRate ?? 0.06,
   });
 });
 
@@ -68,6 +72,7 @@ router.put("/", async (req, res) => {
       mpesaShortcode: body.mpesaShortcode || current?.mpesaShortcode || "174379",
       mpesaCallbackUrl: body.mpesaCallbackUrl === "" ? "" : (body.mpesaCallbackUrl || current?.mpesaCallbackUrl || ""),
       mpesaCallbackSecret: pick("mpesaCallbackSecret"),
+      ticketCommissionRate: body.ticketCommissionRate ?? current?.ticketCommissionRate ?? 0.06,
     });
 
     await prisma.systemConfig.upsert({
@@ -79,18 +84,21 @@ router.put("/", async (req, res) => {
     invalidateMpesaConfigCache();
 
     const updated = await prisma.systemConfig.findUnique({ where: { id: "default" } });
+    const readiness = await getMpesaReadiness();
     const masked = (v: string | null | undefined) =>
       v ? (v.length > 8 ? `${v.slice(0, 4)}****${v.slice(-4)}` : "****") : "";
 
     return res.status(200).json({
-      mpesaEnv: updated?.mpesaEnv || "sandbox",
-      mpesaConsumerKey: masked(updated?.mpesaConsumerKey),
-      mpesaConsumerSecret: masked(updated?.mpesaConsumerSecret),
-      mpesaPasskey: masked(updated?.mpesaPasskey),
-      mpesaShortcode: updated?.mpesaShortcode || "174379",
-      mpesaCallbackUrl: updated?.mpesaCallbackUrl || "",
-      mpesaCallbackSecret: masked(updated?.mpesaCallbackSecret),
-      configured: Boolean(updated?.mpesaConsumerKey && updated?.mpesaConsumerSecret && updated?.mpesaPasskey),
+      mpesaEnv: updated?.mpesaEnv || process.env.MPESA_ENV || "sandbox",
+      mpesaConsumerKey: masked(updated?.mpesaConsumerKey || process.env.MPESA_CONSUMER_KEY),
+      mpesaConsumerSecret: masked(updated?.mpesaConsumerSecret || process.env.MPESA_CONSUMER_SECRET),
+      mpesaPasskey: masked(updated?.mpesaPasskey || process.env.MPESA_PASSKEY),
+      mpesaShortcode: updated?.mpesaShortcode || process.env.MPESA_SHORTCODE || "174379",
+      mpesaCallbackUrl: updated?.mpesaCallbackUrl || readiness.callbackUrl,
+      mpesaCallbackSecret: masked(updated?.mpesaCallbackSecret || process.env.MPESA_CALLBACK_SECRET),
+      configured: readiness.configured,
+      missingFields: readiness.missingFields,
+      ticketCommissionRate: updated?.ticketCommissionRate ?? 0.06,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

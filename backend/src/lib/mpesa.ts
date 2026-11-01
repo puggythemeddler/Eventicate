@@ -59,15 +59,35 @@ export function invalidateMpesaConfigCache() {
 }
 
 export async function isMpesaConfigured(): Promise<boolean> {
-  const cfg = await loadMpesaConfig();
-  return Boolean(cfg.consumerKey && cfg.consumerSecret && cfg.passkey);
+  return (await getMpesaReadiness()).configured;
 }
 
 export async function getMpesaReadiness() {
   const cfg = await loadMpesaConfig();
+  const callbackUrlIsPublicHttps = /^https:\/\//i.test(cfg.callbackUrl);
+  const fields = {
+    consumerKey: Boolean(cfg.consumerKey),
+    consumerSecret: Boolean(cfg.consumerSecret),
+    passkey: Boolean(cfg.passkey),
+    shortcode: Boolean(cfg.shortcode),
+    callbackUrl: callbackUrlIsPublicHttps,
+  };
+  const labels: Record<keyof typeof fields, string> = {
+    consumerKey: "Consumer key",
+    consumerSecret: "Consumer secret",
+    passkey: "Lipa na M-Pesa passkey",
+    shortcode: "Paybill or till shortcode",
+    callbackUrl: "Public HTTPS callback URL",
+  };
+  const missingFields = (Object.keys(fields) as (keyof typeof fields)[])
+    .filter((field) => !fields[field])
+    .map((field) => labels[field]);
   return {
     environment: cfg.env === "production" ? "production" : "sandbox",
-    configured: Boolean(cfg.consumerKey && cfg.consumerSecret && cfg.passkey && cfg.callbackSecret && cfg.callbackUrl),
+    configured: missingFields.length === 0,
+    fields,
+    missingFields,
+    callbackUrl: cfg.callbackUrl,
   };
 }
 

@@ -104,6 +104,31 @@ export default async function HomePage({ searchParams }: {
           </div>
         </section>
 
+        <section className="border-b border-charcoal-200 bg-sand px-4 py-8 dark:border-charcoal-800 dark:bg-charcoal-900" aria-label="Choose how to use Eventicate">
+          <div className="mx-auto grid max-w-7xl gap-0 md:grid-cols-2">
+            <article className="border-b border-charcoal-300 py-6 md:border-b-0 md:border-r md:pr-10 dark:border-charcoal-700">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-charcoal-500 dark:text-charcoal-400">Plan an event</p>
+              <h2 className="mt-2 font-display text-2xl font-semibold">Find the people and services you need.</h2>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-charcoal-600 dark:text-charcoal-300">
+                Compare local providers, ask for quotations and keep bookings together as you plan.
+              </p>
+              <Link href="#plan" className="mt-4 inline-flex items-center gap-2 font-medium text-primary-700 hover:underline dark:text-primary-300">
+                Find event services <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </article>
+            <article className="py-6 md:pl-10">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-charcoal-500 dark:text-charcoal-400">Discover events</p>
+              <h2 className="mt-2 font-display text-2xl font-semibold">Find something to go to.</h2>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-charcoal-600 dark:text-charcoal-300">
+                Browse public events and reserve a free ticket, or publish your event for people to find.
+              </p>
+              <Link href="/tickets" className="mt-4 inline-flex items-center gap-2 font-medium text-primary-700 hover:underline dark:text-primary-300">
+                Browse events and tickets <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </article>
+          </div>
+        </section>
+
         <section id="plan" aria-label="Find providers by service and location" className="scroll-mt-20 px-4 pt-8">
           <div className="mx-auto max-w-7xl"><PlanningForm /></div>
         </section>

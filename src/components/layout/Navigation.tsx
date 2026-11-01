@@ -14,6 +14,7 @@ import {
   Camera, UtensilsCrossed, Building2, RefreshCw, BarChart3,
   CreditCard, FileText, MapPin, ShoppingCart, Menu, X, Palette,
   MessageCircle, Layers, MessageSquareWarning, Plus, ClipboardList,
+  Ticket,
 } from "lucide-react";
 
 interface NavItem {
@@ -31,6 +32,7 @@ const dashboardItem: NavItem = { href: "/dashboard", label: "Dashboard", icon: <
 const eventsItem: NavItem = { href: "/dashboard/events", label: "My Events", icon: <Calendar className="h-4 w-4" /> };
 const searchItem: NavItem = { href: "/search", label: "Find Services", icon: <Search className="h-4 w-4" /> };
 const cartItem: NavItem = { href: "/dashboard/cart", label: "Cart", icon: <ShoppingCart className="h-4 w-4" /> };
+const ticketEventsItem: NavItem = { href: "/organizer/tickets", label: "Ticket events", icon: <Ticket className="h-4 w-4" /> };
 const bookingsItem: NavItem = { href: "/dashboard/bookings", label: "Bookings", icon: <Package className="h-4 w-4" /> };
 const documentsItem: NavItem = { href: "/dashboard/documents", label: "Documents", icon: <FileText className="h-4 w-4" /> };
 const messagesItem: NavItem = { href: "/dashboard/messages", label: "Messages", icon: <MessageSquare className="h-4 w-4" /> };
@@ -38,7 +40,7 @@ const complaintsItem: NavItem = { href: "/dashboard/complaints", label: "Complai
 
 const customerGroups: NavGroup[] = [
   { label: "Overview", items: [dashboardItem] },
-  { label: "Planning", items: [eventsItem, searchItem, cartItem] },
+  { label: "Planning", items: [eventsItem, searchItem, cartItem, ticketEventsItem] },
   { label: "Activity", items: [bookingsItem, documentsItem, messagesItem, complaintsItem] },
 ];
 
@@ -60,7 +62,7 @@ const providerGroups: NavGroup[] = [
   { label: "Overview", items: [providerDashboardItem] },
   { label: "Bookings & Chat", items: [providerBookingsItem, providerCalendarItem, providerMessagesItem] },
   { label: "Inventory", items: [providerServicesItem, providerEquipmentItem, providerListingsItem] },
-  { label: "Business", items: [providerDocumentsItem, providerReviewsItem, providerSyncItem, providerSubscriptionItem, providerAnalyticsItem, complaintsItem, providerSettingsItem] },
+  { label: "Business", items: [providerDocumentsItem, providerReviewsItem, providerSyncItem, providerSubscriptionItem, providerAnalyticsItem, ticketEventsItem, complaintsItem, providerSettingsItem] },
 ];
 
 const adminOverviewItem: NavItem = { href: "/admin", label: "Overview", icon: <BarChart3 className="h-4 w-4" /> };
@@ -205,6 +207,7 @@ export function Sidebar({ role }: { role: "CUSTOMER" | "PROVIDER" | "ADMIN" }) {
 
 const MARKET_LINKS = [
   { href: "/search", label: "Explore" },
+  { href: "/tickets", label: "Tickets" },
   { href: "/search?category=VENUE", label: "Venues" },
   { href: "/search?category=CATERING", label: "Catering" },
   { href: "/search?category=TENTS", label: "Rentals" },
