@@ -63,7 +63,7 @@ router.post("/", uploadLimiter, (req, res) => {
     // Role gate: providers upload their own content, admins handle branding/global,
     // and message attachments are allowed for any logged-in user.
     const PROVIDER_FOLDERS = new Set([
-      "services", "venues", "equipment", "vehicles", "menuPackages", "photoPackages", "verification", "complaints",
+      "providers", "services", "venues", "equipment", "vehicles", "menuPackages", "photoPackages", "verification", "complaints",
     ]);
     const ADMIN_FOLDERS = new Set(["logos", "providers", "verification", "complaints"]);
     if (session.role === "CUSTOMER" && type !== "messages" && type !== "complaints") {

@@ -224,6 +224,7 @@ model ProviderProfile {
   category        ServiceCategory
   logoUrl         String?
   coverImageUrl   String?
+  coverImageIsDemo Boolean      @default(false)
   address         String?
   city            String?
   country         String?

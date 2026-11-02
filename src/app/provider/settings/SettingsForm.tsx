@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Input";
+import { ProviderCoverPhoto } from "./ProviderCoverPhoto";
 import { SERVICE_CATEGORIES, EVENT_TYPES } from "@/lib/constants";
 import { formatCurrency } from "@/lib/utils";
 import { useCurrency } from "@/hooks/useCurrency";
-import { Tag } from "lucide-react";
+import { ArrowRight, Tag } from "lucide-react";
 import { CardTitle, Card } from "@/components/ui/Card";
 
 const categoryOptions = SERVICE_CATEGORIES.map((c) => ({ value: c.value, label: c.label }));
@@ -25,6 +27,7 @@ interface SettingsFormProps {
     website: string | null;
     logoUrl: string | null;
     coverImageUrl: string | null;
+    coverImageIsDemo: boolean;
     travelOutsideArea: boolean;
     travelRadius: number | null;
     defaultDiscount: number;
@@ -50,36 +53,48 @@ export function SettingsForm({
   const currency = useCurrency();
   const discountedServicesCount = currentServices.filter((s) => s.discountPercent > 0).length;
   const [formError, setFormError] = useState("");
+  const [coverImageUrl, setCoverImageUrl] = useState(provider.coverImageUrl || "");
+  const [coverImageIsDemo, setCoverImageIsDemo] = useState(provider.coverImageIsDemo);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [businessSaving, setBusinessSaving] = useState(false);
 
   async function handleBusinessSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setFormError("");
     const form = e.currentTarget;
     const formData = new FormData(form);
-    const res = await fetch("/api/provider/settings", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        businessName: formData.get("businessName"),
-        description: formData.get("description") || undefined,
-        category: formData.get("category"),
-        address: formData.get("address") || undefined,
-        city: formData.get("city") || undefined,
-        country: formData.get("country") || undefined,
-        phone: formData.get("phone") || undefined,
-        whatsapp: formData.get("whatsapp") || undefined,
-        website: formData.get("website") || undefined,
-        logoUrl: formData.get("logoUrl") || undefined,
-        coverImageUrl: formData.get("coverImageUrl") || undefined,
-        travelOutsideArea: formData.get("travelOutsideArea") === "on",
-        travelRadius: formData.get("travelRadius") ? Number(formData.get("travelRadius")) : null,
-      }),
-    });
-    if (res.ok) {
-      alert("Settings saved successfully!");
-    } else {
-      const data = await res.json().catch(() => ({}));
-      setFormError(data.error || "Failed to save settings. Please try again.");
+    setBusinessSaving(true);
+    try {
+      const res = await fetch("/api/provider/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          businessName: formData.get("businessName"),
+          description: formData.get("description") || undefined,
+          category: formData.get("category"),
+          address: formData.get("address") || undefined,
+          city: formData.get("city") || undefined,
+          country: formData.get("country") || undefined,
+          phone: formData.get("phone") || undefined,
+          whatsapp: formData.get("whatsapp") || undefined,
+          website: formData.get("website") || undefined,
+          logoUrl: formData.get("logoUrl") || undefined,
+          coverImageUrl: formData.get("coverImageUrl") ?? "",
+          coverImageIsDemo: formData.get("coverImageIsDemo") === "on",
+          travelOutsideArea: formData.get("travelOutsideArea") === "on",
+          travelRadius: formData.get("travelRadius") ? Number(formData.get("travelRadius")) : null,
+        }),
+      });
+      if (res.ok) {
+        alert("Settings saved successfully!");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setFormError(data.error || "Failed to save settings. Please try again.");
+      }
+    } catch {
+      setFormError("We couldn’t save your settings. Check your connection and try again.");
+    } finally {
+      setBusinessSaving(false);
     }
   }
 
@@ -223,22 +238,50 @@ export function SettingsForm({
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Input
-              label="Logo URL"
-              name="logoUrl"
-              defaultValue={provider.logoUrl || ""}
-              placeholder="https://..."
+          <Input
+            label="Logo URL"
+            name="logoUrl"
+            defaultValue={provider.logoUrl || ""}
+            placeholder="https://..."
+          />
+
+          <input type="hidden" name="coverImageUrl" value={coverImageUrl} readOnly />
+          <ProviderCoverPhoto
+            value={coverImageUrl}
+            onChange={(url) => {
+              setCoverImageUrl(url);
+              if (!url) setCoverImageIsDemo(false);
+            }}
+            onUploadingChange={setPhotoUploading}
+          />
+          <label className="flex items-start gap-3 rounded-lg bg-sand p-4 dark:bg-charcoal-800">
+            <input
+              type="checkbox"
+              name="coverImageIsDemo"
+              checked={coverImageIsDemo}
+              disabled={!coverImageUrl || photoUploading}
+              onChange={(event) => setCoverImageIsDemo(event.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-charcoal-300 text-primary-600 focus:ring-primary-500 dark:border-charcoal-700"
             />
-            <Input
-              label="Cover Image URL"
-              name="coverImageUrl"
-              defaultValue={provider.coverImageUrl || ""}
-              placeholder="https://..."
-            />
+            <span>
+              <span className="block text-sm font-medium text-charcoal-900 dark:text-charcoal-100">This is an illustrative or demo photo</span>
+              <span className="mt-1 block text-xs leading-relaxed text-charcoal-600 dark:text-charcoal-300">Customers will see an “Illustrative photo” label on it. Leave this off for photos of your own work.</span>
+            </span>
+          </label>
+
+          <div className="rounded-lg bg-sand p-4 dark:bg-charcoal-800">
+            <h3 className="text-sm font-semibold text-charcoal-900 dark:text-charcoal-100">Add examples of your work</h3>
+            <p className="mt-1 text-sm leading-relaxed text-charcoal-600 dark:text-charcoal-300">
+              Add a few photos to your services, venues, menus or equipment listings. They’ll appear on your public profile. Use your own work, or mark sample images as illustrative in their description.
+            </p>
+            <Link href="/provider/listings" className="mt-3 inline-flex min-h-11 items-center gap-2 font-medium text-primary-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-500 dark:text-primary-300">
+              Manage listing photos <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
           </div>
 
-          <Button type="submit">Save Settings</Button>
+          <Button type="submit" disabled={photoUploading || businessSaving}>
+            {businessSaving ? "Saving…" : "Save Settings"}
+          </Button>
         </form>
       </Card>
 

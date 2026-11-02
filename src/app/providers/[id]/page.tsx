@@ -36,6 +36,7 @@ interface ProviderData {
   description: string | null;
   verificationStatus: string;
   coverImageUrl: string | null;
+  coverImageIsDemo: boolean;
   logoUrl: string | null;
   totalReviews: number;
   phone: string | null;
@@ -200,13 +201,18 @@ export default async function ProviderProfilePage({
       <div className="relative h-64 w-full bg-charcoal-900 md:h-72">
         <Image
           src={coverImage}
-          alt={provider.businessName}
+          alt={provider.coverImageIsDemo ? "" : `${provider.businessName} cover photo`}
           fill
           priority
           sizes="100vw"
           className="object-cover opacity-80"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950/90 via-charcoal-950/40 to-charcoal-950/20" />
+        {provider.coverImageIsDemo && (
+          <span className="absolute right-4 top-4 rounded-md bg-charcoal-950/85 px-3 py-1.5 text-xs font-medium text-cream">
+            Illustrative photo
+          </span>
+        )}
       </div>
 
       <div className="mx-auto max-w-5xl px-4">

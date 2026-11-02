@@ -132,7 +132,7 @@ async function main() {
     where: { email: "pa@soundpro.com" },
     update: {
       phone: "+254700000003",
-      providerProfile: { update: { city: "Nairobi", country: "Kenya", coverImageUrl: IMG.djBooth } },
+      providerProfile: { update: { city: "Nairobi", country: "Kenya", coverImageUrl: IMG.djBooth, coverImageIsDemo: true } },
     },
     create: {
       email: "pa@soundpro.com",
@@ -148,6 +148,7 @@ async function main() {
           description: "Professional PA and audio equipment for all event types. Full setup and operator services available.",
           category: "PA_SYSTEM",
           coverImageUrl: IMG.djBooth,
+          coverImageIsDemo: true,
           city: "Nairobi",
           country: "Kenya",
           isApproved: true,
@@ -164,7 +165,7 @@ async function main() {
     where: { email: "catering@delight.com" },
     update: {
       phone: "+254700000004",
-      providerProfile: { update: { city: "Mombasa", country: "Kenya", coverImageUrl: IMG.weddingBuffet } },
+      providerProfile: { update: { city: "Mombasa", country: "Kenya", coverImageUrl: IMG.weddingBuffet, coverImageIsDemo: true } },
     },
     create: {
       email: "catering@delight.com",
@@ -180,6 +181,7 @@ async function main() {
           description: "Premium catering for weddings, funerals, corporate events, and celebrations.",
           category: "CATERING",
           coverImageUrl: IMG.weddingBuffet,
+          coverImageIsDemo: true,
           city: "Mombasa",
           country: "Kenya",
           isApproved: true,
@@ -196,7 +198,7 @@ async function main() {
     where: { email: "venue@grandhall.com" },
     update: {
       phone: "+254700000005",
-      providerProfile: { update: { city: "Nairobi", country: "Kenya", coverImageUrl: IMG.gardenPavilion } },
+      providerProfile: { update: { city: "Nairobi", country: "Kenya", coverImageUrl: IMG.gardenPavilion, coverImageIsDemo: true } },
     },
     create: {
       email: "venue@grandhall.com",
@@ -212,6 +214,7 @@ async function main() {
           description: "Elegant venue space for up to 500 guests. Perfect for weddings and corporate events.",
           category: "VENUE",
           coverImageUrl: IMG.gardenPavilion,
+          coverImageIsDemo: true,
           city: "Nairobi",
           country: "Kenya",
           isApproved: true,
@@ -228,7 +231,7 @@ async function main() {
     where: { email: "tents@canopy.com" },
     update: {
       phone: "+254700000006",
-      providerProfile: { update: { city: "Nairobi", country: "Kenya", coverImageUrl: IMG.marqueeGarden } },
+      providerProfile: { update: { city: "Nairobi", country: "Kenya", coverImageUrl: IMG.marqueeGarden, coverImageIsDemo: true } },
     },
     create: {
       email: "tents@canopy.com",
@@ -244,6 +247,7 @@ async function main() {
           description: "Marquee and canopy tents for weddings, outdoor events, and corporate functions. Setup and teardown included.",
           category: "TENTS",
           coverImageUrl: IMG.marqueeGarden,
+          coverImageIsDemo: true,
           city: "Nairobi",
           country: "Kenya",
           isApproved: true,

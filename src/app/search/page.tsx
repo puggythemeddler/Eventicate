@@ -27,6 +27,7 @@ interface Provider {
   verificationStatus: string;
   images: string[];
   coverImageUrl: string | null;
+  coverImageIsDemo: boolean;
   services: { name: string; basePrice: number }[];
 }
 
@@ -399,6 +400,7 @@ function SearchContent() {
                     ...provider,
                     totalReviews: provider.totalReviews,
                     coverImageUrl: provider.coverImageUrl ?? provider.images?.[0] ?? null,
+                    coverImageIsDemo: provider.coverImageIsDemo,
                   }}
                 />
               ))}

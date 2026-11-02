@@ -62,6 +62,7 @@ interface FeaturedProvider {
   country: string | null;
   averageRating: number;
   verificationStatus: string;
+  coverImageIsDemo: boolean;
   images: string[];
   services: { name: string; basePrice: number }[];
   _count: { reviewsReceived: number };
@@ -184,6 +185,7 @@ export default async function HomePage({ searchParams }: {
                 </Link>
               ))}
             </div>
+            <p className="mt-4 text-xs text-charcoal-600 dark:text-charcoal-300">These demo photos illustrate service types. Provider cover photos are labelled when they’re illustrative.</p>
           </div>
         </section>
 

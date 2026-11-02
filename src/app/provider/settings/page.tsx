@@ -40,6 +40,7 @@ interface SettingsData {
     website: string | null;
     logoUrl: string | null;
     coverImageUrl: string | null;
+    coverImageIsDemo: boolean;
     travelOutsideArea: boolean;
     travelRadius: number | null;
     defaultDiscount: number;

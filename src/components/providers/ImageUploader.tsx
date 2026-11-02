@@ -21,6 +21,16 @@ export function ImageUploader({ type, value, onChange, label = "Images" }: Image
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
     setError(null);
+    if (files.some((file) => !["image/jpeg", "image/png", "image/webp"].includes(file.type))) {
+      setError("Choose JPG, PNG or WebP photos.");
+      e.target.value = "";
+      return;
+    }
+    if (files.some((file) => file.size > 10 * 1024 * 1024)) {
+      setError("Each photo must be smaller than 10 MB.");
+      e.target.value = "";
+      return;
+    }
     const withPreviews = files.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
@@ -70,11 +80,12 @@ export function ImageUploader({ type, value, onChange, label = "Images" }: Image
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp"
         multiple
         onChange={handleFiles}
         className="block w-full text-sm text-charcoal-500 dark:text-charcoal-400 file:mr-2 file:rounded file:border-0 file:bg-primary-50 file:px-2 file:py-1 file:text-sm file:font-medium file:text-primary-700 dark:file:bg-primary-900/30 dark:file:text-primary-300"
       />
+      <p className="mt-1 text-xs text-charcoal-500 dark:text-charcoal-400">JPG, PNG or WebP · up to 10 MB each. Use photos that represent your own work.</p>
       {uploading && (
         <p className="mt-1 flex items-center gap-1.5 text-xs text-charcoal-500 dark:text-charcoal-400">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />

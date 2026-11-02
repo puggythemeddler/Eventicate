@@ -20,6 +20,7 @@ const updateSchema = z.object({
   website: z.string().optional(),
   logoUrl: z.string().optional(),
   coverImageUrl: z.string().optional(),
+  coverImageIsDemo: z.boolean().optional(),
   defaultDiscount: z.number().min(0).max(100).optional(),
   applyDiscountToAll: z.boolean().optional(),
   travelOutsideArea: z.boolean().optional(),
@@ -71,7 +72,10 @@ router.patch("/", async (req, res) => {
 
     const updated = await prisma.providerProfile.update({
       where: { id: provider.id },
-      data,
+      data: {
+        ...data,
+        ...(data.coverImageUrl !== undefined && { coverImageUrl: data.coverImageUrl || null }),
+      },
     });
 
     if (newName && newName !== oldName && cloudinaryEnabled()) {

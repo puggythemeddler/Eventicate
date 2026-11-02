@@ -20,6 +20,7 @@ interface ListingCardProps {
     verificationStatus?: string;
     images?: string[];
     coverImageUrl?: string | null;
+    coverImageIsDemo?: boolean;
     services?: { name: string; basePrice: number }[];
   };
   className?: string;
@@ -68,6 +69,11 @@ export function ListingCard({ provider, className, backHref }: ListingCardProps)
         <div className="absolute left-3 top-3 rounded-md bg-charcoal-950 px-2 py-1 text-xs font-medium text-cream">
           {categoryLabel}
         </div>
+        {provider.coverImageIsDemo && (
+          <div className="absolute bottom-3 left-3 rounded-md bg-charcoal-950/90 px-2 py-1 text-[11px] font-medium text-cream">
+            Illustrative photo
+          </div>
+        )}
         {isVerified && (
           <div className="absolute right-3 top-3 flex items-center gap-1 rounded-md bg-gold-500/95 px-2 py-1 text-[11px] font-semibold text-charcoal-950">
             <ShieldCheck className="h-3.5 w-3.5" />
