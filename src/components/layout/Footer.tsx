@@ -82,7 +82,7 @@ export function Footer() {
           <p className="text-sm text-charcoal-500">
             © {new Date().getFullYear()} Eventicate. All rights reserved.
           </p>
-          <ThemeToggle />
+          <ThemeToggle inverted />
         </div>
       </div>
     </footer>
