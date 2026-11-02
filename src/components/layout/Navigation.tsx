@@ -242,7 +242,7 @@ export function PublicHeader() {
     : "/auth/login";
 
   const navLinks = (
-    <nav className="hidden items-center gap-6 lg:flex" aria-label="Marketplace">
+    <nav className="hidden items-center gap-6 xl:flex" aria-label="Marketplace">
       {MARKET_LINKS.map((link) => (
         <Link
           key={link.label}
@@ -260,7 +260,7 @@ export function PublicHeader() {
       <Link
         href="/search"
         aria-label="Search the marketplace"
-        className="rounded-lg border border-charcoal-700 p-2 text-charcoal-200 transition-colors hover:border-gold-500 hover:text-gold-300"
+        className="rounded-lg border border-charcoal-700 p-2 text-charcoal-200 transition-colors hover:border-gold-500 hover:text-gold-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500"
       >
         <Search className="h-4 w-4" />
       </Link>
@@ -290,7 +290,7 @@ export function PublicHeader() {
         onClick={() => setMobileOpen((open) => !open)}
         aria-label="Toggle menu"
         aria-expanded={mobileOpen}
-        className="rounded-lg border border-charcoal-700 p-2 text-charcoal-200 hover:border-gold-500 hover:text-gold-300 lg:hidden"
+        className="rounded-lg border border-charcoal-700 p-2 text-charcoal-200 hover:border-gold-500 hover:text-gold-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500 xl:hidden"
       >
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
@@ -311,7 +311,7 @@ export function PublicHeader() {
         </div>
       </div>
       {mobileOpen && (
-        <nav className="border-t border-charcoal-800 bg-charcoal-950 px-4 py-4 lg:hidden">
+        <nav className="border-t border-charcoal-800 bg-charcoal-950 px-4 py-4 xl:hidden">
           <div className="flex flex-col gap-1">
             {MARKET_LINKS.map((link) => (
               <Link

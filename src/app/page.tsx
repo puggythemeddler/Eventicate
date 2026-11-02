@@ -5,13 +5,33 @@ import { PlanningForm } from "@/components/home/PlanningForm";
 import { ListingCard } from "@/components/ui/ListingCard";
 import { serverApi } from "@/lib/server-api";
 import { isSolemnEvent } from "@/lib/constants";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CalendarDays, Ticket } from "lucide-react";
 
-const CATEGORIES = [
-  { href: "/search?category=VENUE", title: "Venues", description: "Find a space for your guest list." },
-  { href: "/search?category=CATERING", title: "Catering", description: "Compare menus and meal packages." },
-  { href: "/search?category=TENTS", title: "Tents & rentals", description: "Hire tents, chairs and tables." },
-  { href: "/search?category=ENTERTAINMENT", title: "Entertainment", description: "Find DJs, bands and MCs." },
+const SERVICE_SPOTLIGHTS = [
+  {
+    href: "/search?category=VENUE",
+    title: "Venues",
+    description: "Spaces for a small gathering or a full guest list.",
+    image: "https://res.cloudinary.com/u1ucoiox/image/upload/c_fill,w_1000,h_720,q_auto,f_auto/v1786893154/eventicate/Grand-Hall-Events/venues/garden-pavilion.jpg",
+  },
+  {
+    href: "/search?category=CATERING",
+    title: "Food & catering",
+    description: "Browse menus, buffet options and meal packages.",
+    image: "https://res.cloudinary.com/u1ucoiox/image/upload/c_fill,w_1000,h_720,q_auto,f_auto/v1786893155/eventicate/Delight-Catering-Co/catering/wedding-buffet.jpg",
+  },
+  {
+    href: "/search?category=ENTERTAINMENT",
+    title: "Music & entertainment",
+    description: "Find DJs and sound for the kind of day you have in mind.",
+    image: "https://res.cloudinary.com/u1ucoiox/image/upload/c_fill,w_1000,h_720,q_auto,f_auto/v1786893167/eventicate/SoundPro-PA-Systems/pa/dj-booth.jpg",
+  },
+  {
+    href: "/search?category=TENTS",
+    title: "Tents & rentals",
+    description: "Explore marquees and practical event equipment.",
+    image: "https://res.cloudinary.com/u1ucoiox/image/upload/c_fill,w_1000,h_720,q_auto,f_auto/v1793596684/eventicate/Tents-Africa/tents/marquee-garden-setup.jpg",
+  },
 ];
 
 const QUESTIONS = [
@@ -64,68 +84,49 @@ export default async function HomePage({ searchParams }: {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-dvh">
       <PublicHeader />
       <main>
-        <section className="relative bg-charcoal-950 text-cream">
-          <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 md:py-20 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16">
-            <div className="max-w-2xl">
-              <h1 className="max-w-xl font-display text-4xl font-semibold leading-tight md:text-6xl">
-                {solemn ? "Support for your gathering." : "Find your event people."}
+        <section className="bg-charcoal-950 px-4 py-12 text-cream md:py-16" aria-labelledby="home-heading">
+          <div className="mx-auto max-w-7xl">
+            <div className="max-w-5xl">
+              <h1 id="home-heading" className="max-w-5xl font-display text-4xl font-semibold leading-tight tracking-[-0.025em] md:text-5xl lg:text-6xl">
+                {solemn ? "Find support for the gathering ahead." : "Plan an event. Find one to attend."}
               </h1>
-              <p className="mt-6 max-w-xl text-lg leading-relaxed text-cream">
+              <p className="mt-5 max-w-2xl text-base leading-relaxed text-charcoal-100 md:text-lg">
                 {solemn
-                  ? "Find venues, catering and equipment hire for a respectful gathering in Kenya, Uganda or Tanzania."
-                  : "Find venues, caterers, photographers and equipment hire across Kenya, Uganda and Tanzania."}
-              </p>
-              <div className="mt-8 flex flex-wrap items-center gap-5">
-                <a href="#plan" className={actionClass}>
-                  Find a provider <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </a>
-                <Link href="/how-it-works" className="rounded-sm py-3 font-medium underline decoration-cream/50 underline-offset-4 hover:decoration-cream focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-500">
-                  How booking works
-                </Link>
-              </div>
-              <p className="mt-8 text-sm leading-relaxed text-charcoal-100">
-                {solemn ? "Start with your location and what you need." : "A wedding, a family gathering, a work event. Start with what you need."}
+                  ? "Find venues, catering and equipment for a respectful gathering. You can also browse public events across Kenya, Uganda and Tanzania."
+                  : "Find local event services or browse public events and available tickets."}
               </p>
             </div>
-            <aside className="hidden rounded-xl bg-charcoal-900 p-8 lg:block" aria-labelledby="enquiry-heading">
-              <h2 id="enquiry-heading" className="font-display text-2xl font-semibold">A useful first enquiry</h2>
-              <p className="mt-3 leading-relaxed text-charcoal-200">Help a provider put together a quotation that fits. Share:</p>
-              <ul className="mt-5 list-disc space-y-3 pl-5 text-charcoal-100 marker:text-gold-400">
-                <li>Your date and event location</li>
-                <li>How many guests you expect</li>
-                <li>The services or equipment you need</li>
-                <li>Whether you need delivery and setup</li>
-              </ul>
-              <p className="mt-6 text-sm leading-relaxed text-charcoal-200">Still working out the details? Browse first to see what’s available.</p>
-            </aside>
-          </div>
-        </section>
 
-        <section className="border-b border-charcoal-200 bg-sand px-4 py-8 dark:border-charcoal-800 dark:bg-charcoal-900" aria-label="Choose how to use Eventicate">
-          <div className="mx-auto grid max-w-7xl gap-0 md:grid-cols-2">
-            <article className="border-b border-charcoal-300 py-6 md:border-b-0 md:border-r md:pr-10 dark:border-charcoal-700">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-charcoal-500 dark:text-charcoal-400">Plan an event</p>
-              <h2 className="mt-2 font-display text-2xl font-semibold">Find the people and services you need.</h2>
-              <p className="mt-2 max-w-xl text-sm leading-relaxed text-charcoal-600 dark:text-charcoal-300">
-                Compare local providers, ask for quotations and keep bookings together as you plan.
-              </p>
-              <Link href="#plan" className="mt-4 inline-flex items-center gap-2 font-medium text-primary-700 hover:underline dark:text-primary-300">
-                Find event services <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </article>
-            <article className="py-6 md:pl-10">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-charcoal-500 dark:text-charcoal-400">Discover events</p>
-              <h2 className="mt-2 font-display text-2xl font-semibold">Find something to go to.</h2>
-              <p className="mt-2 max-w-xl text-sm leading-relaxed text-charcoal-600 dark:text-charcoal-300">
-                Browse public events and reserve a free ticket, or publish your event for people to find.
-              </p>
-              <Link href="/tickets" className="mt-4 inline-flex items-center gap-2 font-medium text-primary-700 hover:underline dark:text-primary-300">
-                Browse events and tickets <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </article>
+            <div className="mt-7 grid gap-3 md:mt-9 md:grid-cols-2 md:gap-5">
+              <article className="flex flex-col items-start rounded-xl bg-sand p-5 text-charcoal-900 md:p-8">
+                <div className="flex items-center gap-3 md:block">
+                  <CalendarDays className="h-5 w-5 shrink-0 text-primary-700 md:h-6 md:w-6" aria-hidden="true" />
+                  <h2 className="font-display text-xl font-semibold md:mt-5 md:text-2xl">Plan an event</h2>
+                </div>
+                <p className="mt-2 max-w-lg text-sm leading-relaxed text-charcoal-700 md:text-base">
+                  Compare providers, ask for quotes and keep bookings together.
+                </p>
+                <a href="#plan" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg bg-gold-500 px-5 py-2.5 font-medium text-charcoal-950 transition-colors hover:bg-gold-400 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-500 md:mt-6">
+                  Start planning <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </a>
+              </article>
+
+              <article className="flex flex-col items-start rounded-xl bg-charcoal-900 p-5 md:p-8">
+                <div className="flex items-center gap-3 md:block">
+                  <Ticket className="h-5 w-5 shrink-0 text-gold-300 md:h-6 md:w-6" aria-hidden="true" />
+                  <h2 className="font-display text-xl font-semibold md:mt-5 md:text-2xl">Find an event to attend</h2>
+                </div>
+                <p className="mt-2 max-w-lg text-sm leading-relaxed text-charcoal-100 md:text-base">
+                  Browse public events and check which tickets are available.
+                </p>
+                <Link href="/tickets" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-gold-400 px-5 py-2.5 font-medium text-cream transition-colors hover:bg-charcoal-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-500 md:mt-6">
+                  Browse events <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </article>
+            </div>
           </div>
         </section>
 
@@ -167,14 +168,19 @@ export default async function HomePage({ searchParams }: {
         <section className="bg-sand px-4 py-14 dark:bg-charcoal-900 md:py-20" aria-labelledby="categories-heading">
           <div className="mx-auto max-w-7xl">
             <h2 id="categories-heading" className="font-display text-3xl font-semibold md:text-4xl">Still making your list?</h2>
-            <p className="mt-3 text-charcoal-600 dark:text-charcoal-300">Start with the space, the food or the things you need to hire.</p>
-            <div className="mt-8 grid gap-x-10 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
-              {CATEGORIES.map((category) => (
-                <Link key={category.title} href={category.href} className="group rounded-lg py-3 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-500">
-                  <h3 className="flex items-center justify-between gap-3 font-display text-xl font-semibold">
-                    {category.title}<ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1 motion-reduce:transform-none" aria-hidden="true" />
-                  </h3>
-                  <p className="mt-2 text-sm text-charcoal-600 dark:text-charcoal-300">{category.description}</p>
+            <p className="mt-3 text-charcoal-600 dark:text-charcoal-300">Browse the services people use to bring a gathering together.</p>
+            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {SERVICE_SPOTLIGHTS.map((item) => (
+                <Link key={item.title} href={item.href} className="group overflow-hidden rounded-xl bg-cream text-charcoal-900 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-500 dark:bg-charcoal-950 dark:text-cream">
+                  <div className="aspect-[5/3] overflow-hidden bg-charcoal-100 dark:bg-charcoal-800">
+                    {/* Cloudinary demo portfolio imagery illustrates each service category. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={item.image} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
+                  </div>
+                  <div className="p-5">
+                    <h3 className="font-display text-xl font-semibold">{item.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-charcoal-600 dark:text-charcoal-300">{item.description}</p>
+                  </div>
                 </Link>
               ))}
             </div>

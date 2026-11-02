@@ -9,7 +9,7 @@ const IMG = {
   gardenPavilion: "https://res.cloudinary.com/u1ucoiox/image/upload/v1786893154/eventicate/Grand-Hall-Events/venues/garden-pavilion.jpg",
   weddingBuffet: "https://res.cloudinary.com/u1ucoiox/image/upload/v1786893155/eventicate/Delight-Catering-Co/catering/wedding-buffet.jpg",
   signaturePlate: "https://res.cloudinary.com/u1ucoiox/image/upload/v1786893159/eventicate/Delight-Catering-Co/catering/signature-plate.jpg",
-  marqueeTent: "https://res.cloudinary.com/u1ucoiox/image/upload/v1786893163/eventicate/Tents-Africa/tents/marquee-tent.jpg",
+  marqueeGarden: "https://res.cloudinary.com/u1ucoiox/image/upload/v1793596684/eventicate/Tents-Africa/tents/marquee-garden-setup.jpg",
   concertRig: "https://res.cloudinary.com/u1ucoiox/image/upload/v1786893165/eventicate/SoundPro-PA-Systems/pa/concert-rig.jpg",
   djBooth: "https://res.cloudinary.com/u1ucoiox/image/upload/v1786893167/eventicate/SoundPro-PA-Systems/pa/dj-booth.jpg",
 };
@@ -132,7 +132,7 @@ async function main() {
     where: { email: "pa@soundpro.com" },
     update: {
       phone: "+254700000003",
-      providerProfile: { update: { city: "Nairobi", country: "Kenya" } },
+      providerProfile: { update: { city: "Nairobi", country: "Kenya", coverImageUrl: IMG.djBooth } },
     },
     create: {
       email: "pa@soundpro.com",
@@ -147,6 +147,7 @@ async function main() {
           businessName: "SoundPro PA Systems",
           description: "Professional PA and audio equipment for all event types. Full setup and operator services available.",
           category: "PA_SYSTEM",
+          coverImageUrl: IMG.djBooth,
           city: "Nairobi",
           country: "Kenya",
           isApproved: true,
@@ -163,7 +164,7 @@ async function main() {
     where: { email: "catering@delight.com" },
     update: {
       phone: "+254700000004",
-      providerProfile: { update: { city: "Mombasa", country: "Kenya" } },
+      providerProfile: { update: { city: "Mombasa", country: "Kenya", coverImageUrl: IMG.weddingBuffet } },
     },
     create: {
       email: "catering@delight.com",
@@ -178,6 +179,7 @@ async function main() {
           businessName: "Delight Catering Co.",
           description: "Premium catering for weddings, funerals, corporate events, and celebrations.",
           category: "CATERING",
+          coverImageUrl: IMG.weddingBuffet,
           city: "Mombasa",
           country: "Kenya",
           isApproved: true,
@@ -194,7 +196,7 @@ async function main() {
     where: { email: "venue@grandhall.com" },
     update: {
       phone: "+254700000005",
-      providerProfile: { update: { city: "Nairobi", country: "Kenya" } },
+      providerProfile: { update: { city: "Nairobi", country: "Kenya", coverImageUrl: IMG.gardenPavilion } },
     },
     create: {
       email: "venue@grandhall.com",
@@ -209,6 +211,7 @@ async function main() {
           businessName: "Grand Hall Events",
           description: "Elegant venue space for up to 500 guests. Perfect for weddings and corporate events.",
           category: "VENUE",
+          coverImageUrl: IMG.gardenPavilion,
           city: "Nairobi",
           country: "Kenya",
           isApproved: true,
@@ -225,7 +228,7 @@ async function main() {
     where: { email: "tents@canopy.com" },
     update: {
       phone: "+254700000006",
-      providerProfile: { update: { city: "Nairobi", country: "Kenya" } },
+      providerProfile: { update: { city: "Nairobi", country: "Kenya", coverImageUrl: IMG.marqueeGarden } },
     },
     create: {
       email: "tents@canopy.com",
@@ -240,6 +243,7 @@ async function main() {
           businessName: "Tents Africa",
           description: "Marquee and canopy tents for weddings, outdoor events, and corporate functions. Setup and teardown included.",
           category: "TENTS",
+          coverImageUrl: IMG.marqueeGarden,
           city: "Nairobi",
           country: "Kenya",
           isApproved: true,
@@ -382,8 +386,8 @@ async function main() {
   // Tents equipment (KES)
   await prisma.equipment.createMany({
     data: [
-      { providerId: tentsProfile.id, name: "10x20 Marquee Tent", category: "tents", subcategory: "Marquees", quantity: 4, rentalPrice: 25000, setupCharge: 5000, transportCharge: 3000, locationCity: "Nairobi", locationCountry: "Kenya", images: JSON.stringify([IMG.marqueeTent]) },
-      { providerId: tentsProfile.id, name: "15x30 Wedding Marquee", category: "tents", subcategory: "Marquees", quantity: 2, rentalPrice: 45000, setupCharge: 8000, transportCharge: 4000, locationCity: "Nairobi", locationCountry: "Kenya", images: JSON.stringify([IMG.marqueeTent]) },
+      { providerId: tentsProfile.id, name: "10x20 Marquee Tent", category: "tents", subcategory: "Marquees", quantity: 4, rentalPrice: 25000, setupCharge: 5000, transportCharge: 3000, locationCity: "Nairobi", locationCountry: "Kenya", images: JSON.stringify([IMG.marqueeGarden]) },
+      { providerId: tentsProfile.id, name: "15x30 Wedding Marquee", category: "tents", subcategory: "Marquees", quantity: 2, rentalPrice: 45000, setupCharge: 8000, transportCharge: 4000, locationCity: "Nairobi", locationCountry: "Kenya", images: JSON.stringify([IMG.marqueeGarden]) },
       { providerId: tentsProfile.id, name: "20x20 Canopy Tent", category: "tents", subcategory: "Canopies", quantity: 6, rentalPrice: 20000, setupCharge: 4000, transportCharge: 3000, locationCity: "Nairobi", locationCountry: "Kenya", images: JSON.stringify([]) },
       { providerId: tentsProfile.id, name: "Side Walls (Full Set)", category: "tents", subcategory: "Accessories", quantity: 20, rentalPrice: 3000, locationCity: "Nairobi", locationCountry: "Kenya", images: JSON.stringify([]) },
     ],
